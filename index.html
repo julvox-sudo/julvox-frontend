@@ -458,7 +458,7 @@ async function openDeal(id) {
       <h3>📈 Historique des prix (estimé)</h3>
       <div class="mini-chart">${bars}</div>
     </div>
-    <a class="cta-btn" href="${deal.affiliate_url || '#'}" target="_blank" onclick="showToast('✅ Lien affilié ouvert !')">
+    <a class="cta-btn" href="${deal.affiliate_url && deal.affiliate_url.startsWith('http') && !deal.affiliate_url.includes('julvox.com/deal') ? deal.affiliate_url : 'https://www.amazon.fr/?tag=julvox-21'}" target="_blank" onclick="showToast('✅ Lien affilié ouvert !')">
       🛒 Voir l'offre sur ${escHtml(deal.store)} →
     </a>
     <button class="cta-alert" onclick="createAlert('${escHtml(deal.name)}', ${deal.current_price})">
@@ -581,17 +581,17 @@ function setPage(p) {
 // ── Demo data (si API non lancée) ─────────────────────────────
 function getDemoDeals(cat) {
   const all = [
-    {id:1, name:'MacBook Air M3 16Go/512Go', brand:'Apple', category:'high-tech', store:'Amazon.fr', current_price:999, original_price:1499, discount_pct:33, novadeal_score:98, affiliate_url:'https://amazon.fr', detected_at:new Date().toISOString()},
-    {id:2, name:'Samsung Galaxy S25 Ultra 256Go', brand:'Samsung', category:'high-tech', store:'Darty.com', current_price:899, original_price:1329, discount_pct:32, novadeal_score:96, affiliate_url:'https://darty.com', detected_at:new Date().toISOString()},
-    {id:3, name:'PS5 Slim + 2 manettes + FIFA 25', brand:'Sony', category:'gaming', store:'Fnac.com', current_price:449, original_price:620, discount_pct:28, novadeal_score:94, affiliate_url:'https://fnac.com', detected_at:new Date().toISOString()},
-    {id:4, name:'Nike Air Max 270 — toutes tailles', brand:'Nike', category:'mode', store:'Nike.com', current_price:79, original_price:149, discount_pct:47, novadeal_score:91, affiliate_url:'https://nike.com', detected_at:new Date().toISOString()},
-    {id:5, name:'Lait Lactel 6×1L', brand:'Lactel', category:'alimentaire', store:'Carrefour', current_price:4.99, original_price:7.99, discount_pct:37, novadeal_score:85, affiliate_url:'https://carrefour.fr', detected_at:new Date().toISOString()},
+    {id:1, name:'MacBook Air M3 16Go/512Go', brand:'Apple', category:'high-tech', store:'Amazon.fr', current_price:999, original_price:1499, discount_pct:33, novadeal_score:98, affiliate_url:'https://www.amazon.fr/?tag=julvox-21', detected_at:new Date().toISOString()},
+    {id:2, name:'Samsung Galaxy S25 Ultra 256Go', brand:'Samsung', category:'high-tech', store:'Darty.com', current_price:899, original_price:1329, discount_pct:32, novadeal_score:96, affiliate_url:'https://www.darty.com/nav/extra/actu/promotions.html', detected_at:new Date().toISOString()},
+    {id:3, name:'PS5 Slim + 2 manettes + FIFA 25', brand:'Sony', category:'gaming', store:'Fnac.com', current_price:449, original_price:620, discount_pct:28, novadeal_score:94, affiliate_url:'https://www.fnac.com/Promotions/Promotions', detected_at:new Date().toISOString()},
+    {id:4, name:'Nike Air Max 270 — toutes tailles', brand:'Nike', category:'mode', store:'Nike.com', current_price:79, original_price:149, discount_pct:47, novadeal_score:91, affiliate_url:'https://www.nike.com/fr/w/promotions-3yaepzy7ok', detected_at:new Date().toISOString()},
+    {id:5, name:'Lait Lactel 6×1L', brand:'Lactel', category:'alimentaire', store:'Carrefour', current_price:4.99, original_price:7.99, discount_pct:37, novadeal_score:85, affiliate_url:'https://www.carrefour.fr/promotions', detected_at:new Date().toISOString()},
     {id:6, name:'Saumon fumé Label Rouge 200g', brand:'Labeyrie', category:'alimentaire', store:'Lidl.fr', current_price:3.99, original_price:6.49, discount_pct:38, novadeal_score:88, affiliate_url:'https://lidl.fr', detected_at:new Date().toISOString()},
-    {id:7, name:"Menu Best Of McDonald's", brand:"McDonald's", category:'restauration', store:"McDonald's", current_price:5.99, original_price:10.50, discount_pct:43, novadeal_score:82, affiliate_url:'https://mcdonalds.fr', detected_at:new Date().toISOString()},
-    {id:8, name:'Too Good To Go — Paul Boulangerie', brand:'Paul', category:'restauration', store:'Too Good To Go', current_price:3.99, original_price:9.99, discount_pct:60, novadeal_score:93, affiliate_url:'https://toogoodtogo.com', detected_at:new Date().toISOString()},
-    {id:9, name:'Sony WH-1000XM5', brand:'Sony', category:'high-tech', store:'Amazon.fr', current_price:219, original_price:380, discount_pct:42, novadeal_score:95, affiliate_url:'https://amazon.fr', detected_at:new Date().toISOString()},
-    {id:10, name:'Canapé convertible 3 places IKEA', brand:'IKEA', category:'maison', store:'IKEA.com', current_price:349, original_price:599, discount_pct:42, novadeal_score:87, affiliate_url:'https://ikea.com', detected_at:new Date().toISOString()},
-    {id:11, name:'Adidas Stan Smith Blanc', brand:'Adidas', category:'mode', store:'Zalando.fr', current_price:59, original_price:100, discount_pct:41, novadeal_score:84, affiliate_url:'https://zalando.fr', detected_at:new Date().toISOString()},
+    {id:7, name:"Menu Best Of McDonald's", brand:"McDonald's", category:'restauration', store:"McDonald's", current_price:5.99, original_price:10.50, discount_pct:43, novadeal_score:82, affiliate_url:'https://www.mcdonalds.fr/offres', detected_at:new Date().toISOString()},
+    {id:8, name:'Too Good To Go — Paul Boulangerie', brand:'Paul', category:'restauration', store:'Too Good To Go', current_price:3.99, original_price:9.99, discount_pct:60, novadeal_score:93, affiliate_url:'https://www.toogoodtogo.com/fr-fr', detected_at:new Date().toISOString()},
+    {id:9, name:'Sony WH-1000XM5', brand:'Sony', category:'high-tech', store:'Amazon.fr', current_price:219, original_price:380, discount_pct:42, novadeal_score:95, affiliate_url:'https://www.amazon.fr/?tag=julvox-21', detected_at:new Date().toISOString()},
+    {id:10, name:'Canapé convertible 3 places IKEA', brand:'IKEA', category:'maison', store:'IKEA.com', current_price:349, original_price:599, discount_pct:42, novadeal_score:87, affiliate_url:'https://www.ikea.com/fr/fr/offers/', detected_at:new Date().toISOString()},
+    {id:11, name:'Adidas Stan Smith Blanc', brand:'Adidas', category:'mode', store:'Zalando.fr', current_price:59, original_price:100, discount_pct:41, novadeal_score:84, affiliate_url:'https://www.zalando.fr/soldes', detected_at:new Date().toISOString()},
     {id:12, name:"Livraison offerte Uber Eats ce weekend", brand:'Uber Eats', category:'restauration', store:'Uber Eats', current_price:0, original_price:2.49, discount_pct:100, novadeal_score:78, affiliate_url:'https://ubereats.com', detected_at:new Date().toISOString()},
   ];
   return cat ? all.filter(d => d.category === cat) : all;
