@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Test API</title></head>
+<body style="background:#111;color:#fff;font-family:sans-serif;padding:20px">
+<h2>Test connexion API</h2>
+<div id="result" style="margin-top:20px;padding:16px;background:#222;border-radius:8px">Test en cours...</div>
+
+<script>
+const API = 'https://julvox-dealscan-backend-production.up.railway.app';
+
+async function test() {
+  const r = document.getElementById('result');
+  try {
+    r.innerHTML = '⏳ Connexion à ' + API + '...';
+    const res = await fetch(API + '/deals?limit=5');
+    r.innerHTML = '✅ Status HTTP : ' + res.status + '<br>';
+    const data = await res.json();
+    r.innerHTML += '✅ Données reçues : ' + JSON.stringify(data).substring(0, 200) + '...';
+  } catch(e) {
+    r.innerHTML = '❌ ERREUR : ' + e.message + '<br>Type : ' + e.name;
+  }
+}
+
+test();
+</script>
+</body>
+</html>
