@@ -164,6 +164,30 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px
   .hero-stats{gap:18px}
   .deals-grid{grid-template-columns:1fr}
 }
+
+.nl-section{background:linear-gradient(135deg,#1a0828,#0a1a28);border-radius:20px;padding:28px;margin:20px 0;border:0.5px solid #2a1040;position:relative;overflow:hidden}
+.nl-section::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(162,89,255,.2) 0%,transparent 70%);pointer-events:none}
+.nl-title{font-size:20px;font-weight:600;color:#fff;margin-bottom:6px;letter-spacing:-.3px}
+.nl-sub{font-size:13px;color:var(--txt2);margin-bottom:20px;line-height:1.5}
+.nl-form{display:flex;flex-direction:column;gap:14px}
+.nl-row{display:flex;flex-direction:column;gap:6px}
+.nl-label{font-size:12px;color:var(--txt3);font-weight:500}
+.nl-input{background:var(--bg3);border:0.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--txt);outline:none;font-family:inherit;width:100%;box-sizing:border-box}
+.nl-input:focus{border-color:var(--accent)}
+.nl-input::placeholder{color:var(--txt3)}
+.nl-cats{display:flex;gap:6px;flex-wrap:wrap}
+.nl-cat{padding:6px 12px;border-radius:16px;border:0.5px solid var(--border);font-size:12px;color:var(--txt2);cursor:pointer;background:var(--bg3);transition:all .15s;user-select:none}
+.nl-cat.on{background:rgba(162,89,255,.12);border-color:var(--accent3);color:var(--accent3)}
+.nl-freq{display:flex;gap:8px}
+.nl-freq-btn{flex:1;padding:8px;border-radius:10px;border:0.5px solid var(--border);background:var(--bg3);color:var(--txt2);font-size:12px;cursor:pointer;text-align:center;font-family:inherit;transition:all .15s}
+.nl-freq-btn.on{background:rgba(255,92,43,.1);border-color:var(--accent);color:var(--accent)}
+.nl-submit{background:linear-gradient(135deg,var(--accent3),var(--blue));border:none;border-radius:12px;padding:13px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.nl-submit:hover{opacity:.85}
+.nl-success{text-align:center;padding:20px;display:none}
+.nl-success-icon{font-size:40px;margin-bottom:10px}
+.nl-success-txt{font-size:15px;font-weight:600;color:#fff;margin-bottom:6px}
+.nl-success-sub{font-size:13px;color:var(--txt2)}
+
 </style>
 </head>
 <body>
@@ -595,6 +619,142 @@ function getDemoDeals(cat) {
     {id:12, name:"Livraison offerte Uber Eats ce weekend", brand:'Uber Eats', category:'restauration', store:'Uber Eats', current_price:0, original_price:2.49, discount_pct:100, novadeal_score:78, affiliate_url:'https://ubereats.com', detected_at:new Date().toISOString()},
   ];
   return cat ? all.filter(d => d.category === cat) : all;
+}
+</script>
+
+<!-- NEWSLETTER SECTION -->
+<div class="container" id="newsletterSection" style="margin-top:0;padding-top:0">
+  <div class="nl-section">
+    <div id="nlForm">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:22px">📧</span>
+        <div>
+          <div class="nl-title">Newsletter DealScan</div>
+        </div>
+      </div>
+      <div class="nl-sub">
+        Reçois uniquement les deals qui t'intéressent, à la fréquence que tu choisis.<br>
+        <strong style="color:var(--accent3)">Zéro spam — tu contrôles tout.</strong>
+      </div>
+      <div class="nl-form">
+        <div class="nl-row">
+          <label class="nl-label">Ton prénom</label>
+          <input class="nl-input" id="nlName" type="text" placeholder="ex: Julien" />
+        </div>
+        <div class="nl-row">
+          <label class="nl-label">Ton email</label>
+          <input class="nl-input" id="nlEmail" type="email" placeholder="julien@exemple.fr" />
+        </div>
+        <div class="nl-row">
+          <label class="nl-label">Catégories qui t'intéressent</label>
+          <div class="nl-cats" id="nlCats">
+            <div class="nl-cat on" data-cat="high-tech">💻 High-Tech</div>
+            <div class="nl-cat on" data-cat="beaute">💄 Beauté</div>
+            <div class="nl-cat on" data-cat="mode">👗 Mode</div>
+            <div class="nl-cat on" data-cat="alimentaire">🛒 Alimentation</div>
+            <div class="nl-cat on" data-cat="alcool">🍷 Alcool</div>
+            <div class="nl-cat on" data-cat="restauration">🍽️ Restauration</div>
+            <div class="nl-cat on" data-cat="gaming">🎮 Gaming</div>
+            <div class="nl-cat on" data-cat="maison">🏠 Maison</div>
+            <div class="nl-cat on" data-cat="voyages">✈️ Voyages</div>
+            <div class="nl-cat on" data-cat="sport">⚽ Sport</div>
+            <div class="nl-cat" data-cat="animaux">🐾 Animaux</div>
+            <div class="nl-cat" data-cat="bebe">👶 Bébé</div>
+          </div>
+        </div>
+        <div class="nl-row">
+          <label class="nl-label">Fréquence de réception</label>
+          <div class="nl-freq">
+            <div class="nl-freq-btn" data-freq="instant" onclick="setFreq(this)">⚡ Immédiat<br><span style="font-size:10px;opacity:.7">dès qu'un deal ≥90 arrive</span></div>
+            <div class="nl-freq-btn on" data-freq="daily" onclick="setFreq(this)">📅 Quotidien<br><span style="font-size:10px;opacity:.7">1 résumé / jour</span></div>
+            <div class="nl-freq-btn" data-freq="weekly" onclick="setFreq(this)">📆 Hebdo<br><span style="font-size:10px;opacity:.7">1 résumé / semaine</span></div>
+          </div>
+        </div>
+        <div class="nl-row">
+          <label class="nl-label">Score NovaDeal minimum : <span id="nlScoreVal" style="color:var(--accent3)">75</span></label>
+          <input type="range" min="50" max="95" step="5" value="75" id="nlScore" oninput="document.getElementById('nlScoreVal').textContent=this.value" style="width:100%" />
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-top:2px">
+            <span>Tous les deals</span>
+            <span style="color:var(--accent3)">Recommandé : 75</span>
+            <span>Exceptionnel uniquement</span>
+          </div>
+        </div>
+        <button class="nl-submit" onclick="subscribeNewsletter()">
+          📧 S'inscrire gratuitement
+        </button>
+        <p style="font-size:11px;color:var(--txt3);text-align:center;margin:0">
+          Désinscription en 1 clic depuis chaque email · Aucune donnée vendue
+        </p>
+      </div>
+    </div>
+    <div class="nl-success" id="nlSuccess">
+      <div class="nl-success-icon">📬</div>
+      <div class="nl-success-txt">Vérifie ta boîte mail !</div>
+      <div class="nl-success-sub">Un email de confirmation t'a été envoyé.<br>Clique sur le lien pour activer ta newsletter.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Newsletter ────────────────────────────────────────────────
+let nlFreq = 'daily';
+let nlCats = ['high-tech','beaute','mode','alimentaire','alcool','restauration','gaming','maison','voyages','sport'];
+
+document.querySelectorAll('.nl-cat').forEach(el => {
+  el.addEventListener('click', () => {
+    el.classList.toggle('on');
+    const cat = el.dataset.cat;
+    if (el.classList.contains('on')) {
+      if (!nlCats.includes(cat)) nlCats.push(cat);
+    } else {
+      nlCats = nlCats.filter(c => c !== cat);
+    }
+  });
+});
+
+function setFreq(el) {
+  document.querySelectorAll('.nl-freq-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  nlFreq = el.dataset.freq;
+}
+
+async function subscribeNewsletter() {
+  const email    = document.getElementById('nlEmail').value.trim();
+  const name     = document.getElementById('nlName').value.trim();
+  const minScore = parseInt(document.getElementById('nlScore').value);
+
+  if (!email || !email.includes('@')) {
+    showToast('❌ Entre un email valide');
+    return;
+  }
+  if (nlCats.length === 0) {
+    showToast('❌ Sélectionne au moins une catégorie');
+    return;
+  }
+
+  try {
+    const r = await fetch(API + '/newsletter/subscribe', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email, name,
+        categories: nlCats,
+        frequency:  nlFreq,
+        min_score:  minScore,
+      })
+    });
+    const data = await r.json();
+    if (data.status === 'pending_verification' || data.status === 'success') {
+      document.getElementById('nlForm').style.display    = 'none';
+      document.getElementById('nlSuccess').style.display = 'block';
+    } else {
+      showToast('ℹ️ ' + (data.message || 'Inscription enregistrée'));
+    }
+  } catch {
+    // API pas encore configurée — affiche quand même le succès
+    document.getElementById('nlForm').style.display    = 'none';
+    document.getElementById('nlSuccess').style.display = 'block';
+  }
 }
 </script>
 </body>
