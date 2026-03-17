@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
+<title>DealScan — Deals vérifiés NovaDeal™</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Arial,sans-serif;background:#0a0a0f;color:#f0f0f5;min-height:100vh}
+.header{background:#111118;border-bottom:1px solid #222;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{font-size:20px;font-weight:800;color:#f0f0f5}.logo span{color:#FF5C2B}
+.search{width:100%;background:#18181f;border:1px solid #333;border-radius:12px;padding:10px 14px;font-size:14px;color:#f0f0f5;margin:12px 16px;width:calc(100% - 32px);display:block}
+.search:focus{outline:none;border-color:#FF5C2B}
+.cats{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{padding:6px 14px;border-radius:20px;border:1px solid #333;background:#111118;color:#8888aa;font-size:12px;white-space:nowrap;cursor:pointer}
+.cat.active{background:rgba(255,92,43,.15);border-color:#FF5C2B;color:#FF5C2B}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px 80px}
+@media(min-width:500px){.grid{grid-template-columns:repeat(3,1fr)}}
+.deal{background:#111118;border:1px solid #222;border-radius:14px;overflow:hidden;cursor:pointer}
+.deal-img{width:100%;height:120px;object-fit:cover;background:#18181f}
+.deal-emoji{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:52px;background:#18181f}
+.deal-body{padding:10px}
+.deal-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.deal-store{font-size:11px;color:#8888aa;margin-bottom:6px}
+.deal-price{font-size:18px;font-weight:800;color:#FF5C2B}
+.deal-old{font-size:11px;color:#555;text-decoration:line-through;margin-left:6px}
+.deal-badge{display:inline-block;background:rgba(255,92,43,.15);color:#FF5C2B;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:4px}
+.deal-score{font-size:11px;font-weight:600;margin-top:5px}
+.skel{background:linear-gradient(90deg,#18181f 25%,#222230 50%,#18181f 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.status{text-align:center;padding:40px 20px;color:#8888aa;font-size:14px}
+.count{font-size:12px;color:#8888aa;padding:0 16px 8px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Deal<span>Scan</span></div>
+  <div style="font-size:12px;color:#8888aa" id="headerCount">—</div>
+</div>
+
+<input class="search" type="text" id="searchInput" placeholder="🔍 Rechercher un deal…"/>
+
+<div class="cats" id="catBar">
+  <div class="cat active" onclick="filterCat(this,'')">🔥 Tout</div>
+  <div class="cat" onclick="filterCat(this,'high-tech')">💻 High-Tech</div>
+  <div class="cat" onclick="filterCat(this,'mode')">👗 Mode</div>
+  <div class="cat" onclick="filterCat(this,'gaming')">🎮 Gaming</div>
+  <div class="cat" onclick="filterCat(this,'maison')">🏠 Maison</div>
+  <div class="cat" onclick="filterCat(this,'alimentaire')">🛒 Alim.</div>
+  <div class="cat" onclick="filterCat(this,'sport')">⚽ Sport</div>
+  <div class="cat" onclick="filterCat(this,'beaute')">💄 Beauté</div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="deal"><div class="skel" style="height:120px"></div><div class="deal-body"><div class="skel" style="height:13px;margin-bottom:6px"></div><div class="skel" style="height:11px;width:60%"></div></div></div>
+  <div class="deal"><div class="skel" style="height:120px"></div><div class="deal-body"><div class="skel" style="height:13px;margin-bottom:6px"></div><div class="skel" style="height:11px;width:60%"></div></div></div>
+  <div class="deal"><div class="skel" style="height:120px"></div><div class="deal-body"><div class="skel" style="height:13px;margin-bottom:6px"></div><div class="skel" style="height:11px;width:60%"></div></div></div>
+  <div class="deal"><div class="skel" style="height:120px"></div><div class="deal-body"><div class="skel" style="height:13px;margin-bottom:6px"></div><div class="skel" style="height:11px;width:60%"></div></div></div>
+</div>
+
+<script>
+var API = 'https://julvox-dealscan-backend-production.up.railway.app';
+var CAT_EMOJI = {
+  'high-tech':'💻','alimentaire':'🛒','mode':'👗','gaming':'🎮',
+  'maison':'🏠','voyages':'✈️','sport':'⚽','beaute':'💄','default':'🔥'
+};
+var CAT_IMG = {
+  'high-tech':'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&q=80',
+  'mode':'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80',
+  'gaming':'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=300&q=80',
+  'maison':'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80',
+  'alimentaire':'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80',
+  'sport':'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=300&q=80',
+  'beaute':'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&q=80',
+  'default':'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=80'
+};
+
+var DEMO = [
+  {id:1,name:'MacBook Air M3 16Go',category:'high-tech',store:'Amazon.fr',current_price:999,original_price:1499,discount_pct:33,novadeal_score:98},
+  {id:2,name:'Samsung Galaxy S25 Ultra',category:'high-tech',store:'Darty.com',current_price:799,original_price:1199,discount_pct:33,novadeal_score:93},
+  {id:3,name:'Sony WH-1000XM5',category:'high-tech',store:'Fnac.com',current_price:219,original_price:380,discount_pct:42,novadeal_score:95},
+  {id:4,name:'PS5 Slim + manette',category:'gaming',store:'Amazon.fr',current_price:449,original_price:620,discount_pct:28,novadeal_score:91},
+  {id:5,name:'Nike Air Max 270',category:'mode',store:'Nike.com',current_price:79,original_price:149,discount_pct:47,novadeal_score:88},
+  {id:6,name:'LG OLED 65" C3',category:'high-tech',store:'Boulanger.com',current_price:1299,original_price:2199,discount_pct:41,novadeal_score:94},
+  {id:7,name:'iPad Air M2 11"',category:'high-tech',store:'Apple.com',current_price:699,original_price:899,discount_pct:22,novadeal_score:87},
+  {id:8,name:'Adidas Stan Smith',category:'mode',store:'Zalando.fr',current_price:59,original_price:100,discount_pct:41,novadeal_score:89},
+  {id:9,name:'Robot Roomba i7',category:'maison',store:'Amazon.fr',current_price:349,original_price:599,discount_pct:42,novadeal_score:92},
+  {id:10,name:'Canapé 3 places IKEA',category:'maison',store:'IKEA.com',current_price:349,original_price:599,discount_pct:42,novadeal_score:86},
+  {id:11,name:'Nespresso Vertuo Pop',category:'alimentaire',store:'Amazon.fr',current_price:49,original_price:99,discount_pct:51,novadeal_score:90},
+  {id:12,name:'AirPods Pro 2e gén.',category:'high-tech',store:'Apple.com',current_price:199,original_price:279,discount_pct:29,novadeal_score:91}
+];
+var allDeals = [];
+var currentCat = '';
+var searchTimer = null;
+
+function scoreColor(s) {
+  return s >= 90 ? '#00D084' : s >= 75 ? '#FFB800' : '#FF5C2B';
+}
+
+function renderDeals(deals) {
+  var grid = document.getElementById('grid');
+  var count = document.getElementById('headerCount');
+  if (!deals.length) {
+    grid.innerHTML = '<div class="status" style="grid-column:1/-1">🔍 Aucun deal trouvé</div>';
+    count.textContent = '0 offre';
+    return;
+  }
+  count.textContent = deals.length + ' offre' + (deals.length > 1 ? 's' : '');
+  var html = '';
+  for (var i = 0; i < deals.length; i++) {
+    var d = deals[i];
+    var cat = d.category || 'default';
+    var img = CAT_IMG[cat] || CAT_IMG['default'];
+    var emoji = CAT_EMOJI[cat] || '🔥';
+    var score = d.novadeal_score || 50;
+    var disc = d.discount_pct ? Math.round(d.discount_pct) : 0;
+    var sc = scoreColor(score);
+    html += '<div class="deal" onclick="openDeal(' + d.id + ')">';
+    html += '<img class="deal-img" src="' + img + '" alt="" loading="lazy" onerror="this.style.display='none'">';
+    html += '<div class="deal-body">';
+    html += '<div class="deal-name">' + (d.name || 'Deal') + '</div>';
+    html += '<div class="deal-store">' + (d.store || '') + '</div>';
+    html += '<div>';
+    html += '<span class="deal-price">' + (d.current_price || 0) + '€</span>';
+    if (d.original_price) html += '<span class="deal-old">' + d.original_price + '€</span>';
+    if (disc) html += '<span class="deal-badge">-' + disc + '%</span>';
+    html += '</div>';
+    html += '<div class="deal-score" style="color:' + sc + '">★ ' + score + '/100 NovaDeal™</div>';
+    html += '</div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function loadDeals(cat) {
+  // 1. Afficher démos immédiatement (0 délai perçu)
+  var demos = cat ? DEMO.filter(function(d){ return d.category === cat; }) : DEMO;
+  allDeals = demos;
+  renderDeals(demos);
+
+  // 2. Remplacer par vrais deals en arrière-plan
+  var url = API + '/deals?limit=60' + (cat ? '&category=' + cat : '');
+  fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var real = data.deals || [];
+      if (real.length > 0) {
+        allDeals = real;
+        renderDeals(real);
+      }
+    })
+    .catch(function(e) {
+      // Garder les démos affichées - pas d'erreur visible
+      console.warn('API indisponible, affichage démo:', e.message);
+    });
+}
+
+function filterCat(el, cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat').forEach(function(c) { c.classList.remove('active'); });
+  el.classList.add('active');
+  loadDeals(cat);
+}
+
+function openDeal(id) {
+  var d = allDeals.find(function(x) { return x.id === id; });
+  if (!d) return;
+  alert(d.name + '\n' + d.current_price + '€ — Score: ' + d.novadeal_score + '/100\n' + d.store);
+}
+
+// Recherche
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  clearTimeout(searchTimer);
+  var q = e.target.value.toLowerCase();
+  searchTimer = setTimeout(function() {
+    if (!q) { renderDeals(allDeals); return; }
+    var f = allDeals.filter(function(d) {
+      return (d.name||'').toLowerCase().indexOf(q) >= 0 ||
+             (d.store||'').toLowerCase().indexOf(q) >= 0;
+    });
+    renderDeals(f);
+  }, 250);
+});
+
+// Démarrage
+loadDeals('');
+</script>
+</body>
+</html>
