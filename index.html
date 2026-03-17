@@ -2521,7 +2521,7 @@ a{text-decoration:none}
 // ══════════════════════════════════════════════════════════════
 
 // ── Service Worker (cache offline) ───────────────────────────
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && location.hostname === 'julvox.com') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
@@ -2545,14 +2545,19 @@ function debounce(fn, delay = 300) {
 
 // ── Request avec timeout (évite les blocages UI) ─────────────
 async function fetchWithTimeout(url, options = {}, timeout = 8000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
+  // Utiliser AbortSignal.timeout() natif si disponible (pas cloneable par SW)
+  // Sinon fetch sans timeout pour éviter l'erreur postMessage
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(id);
-    return res;
+    if (AbortSignal.timeout) {
+      const sig = AbortSignal.timeout(timeout);
+      return await fetch(url, { ...options, signal: sig });
+    }
+    // Fallback: race avec Promise.reject
+    return await Promise.race([
+      fetch(url, options),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), timeout))
+    ]);
   } catch(e) {
-    clearTimeout(id);
     throw e;
   }
 }
@@ -2742,8 +2747,8 @@ async function loadDeals(cat = '', minSc = 0) {
     const sig1 = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
     // Essayer /deals/cached d'abord, fallback sur /deals si route manquante
     let r = await fetch(`${API}/deals/cached?${params}`, sig1 ? { signal: sig1 } : {});
-    if (r.status === 404 || r.status === 405) {
-      // Route /deals/cached pas encore déployée → utiliser /deals
+    if (r.status >= 400) {
+      // Route /deals/cached indisponible → utiliser /deals
       const sig2 = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
       r = await fetch(`${API}/deals?${params}`, sig2 ? { signal: sig2 } : {});
     }
