@@ -1476,7 +1476,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      RAPPORT MENSUEL PUBLIC
@@ -1496,7 +1496,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      PRO B2B — Plans & Tarifs
@@ -1518,58 +1518,16 @@ a{text-decoration:none}
 </div>
 
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Comparer en magasin
 ══════════════════════════════════════════════════════════ -->
 
 <!-- ══ ATTENTE 📷 SCANNER CODE-BARRES — En attente (1000 users) ══
-<div class="page" id="scanPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('scanPage')">← Retour</button>
-    <div class="page-title">📷 Scan Produit</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Scannez le code-barres d'un produit en magasin pour voir les prix en ligne en temps réel.
-    </p>
 
-    <!-- Scanner simulé (en prod: utiliser BarcodeDetector API ou ZXing) -->
-    <div style="position:relative;border-radius:20px;background:#000;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center" id="scannerArea">
-      <div style="position:relative;width:220px;height:220px">
-        <div class="scanner-corner-tl"></div>
-        <div class="scanner-corner-tr"></div>
-        <div class="scanner-corner-bl"></div>
-        <div class="scanner-corner-br"></div>
-        <div class="scanner-line"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
-          <div style="font-size:40px">📷</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.6);text-align:center">Pointez vers<br>le code-barres</div>
-        </div>
-      </div>
-    </div>
 
-    <button onclick="startBarcodeScanner()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;margin-bottom:10px">
-      📷 Activer la caméra
-    </button>
-
-    <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--txt3)">ou</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-
-    <div style="display:flex;gap:8px">
-      <input class="analyze-input" type="text" id="manualBarcode" placeholder="Entrer EAN/UPC manuellement…" style="flex:1"/>
-      <button onclick="lookupBarcode()" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--txt);flex-shrink:0">🔍</button>
-    </div>
-
-    <div id="scanResults" style="margin-top:16px"></div>
-  </div>
-</div>
-
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL SQUAD — Achats groupés
@@ -1619,7 +1577,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL DU JOUR — Page dédiée avec partage
@@ -1698,7 +1656,7 @@ a{text-decoration:none}
 </div>
 
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Vérification produit en magasin
@@ -1862,62 +1820,12 @@ a{text-decoration:none}
 <!-- ══════════════════════════════════════════════════════════
      MODE BUDGET
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="budgetPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('budgetPage')">← Retour</button>
-    <div class="page-title">💰 Mode Budget</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Définissez votre budget — DealScan sélectionne automatiquement les meilleurs deals pour maximiser votre pouvoir d'achat.
-    </p>
-    <div class="budget-slider-wrap">
-      <div style="font-size:12px;color:var(--txt3);text-align:center;margin-bottom:4px">VOTRE BUDGET</div>
-      <div class="budget-amount" id="budgetDisplay">100€</div>
-      <input type="range" class="budget-slider" id="budgetSlider" min="20" max="2000" value="100" step="10"
-             oninput="updateBudgetDisplay(this.value)"/>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt3)"><span>20€</span><span>2000€</span></div>
-    </div>
 
-    <div style="font-size:12px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Catégories (optionnel)</div>
-    <div class="budget-cat-grid" id="budgetCatGrid">
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'high-tech')"><div class="cat-emoji">💻</div><div class="cat-name">High-Tech</div></div>
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'mode')"><div class="cat-emoji">👗</div><div class="cat-name">Mode</div></div>
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'gaming')"><div class="cat-emoji">🎮</div><div class="cat-name">Gaming</div></div>
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'maison')"><div class="cat-emoji">🏠</div><div class="cat-name">Maison</div></div>
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'alimentaire')"><div class="cat-emoji">🛒</div><div class="cat-name">Alim.</div></div>
-      <div class="budget-cat-item" onclick="toggleBudgetCat(this,'voyages')"><div class="cat-emoji">✈️</div><div class="cat-name">Voyages</div></div>
-    </div>
-
-    <button onclick="runBudgetOptimize()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;font-family:'Syne',sans-serif;margin-top:4px">
-      💰 Optimiser mon budget
-    </button>
-    <div id="budgetResults" style="margin-top:16px"></div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      WISHLIST TRACKING
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="wishlistPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('wishlistPage')">← Retour</button>
-    <div class="page-title">🎯 Ma Wishlist</div>
-  </div>
-  <div class="page-body">
-    <div class="submit-form" style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">➕ Surveiller un produit</div>
-      <input class="submit-input" type="text" id="wishName" placeholder="Nom du produit…"/>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input class="submit-input" type="number" id="wishCurrentPrice" placeholder="Prix actuel (€)" step="0.01"/>
-        <input class="submit-input" type="number" id="wishTargetPrice" placeholder="Prix cible (€)" step="0.01"/>
-      </div>
-      <button class="submit-btn" onclick="addToWishlist()">🎯 Surveiller le prix</button>
-    </div>
-    <div style="font-size:12px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Produits surveillés</div>
-    <div id="wishlistItems"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
-  </div>
-</div>
+
 
 <!-- ══════════════════════════════════════════════════════════
      SOCIAL CONTENT — TikTok, Instagram, Twitter
@@ -2112,7 +2020,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      CONTENU SOCIAL — Scripts TikTok & Instagram
@@ -2154,7 +2062,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DARK PATTERNS DETECTOR
@@ -2179,7 +2087,7 @@ a{text-decoration:none}
 </div>
 
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      ASSISTANT IA DEALSCAN
@@ -2243,7 +2151,7 @@ a{text-decoration:none}
 </div>
 
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      CASHBACK
@@ -2300,7 +2208,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      ANALYTICS OWNER (caché si pas owner)
@@ -2317,7 +2225,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      WIDGET EMBED — Pour partenaires
@@ -2361,7 +2269,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      PARAMÈTRES NOTIFICATIONS AVANCÉS
@@ -2418,7 +2326,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-══ FIN ATTENTE ══ -->
+<!-- ══ FIN ATTENTE ══ -->
 
 <!-- OFFLINE BAR -->
 <div class="offline-bar" id="offlineBar">📡 Hors ligne — deals affichés depuis le cache</div>
