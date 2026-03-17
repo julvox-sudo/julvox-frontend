@@ -3,85 +3,72 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DealScan — Test v2</title>
+<title>DealScan Test</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #0a0a0f; color: #f0f0f5; padding: 16px; }
-h1 { color: #FF5C2B; margin-bottom: 16px; font-size: 20px; }
-.status { padding: 12px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
-.ok  { background: rgba(0,208,132,.12); border: 1px solid #00D084; color: #00D084; }
-.err { background: rgba(255,59,48,.12); border: 1px solid #FF3B30; color: #FF3B30; }
-.deal {
-  background: #111118; border: 1px solid #222230;
-  border-radius: 14px; padding: 14px; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 12px;
-}
-.deal-emoji { font-size: 36px; flex-shrink: 0; width: 56px; text-align: center; }
-.deal-info { flex: 1; }
-.deal-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.deal-store { font-size: 12px; color: #8888aa; margin-bottom: 6px; }
-.deal-price { font-size: 20px; font-weight: 800; color: #FF5C2B; }
-.deal-old { font-size: 13px; color: #555; text-decoration: line-through; margin-left: 8px; }
-.deal-score { font-size: 12px; font-weight: 700; color: #00D084; margin-top: 4px; }
-.deal-badge { 
-  display: inline-block; background: rgba(255,92,43,.15); 
-  color: #FF5C2B; font-size: 11px; font-weight: 700;
-  padding: 2px 8px; border-radius: 6px; margin-left: 8px;
-}
+body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f5;padding:16px;margin:0}
+h1{color:#FF5C2B;font-size:18px;margin-bottom:12px}
+.box{background:#111118;border:1px solid #333;border-radius:10px;padding:12px;margin-bottom:10px;font-size:13px;line-height:1.6}
+.ok{border-color:#00D084;color:#00D084}
+.err{border-color:#FF3B30;color:#FF3B30}
+.deal{background:#111118;border:1px solid #FF5C2B;border-radius:10px;padding:12px;margin-bottom:8px}
+.name{font-weight:700;font-size:14px;margin-bottom:4px}
+.price{color:#FF5C2B;font-size:18px;font-weight:800}
+.score{color:#00D084;font-size:12px;margin-top:4px}
 </style>
 </head>
 <body>
-<h1>🔥 DealScan — Test deals</h1>
-<div id="status" class="status">⏳ Chargement...</div>
+<h1>🔥 DealScan — Diagnostic</h1>
+
+<div id="log" class="box">⏳ Test en cours...</div>
 <div id="deals"></div>
 
 <script>
-const API = 'https://julvox-dealscan-backend-production.up.railway.app';
-const EMOJI = {'high-tech':'💻','alimentaire':'🛒','mode':'👗','gaming':'🎮','maison':'🏠','voyages':'✈️','sport':'⚽','beaute':'💄','default':'🔥'};
+var API = 'https://julvox-dealscan-backend-production.up.railway.app';
+var log = document.getElementById('log');
+var deals = document.getElementById('deals');
 
-async function load() {
-  const statusEl = document.getElementById('status');
-  const dealsEl  = document.getElementById('deals');
-  
-  try {
-    const r    = await fetch(API + '/deals?limit=20&min_score=0');
-    const data = await r.json();
-    const deals = data.deals || [];
-    
-    statusEl.className = 'status ok';
-    statusEl.textContent = '✅ ' + deals.length + ' deals chargés depuis l'API';
-    
-    if (!deals.length) {
-      dealsEl.innerHTML = '<div class="status err">⚠️ Aucun deal dans la base</div>';
-      return;
-    }
-    
-    dealsEl.innerHTML = deals.map(d => {
-      const emoji = EMOJI[d.category] || EMOJI.default;
-      const score = d.novadeal_score || 0;
-      const disc  = d.discount_pct ? Math.round(d.discount_pct) : 0;
-      return '<div class="deal">' +
-        '<div class="deal-emoji">' + emoji + '</div>' +
-        '<div class="deal-info">' +
-          '<div class="deal-name">' + (d.name || '?') + '</div>' +
-          '<div class="deal-store">' + (d.store || '') + '</div>' +
-          '<div>' +
-            '<span class="deal-price">' + d.current_price + '€</span>' +
-            (d.original_price ? '<span class="deal-old">' + d.original_price + '€</span>' : '') +
-            (disc ? '<span class="deal-badge">-' + disc + '%</span>' : '') +
-          '</div>' +
-          '<div class="deal-score">★ ' + score + '/100 NovaDeal™</div>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-    
-  } catch(e) {
-    statusEl.className = 'status err';
-    statusEl.textContent = '❌ Erreur: ' + e.message;
-  }
+function addLog(msg, ok) {
+  log.innerHTML += '<br>' + msg;
+  if (ok !== undefined) log.className = 'box ' + (ok ? 'ok' : 'err');
 }
 
-load();
+// Test 1: fetch basique
+log.innerHTML = '1. Test connexion API...';
+
+fetch(API + '/deals?limit=10')
+  .then(function(r) {
+    addLog('2. Status HTTP: ' + r.status, r.ok);
+    return r.json();
+  })
+  .then(function(data) {
+    var arr = data.deals || [];
+    addLog('3. Deals reçus: ' + arr.length, arr.length > 0);
+
+    if (arr.length === 0) {
+      addLog('❌ Aucun deal — base de données vide ?', false);
+      return;
+    }
+
+    addLog('4. Affichage des cards...', true);
+
+    var html = '';
+    for (var i = 0; i < arr.length; i++) {
+      var d = arr[i];
+      html += '<div class="deal">';
+      html += '<div class="name">' + (d.name || 'Sans nom') + '</div>';
+      html += '<div>' + (d.store || '') + '</div>';
+      html += '<div class="price">' + (d.current_price || 0) + '€';
+      if (d.original_price) html += ' <span style="font-size:12px;color:#555;text-decoration:line-through">' + d.original_price + '€</span>';
+      html += '</div>';
+      html += '<div class="score">★ ' + (d.novadeal_score || 0) + '/100 — ' + (d.category || '') + '</div>';
+      html += '</div>';
+    }
+    deals.innerHTML = html;
+  })
+  .catch(function(e) {
+    addLog('❌ Erreur: ' + e.message, false);
+    addLog('Vérifier CORS ou que Railway tourne');
+  });
 </script>
 </body>
 </html>
