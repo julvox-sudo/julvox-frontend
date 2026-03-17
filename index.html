@@ -1051,7 +1051,7 @@ a{text-decoration:none}
     <a onclick="openPage('cguPage')">CGU</a> ·
     <a onclick="openPage('privacyPage')">Confidentialité</a> ·
     <a onclick="resetCookieConsent()">Cookies</a> ·
-    <a href="mailto:contact@julvox.com">Contact</a>
+    <a href="/cdn-cgi/l/email-protection#96f5f9f8e2f7f5e2d6fce3fae0f9eeb8f5f9fb">Contact</a>
   </div>
 </footer>
 
@@ -1269,7 +1269,7 @@ a{text-decoration:none}
     <div class="legal-block">
       <div class="legal-block-title">🛡️ Vos droits RGPD</div>
       <div class="legal-block-text" style="margin-bottom:10px">Accès, rectification, effacement, portabilité, opposition — exercez vos droits depuis Mon Compte ou via :</div>
-      <a href="mailto:contact@julvox.com" style="color:var(--accent);font-size:14px;font-weight:600">contact@julvox.com</a>
+      <a href="/cdn-cgi/l/email-protection#86e5e9e8f2e7e5f2c6ecf3eaf0e9fea8e5e9eb" style="color:var(--accent);font-size:14px;font-weight:600"><span class="__cf_email__" data-cfemail="b6d5d9d8c2d7d5c2f6dcc3dac0d9ce98d5d9db">[email&#160;protected]</span></a>
       <div style="font-size:12px;color:var(--txt3);margin-top:8px">Autorité de contrôle : CNIL — <a href="https://www.cnil.fr" style="color:var(--txt3)">www.cnil.fr</a></div>
       <div style="margin-top:14px">
         <div style="font-size:13px;color:var(--txt2);margin-bottom:8px">🗑️ Demander la suppression de mon compte et mes données :</div>
@@ -1833,7 +1833,7 @@ a{text-decoration:none}
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <div style="font-size:12px;color:var(--txt3);line-height:1.6">
-        DealScan by Julvox — julvox.com · contact@julvox.com<br>
+        DealScan by Julvox — julvox.com · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c0f0302180d0f182c0619001a0314420f0301">[email&#160;protected]</a><br>
         Données mises à jour en temps réel · Score NovaDeal™ breveté
       </div>
     </div>
@@ -2517,7 +2517,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── CONFIG ────────────────────────────────────────────────────
 
 // ══════════════════════════════════════════════════════════════
@@ -2973,20 +2973,20 @@ async function _enrichDealModal(deal) {
     const alerts= (analysis.predictive_alert || {}).alerts || [];
     let html = '';
     if (fake.is_fake) {
-      html += \`<div style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);border-radius:12px;padding:12px;margin-bottom:10px">
+      html += `<div style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);border-radius:12px;padding:12px;margin-bottom:10px">
         <div style="font-size:12px;font-weight:700;color:#FF3B30;margin-bottom:6px">⚠️ Signaux de fausse promo détectés</div>
-        \${(fake.reasons||[]).slice(0,2).map(r=>\`<div style="font-size:11px;color:var(--txt2);margin-bottom:3px">→ \${r}</div>\`).join('')}
-      </div>\`;
+        ${(fake.reasons||[]).slice(0,2).map(r=>`<div style="font-size:11px;color:var(--txt2);margin-bottom:3px">→ ${r}</div>`).join('')}
+      </div>`;
     }
     if (rarity.badge === 'record') {
-      html += \`<div style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.25);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--green)">🏆 Prix historiquement bas — \${rarity.label}</div>\`;
+      html += `<div style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.25);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--green)">🏆 Prix historiquement bas — ${rarity.label}</div>`;
     }
     if (alerts.length > 0) {
-      html += alerts.slice(0,1).map(a=>\`
+      html += alerts.slice(0,1).map(a=>`
         <div style="background:rgba(255,92,43,.08);border:1px solid rgba(255,92,43,.2);border-radius:12px;padding:12px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700;margin-bottom:4px">\${a.title}</div>
-          <div style="font-size:11px;color:var(--txt2)">\${a.message}</div>
-        </div>\`).join('');
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">${a.title}</div>
+          <div style="font-size:11px;color:var(--txt2)">${a.message}</div>
+        </div>`).join('');
     }
     if (html) extra.innerHTML = html;
   } catch(e) {} // Silencieux
@@ -7441,11 +7441,4 @@ function getDemoDeals(cat) {
     {id:8,name:'Too Good To Go — Paul',brand:'Paul',category:'restauration',store:'Too Good To Go',current_price:3.99,original_price:9.99,discount_pct:60,novadeal_score:93,affiliate_url:'https://toogoodtogo.com',detected_at:new Date().toISOString()},
     {id:9,name:'Sony WH-1000XM5',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:219,original_price:380,discount_pct:42,novadeal_score:95,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
     {id:10,name:'Canapé convertible IKEA',brand:'IKEA',category:'maison',store:'IKEA.com',current_price:349,original_price:599,discount_pct:42,novadeal_score:87,affiliate_url:'https://ikea.com',detected_at:new Date().toISOString()},
-    {id:11,name:'Adidas Stan Smith Blanc',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:59,original_price:100,discount_pct:41,novadeal_score:84,affiliate_url:'https://zalando.fr',detected_at:new Date().toISOString()},
-    {id:12,name:'Livraison offerte Uber Eats',brand:'Uber Eats',category:'restauration',store:'Uber Eats',current_price:0,original_price:2.49,discount_pct:100,novadeal_score:78,affiliate_url:'https://ubereats.com',detected_at:new Date().toISOString()},
-  ];
-  return cat ? all.filter(d=>d.category===cat) : all;
-}
-</script>
-</body>
-</html>
+    {id:11,name:'Adidas Stan Smith Blanc',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:59,original_price:100,discount_pct:41,novadeal_score:84,affiliate_u
