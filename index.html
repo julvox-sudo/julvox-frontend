@@ -119,7 +119,7 @@ function renderDeals(deals) {
     var disc = d.discount_pct ? Math.round(d.discount_pct) : 0;
     var sc = scoreColor(score);
     html += '<div class="deal" onclick="openDeal(' + d.id + ')">';
-    html += '<img class="deal-img" src="' + img + '" alt="" loading="lazy" onerror="this.style.display='none'">';
+    html += '<img class="deal-img" src="' + img + '" alt="" loading="lazy">';
     html += '<div class="deal-body">';
     html += '<div class="deal-name">' + (d.name || 'Deal') + '</div>';
     html += '<div class="deal-store">' + (d.store || '') + '</div>';
