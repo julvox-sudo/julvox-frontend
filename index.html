@@ -2735,20 +2735,17 @@ async function loadDeals(cat = '', minSc = 0) {
 
   // 3. Appel API avec timeout
   try {
-    console.log('[DealScan] Chargement deals...', {cat, minSc, sort: currentSort});
+    console.log('[DealScan] Chargement deals... cat=' + (cat||'all') + ' minSc=' + minSc);
     const params = new URLSearchParams({ limit: 60, min_score: minSc });
     if (cat) params.set('category', cat);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    // Utiliser AbortSignal.timeout() natif pour éviter les erreurs de clonage SW
+    const sig1 = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
     // Essayer /deals/cached d'abord, fallback sur /deals si route manquante
-    let r = await fetch(`${API}/deals/cached?${params}`, { signal: controller.signal });
-    clearTimeout(timeout);
+    let r = await fetch(`${API}/deals/cached?${params}`, sig1 ? { signal: sig1 } : {});
     if (r.status === 404 || r.status === 405) {
       // Route /deals/cached pas encore déployée → utiliser /deals
-      const controller2 = new AbortController();
-      const timeout2 = setTimeout(() => controller2.abort(), 8000);
-      r = await fetch(`${API}/deals?${params}`, { signal: controller2.signal });
-      clearTimeout(timeout2);
+      const sig2 = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
+      r = await fetch(`${API}/deals?${params}`, sig2 ? { signal: sig2 } : {});
     }
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
@@ -3228,8 +3225,6 @@ async function createAlert(name, price) {
     // Fallback : alerte basique
     showToast('🔔 Alerte enregistrée pour ' + name.slice(0,30));
   }
-}/alerts`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:'web-user',product_name:name,target_price:price*.9,min_score:75})});
-  } catch {}
   closeModal();
   showToast(`🔔 Alerte créée pour "${name.substring(0,25)}…"`);
 }
@@ -3276,20 +3271,12 @@ function _processToastQueue() {
 // ── RGPD — Suppression de compte ─────────────────────────────
 function requestAccountDeletion() {
   const confirmed = confirm(
-    '⚠️ Supprimer votre compte ?
-
-' +
-    'Cette action est irréversible :
-' +
-    '• Votre compte sera supprimé
-' +
-    '• Vos alertes prix seront annulées
-' +
-    '• Votre abonnement Premium sera résilié
-' +
-    '• Vos données seront effacées sous 30 jours
-
-' +
+    '⚠️ Supprimer votre compte ?\n\n' +
+    'Cette action est irréversible :\n' +
+    '• Votre compte sera supprimé\n' +
+    '• Vos alertes prix seront annulées\n' +
+    '• Votre abonnement Premium sera résilié\n' +
+    '• Vos données seront effacées sous 30 jours\n\n' +
     'Confirmer la suppression ?'
   );
   if (!confirmed) return;
@@ -4867,7 +4854,7 @@ window.openDeal = function(deal) {
 
 
 // ══════════════════════════════════════════════════════════════
-/* ══ ATTENTE 🤝 COMMUNAUTÉ & RAPPORT — ATTENTE 1000 users ══
+// ══ ATTENTE 🤝 COMMUNAUTÉ & RAPPORT — ATTENTE 1000 users ══
 // BLOC 2 — Communauté, Rapport, Pro B2B, Push Notifications
 // ══════════════════════════════════════════════════════════════
 
@@ -5066,7 +5053,7 @@ function getDemoCommunityDeals() {
 }
 
 function renderCommunityDeals(deals, el) {
-  if (!deals.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal communautaire pour l'instant</div>'; return; }
+  if (!deals.length) { el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal communautaire pour l'instant</div>`; return; }
   el.innerHTML = deals.map(d => `
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
@@ -5110,7 +5097,6 @@ async function voteCommunityDeal(id, vote) {
 
 // ── RAPPORT MENSUEL ───────────────────────────────────────────
 /* DOUBLON SUPPRIMÉ - openReport (version conservée plus haut) */
-}
 
 function getDemoReport() {
   return {
@@ -5223,9 +5209,9 @@ function contactProPlan(plan, price) {
 
 
 // ══════════════════════════════════════════════════════════════
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══
 
-/* ══ ATTENTE 📷 SCAN & SQUAD — ATTENTE 1000 users ══
+// ══ ATTENTE 📷 SCAN & SQUAD — ATTENTE 1000 users ══
 // BLOC 3 — Scan, Deal Squad, Deal du Jour, Share, API Docs
 // ══════════════════════════════════════════════════════════════
 
@@ -5587,7 +5573,7 @@ function updateMetaTags(deal) {
 
 
 // ══════════════════════════════════════════════════════════════
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══
 
 // BLOC 3 — Scanner, TikTok, PWA Install, SEO, Deal of Day
 // ══════════════════════════════════════════════════════════════
@@ -5618,7 +5604,7 @@ function showInstallPrompt() {
   const btn       = document.getElementById('installPwaBtn');
 
   if (isIOS) {
-    instrEl.innerHTML = '1. Appuyez sur <strong>Partager</strong> (icône carré ↑)<br>2. Faites défiler et tapez <strong>"Sur l'écran d'accueil"</strong><br>3. Confirmez avec <strong>Ajouter</strong>';
+    instrEl.innerHTML = "1. Appuyez sur <strong>Partager</strong> (ic\u00f4ne carr\u00e9 \u2191)<br>2. Faites d\u00e9filer et tapez <strong>\"Sur l\u2019\u00e9cran d\u2019accueil\"</strong><br>3. Confirmez avec <strong>Ajouter</strong>";
     if (btn) btn.style.display = 'none';
   } else if (deferredInstallPrompt) {
     instrEl.innerHTML = 'Installez DealScan pour un accès rapide, notifications push et mode hors ligne.';
@@ -5716,8 +5702,6 @@ async function startScanner() {
 }
 
 /* DOUBLON SUPPRIMÉ - stopScanner (version conservée plus haut) */
-  if (scannerStream)   { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
-}
 
 async function onBarcodeDetected(barcode) {
   stopScanner();
@@ -5888,8 +5872,8 @@ function renderTikTokSingle(deal, el) {
       <div class="tiktok-copy">Format : 15 sec · Capture deal + Prix barré + Prix actuel + CTA</div>
       <div class="tiktok-script">${script.replace(/\n/g,'<br>')}</div>
       <div class="tiktok-tags">${tags.map(t=>`<span class="tiktok-tag">${t}</span>`).join('')}</div>
-      <button class="tiktok-btn" onclick="copyTikTokScript('${script.replace(/'/g,"\'").replace(/
-/g,'\n')}')">📋 Copier le script</button>
+      <button class="tiktok-btn" onclick="navigator.clipboard.writeText(this.dataset.s).then(()=>showToast('📋 Script copié!')" data-s="${script.replace(/"/g,'&quot;')}">📋 Copier le script</button>
+
     </div>`;
 }
 
@@ -5907,14 +5891,14 @@ function renderTikTokCompare(deals, el) {
       <div class="tiktok-copy">Format : 30 sec · Split screen des 2 produits + score NovaDeal™ + révélation du gagnant</div>
       <div class="tiktok-script">${script.replace(/\n/g,'<br>')}</div>
       <div class="tiktok-tags">${tags.map(t=>`<span class="tiktok-tag">${t}</span>`).join('')}</div>
-      <button class="tiktok-btn" onclick="copyTikTokScript('${script.replace(/'/g,"\'").replace(/
-/g,'\n')}')">📋 Copier le script</button>
+      <button class="tiktok-btn" onclick="copyTikTokScript(this.dataset.s)" data-s="${script}">📋 Copier le script</button>
+
     </div>`;
 }
 
 function copyTikTokScript(text) {
-  const clean = text.replace(/\n/g, '
-');
+  const clean = text.replace(/\n/g, '\n');
+
   navigator.clipboard.writeText(clean).then(() => showToast('📋 Script copié !')).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = clean;
@@ -5942,28 +5926,8 @@ function toggleFaq(el) {
 
 // ── DEAL DU JOUR ──────────────────────────────────────────────
 /* DOUBLON SUPPRIMÉ - openDealOfDay (version conservée plus haut) */
-}
 
 /* DOUBLON SUPPRIMÉ - renderDealOfDay (version conservée plus haut) */
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="font-size:48px;flex-shrink:0">${deal.image_url || getCatEmoji(deal.category)}</div>
-        <div style="flex:1">
-          <div class="dot-name">${deal.name}</div>
-          <div style="font-size:12px;color:var(--txt3);margin-bottom:8px">${deal.store}</div>
-          <div style="display:flex;align-items:flex-end;gap:10px">
-            <div class="dot-price">${deal.current_price}€</div>
-            ${deal.original_price ? `<div style="font-size:14px;color:var(--txt3);text-decoration:line-through;margin-bottom:4px">${deal.original_price}€</div>` : ''}
-            ${saved > 0 ? `<div style="background:rgba(0,208,132,.15);color:var(--green);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;margin-bottom:2px">-${saved}€</div>` : ''}
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
-        <span style="background:rgba(255,184,0,.15);color:var(--gold);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">★ ${deal.novadeal_score}/100</span>
-        ${deal.is_fake ? '<span class="fake-badge">⚠️ VÉRIFIER</span>' : '<span style="background:rgba(0,208,132,.12);color:var(--green);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Vérifié</span>'}
-        <span style="margin-left:auto;font-size:12px;color:var(--accent);font-weight:600">Voir le deal →</span>
-      </div>
-    </div>`;
-}
 
 // ── DYNAMIC SEO — Update meta on deal open ────────────────────
 function updateSEOMeta(deal) {
@@ -6407,7 +6371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ══════════════════════════════════════════════════════════════
-/* ══ ATTENTE 💰 GAMIFICATION & TIKTOK & DARK PATTERNS — partiel ATTENTE ══
+// ══ ATTENTE 💰 GAMIFICATION & TIKTOK & DARK PATTERNS — partiel ATTENTE ══
 // BLOC 4 — Wishlist, Budget, Gamification, TikTok, Dark Patterns
 // ══════════════════════════════════════════════════════════════
 
@@ -6434,10 +6398,6 @@ async function loadWishlist() {
 }
 
 /* DOUBLON SUPPRIMÉ - getDemoWishlist (version conservée plus haut) */
-    {id:2, product_name:'Sony WH-1000XM5', target_price:250, price_status:'good', best_price:219, best_store:'Fnac.com', novadeal_score:88, savings:0},
-    {id:3, product_name:'PS5 Slim', target_price:400, price_status:'waiting', best_price:449, best_store:'Darty.com', novadeal_score:72, savings:0},
-  ];
-}
 
 function renderWishlist(items, el) {
   if (!items.length) {
@@ -6480,33 +6440,13 @@ function renderWishlist(items, el) {
 }
 
 /* DOUBLON SUPPRIMÉ - addToWishlist (version conservée plus haut) */
-  const name  = document.getElementById('wishProductName')?.value?.trim();
-  const price = parseFloat(document.getElementById('wishTargetPrice')?.value) || null;
-  const cat   = document.getElementById('wishCategory')?.value;
-  if (!name) { showToast('⚠️ Nom du produit requis'); return; }
-  try {
-    const res  = await fetch(API + '/wishlist', {
-      method: 'POST',
-      headers: {'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
-      body: JSON.stringify({product_name: name, target_price: price, category: cat}),
-    });
-    const data = await res.json();
-    showToast('❤️ Ajouté à la wishlist !');
-    document.getElementById('addWishlistForm').style.display = 'none';
-    document.getElementById('wishProductName').value = '';
-    loadWishlist();
-    trackMission('add_wishlist');
-  } catch(e) { showToast('❤️ Ajouté ! (démo)'); }
-}
 
 /* DOUBLON SUPPRIMÉ - removeFromWishlist (version conservée plus haut) */
-}
 
 // ── MODE BUDGET ───────────────────────────────────────────────
-let selectedBudgetCats = [];
+
 
 /* DOUBLON SUPPRIMÉ - toggleBudgetCat (version conservée plus haut) */
-}
 
 async function optimizeBudget() {
   const budget = parseFloat(document.getElementById('budgetAmount')?.value);
@@ -6531,36 +6471,8 @@ async function optimizeBudget() {
 }
 
 /* DOUBLON SUPPRIMÉ - getDemoBudgetResult (version conservée plus haut) */
-}
 
 /* DOUBLON SUPPRIMÉ - renderBudgetResults (version conservée plus haut) */
-          <div style="font-size:12px;color:var(--txt3);margin-top:2px">Reste : ${data.remaining || 0}€ · ${deals.length} deals</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:18px;font-weight:700;color:var(--gold)">+${data.total_savings || 0}€</div>
-          <div style="font-size:10px;color:var(--txt3)">économisés</div>
-        </div>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${usedPct}%;background:var(--green);border-radius:3px;transition:width .6s"></div>
-      </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">${usedPct}% du budget utilisé</div>
-    </div>
-    ${deals.map(d => `
-      <div class="budget-deal-card" onclick="openDeal(${JSON.stringify(d).replace(/"/g,'&quot;')})">
-        <div style="font-size:28px;flex-shrink:0">${getCatEmoji(d.category)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
-          <div style="font-size:11px;color:var(--txt3)">${d.store} · ★ ${d.novadeal_score}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:16px;font-weight:700;color:var(--accent)">${d.current_price}€</div>
-          ${d.discount_pct ? `<div style="font-size:10px;color:var(--green)">-${Math.round(d.discount_pct)}%</div>` : ''}
-        </div>
-      </div>`).join('')}
-    ${!deals.length ? '<div style="text-align:center;padding:16px;color:var(--txt3)">Aucun deal dans ce budget</div>' : ''}
-  `;
-}
 
 // ── GAMIFICATION ──────────────────────────────────────────────
 async function loadGamification() {
@@ -6904,7 +6816,7 @@ function renderPriceHistoryChart(history, containerEl) {
 
 
 // ══════════════════════════════════════════════════════════════
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══
 
 // BLOC 5 — Assistant IA & ML Recommandations
 // ══════════════════════════════════════════════════════════════
@@ -6959,10 +6871,10 @@ function appendChatBubble(role, text) {
   const bubble = document.createElement('div');
   bubble.className = `bubble ${role === 'user' ? 'user' : ''}`;
   bubble.innerHTML = role === 'user'
-    ? `<div class="bubble-content user">${text.replace(/
-/g,'<br>')}</div>`
-    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${text.replace(/
-/g,'<br>')}</div>`;
+  bubble.innerHTML = role === 'user'
+    ? `<div class="bubble-content user">${text.replace(/\n/g,'<br>')}</div>`
+    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${text.replace(/\n/g,'<br>')}</div>`;
+
 
   container.appendChild(bubble);
   container.scrollTop = container.scrollHeight;
@@ -6988,37 +6900,38 @@ function getLocalAIResponse(msg) {
   if (m.includes('deal') || m.includes('promo') || m.includes('offre'))
     return '🔥 Pour les meilleurs deals du moment, utilisez le bouton **🔥 Accueil** et filtrez par catégorie. Les deals avec un score NovaDeal™ ≥ 85 sont des vraies bonnes affaires !';
   if (m.includes('novadeal') || m.includes('score'))
-    return '⭐ Le score NovaDeal™ note chaque deal de 0 à 100 :
-• ≥ 90 = Prix record 🏆
-• ≥ 75 = Très bon deal ✅
-• ≥ 60 = Bon deal 👍
-• < 40 = Attendez ⏳
 
-L'algorithme analyse remise réelle, rareté du prix, confiance marchand, et détecte les fausses promos.';
+    return `⭐ Le score NovaDeal™ note chaque deal de 0 à 100 :\n• ≥ 90 = Prix record 🏆\n• ≥ 75 = Très bon deal ✅\n• ≥ 60 = Bon deal 👍\n• < 40 = Attendez ⏳\n\nL'algorithme analyse remise réelle, rareté du prix, confiance marchand, et détecte les fausses promos.`;
+
+
+
+
+
+
   if (m.includes('premium') || m.includes('abonnement'))
-    return '⭐ DealScan Premium à **4,99€/mois** :
-✅ Alertes prix illimitées
-✅ Wishlist illimitée
-✅ Deals en avant-première
-✅ Score NovaDeal™ détaillé
-✅ Sans publicité
+    return `⭐ DealScan Premium à **4,99€/mois** :\n✅ Alertes prix illimitées\n✅ Wishlist illimitée\n✅ Deals en avant-première\n✅ Score NovaDeal™ détaillé\n✅ Sans publicité\n\nActivable depuis l'onglet ⭐ Premium.`;
 
-Activable depuis l'onglet ⭐ Premium.';
+
+
+
+
+
+
   if (m.includes('black friday') || m.includes('quand acheter') || m.includes('soldes'))
-    return '📅 Meilleures périodes d'achat :
-🖥️ High-Tech : Black Friday (nov), Prime Day (juil)
-👗 Mode : Soldes d'été (juin), Soldes d'hiver (janv)
-🎮 Gaming : Black Friday, Noël
+    return `📅 Meilleures périodes d'achat :\n🖥️ High-Tech : Black Friday (nov), Prime Day (juil)\n👗 Mode : Soldes d'été (juin), Soldes d'hiver (janv)\n🎮 Gaming : Black Friday, Noël\n\nConsultez le 📅 **Calendrier Promos** pour les dates exactes !`;
 
-Consultez le 📅 **Calendrier Promos** pour les dates exactes !';
-  return '🤔 Je n'ai pas tout compris. Essayez d'utiliser :
-• ⚡ **Analyser** pour un deal spécifique
-• 🔍 **Comparer** pour trouver le meilleur prix
-• 📅 **Calendrier** pour savoir quand acheter
 
-Ou reformulez votre question !';
+
+
+  return `🤔 Je n'ai pas tout compris. Essayez d'utiliser :\n• ⚡ **Analyser** pour un deal spécifique\n• 🔍 **Comparer** pour trouver le meilleur prix\n• 📅 **Calendrier** pour savoir quand acheter\n\nOu reformulez votre question !`;
+
+
+
+
+
+
+
 }
-
 // ── ML RECOMMANDATIONS ────────────────────────────────────────
 async function openRecoPage() {
   openPage('recoPage');
@@ -7134,7 +7047,7 @@ async function createSmartAlertForDeal(dealName, currentPrice) {
 
 
 // ══════════════════════════════════════════════════════════════
-/* ══ ATTENTE 💸 CASHBACK & ANALYTICS — ATTENTE 1000 users ══
+// ══ ATTENTE 💸 CASHBACK & ANALYTICS — ATTENTE 1000 users ══
 // BLOC 6 — Cashback, Analytics, Embed, Notifications
 // ══════════════════════════════════════════════════════════════
 
@@ -7416,7 +7329,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══
 
 // ── DEMO DATA ─────────────────────────────────────────────────
 function getDemoDeals(cat) {
