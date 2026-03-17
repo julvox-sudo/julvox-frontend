@@ -1,0 +1,60 @@
+{
+  "name": "DealScan — Deals vérifiés NovaDeal™",
+  "short_name": "DealScan",
+  "description": "Les meilleures promos analysées automatiquement. Score NovaDeal™ anti-fausses-promos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#FF5C2B",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["shopping", "finance", "lifestyle"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%23FF5C2B'/><text y='145' x='28' font-size='130'>🔥</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23FF5C2B'/><text y='390' x='68' font-size='360'>🔥</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "label": "DealScan — Feed des meilleurs deals"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meilleurs deals",
+      "url": "/?sort=score",
+      "description": "Voir les deals avec le meilleur score NovaDeal™"
+    },
+    {
+      "name": "Analyser un deal",
+      "url": "/?action=analyze",
+      "description": "Deal ou pas Deal ? — Analyse instantanée"
+    },
+    {
+      "name": "Mes alertes",
+      "url": "/?action=alerts",
+      "description": "Gérer mes alertes prix"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.julvox.dealscan",
+      "id": "com.julvox.dealscan"
+    }
+  ],
+  "prefer_related_applications": false,
+  "handle_links": "preferred"
+}
