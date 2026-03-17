@@ -2688,8 +2688,11 @@ const PROMO_CODES = [
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  renderFlash();
-  await loadDeals();
+  try { renderFlash(); } catch(e) { console.warn('renderFlash:', e.message); }
+  try { await loadDeals(); } catch(e) {
+    console.warn('loadDeals:', e.message);
+    try { allDeals = getDemoDeals(''); renderDeals(allDeals); } catch(e2) {}
+  }
   await loadStats();
   startCountdowns();
   updateFavBadge();
@@ -2805,7 +2808,8 @@ async function _refreshDealsBackground(cat, minSc, cacheKey) {
 
 function renderDeals(deals) {
   const grid = document.getElementById('dealsGrid');
-  if (!deals.length) {
+  if (!grid) { console.error('dealsGrid manquant'); return; }
+  if (!deals || !deals.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Aucun deal trouvé</div></div>`;
     return;
   }
@@ -2833,7 +2837,7 @@ function dealCard(d) {
     <div class="deal-img-wrap">
       <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
       <div class="deal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
-      ${pct > 0 ? `<div class="deal-pct${score>=90?'':' gold'}">−${Math.round(pct)}%</div>` : ''}
+      ${pct > 0 ? '<div class="deal-pct' + (score>=90?'':' gold') + '">−' + Math.round(pct) + '%</div>' : ''}
       <button class="deal-fav" onclick="event.stopPropagation();toggleFav(${d.id})">${isFav?'❤️':'🤍'}</button>
     </div>
     <div class="deal-body">
