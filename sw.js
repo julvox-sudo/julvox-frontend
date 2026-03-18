@@ -1,3 +1,12 @@
+// AUTO-CLEAR au démarrage
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+    }).then(() => self.clients.claim())
+  );
+});
+
 // ============================================================
 //  DealScan — Service Worker v5
 //  Cache offline-first pour une expérience fluide même sans réseau
