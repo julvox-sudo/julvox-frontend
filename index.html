@@ -2668,7 +2668,14 @@ const _lsCache = {
 };
 
 
-const API = 'https://julvox-dealscan-backend-production.up.railway.app';
+const API = (function() {
+  // Si servi depuis Railway (même domaine), utiliser URL relative
+  const host = window.location.hostname;
+  if (host.includes('railway.app') || host.includes('julvox.com')) {
+    return window.location.origin;
+  }
+  return 'https://julvox-dealscan-backend-production.up.railway.app';
+})();
 let allDeals = [], currentCat = '', currentSort = 'score', minScore = 0, timers = {};
 let favorites = new Set();
 try { favorites = new Set(JSON.parse(localStorage.getItem('ds_favs') || '[]')); } catch(e) {}
