@@ -107,15 +107,22 @@
     forceLoadDeals();
   }
 
-  // PATCH 2: Fermer le scanner s'il s'ouvre automatiquement
-  setTimeout(function() {
-    var scanPage = document.getElementById('scanPage');
-    if (scanPage && scanPage.classList.contains('open')) {
-      scanPage.classList.remove('open');
-      document.body.style.overflow = '';
-      console.log('[PATCH] Scanner fermé automatiquement');
-    }
-  }, 500);
+  // PATCH 2: Fermer TOUTES les pages secondaires au chargement
+  function closeAllPages() {
+    var pages = document.querySelectorAll('.page');
+    pages.forEach(function(p) {
+      p.classList.remove('open');
+      p.style.display = 'none';
+    });
+    document.body.style.overflow = '';
+    document.body.style.overflowY = 'auto';
+    console.log('[PATCH] Toutes les pages secondaires fermées');
+  }
+  // Fermer immédiatement
+  closeAllPages();
+  // Et encore après 300ms au cas où quelque chose les rouvre
+  setTimeout(closeAllPages, 300);
+  setTimeout(closeAllPages, 800);
 
   console.log('[DealScan Patch v1.0] Chargé');
 })();
