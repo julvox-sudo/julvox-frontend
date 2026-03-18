@@ -131,6 +131,17 @@
     var sd = document.getElementById('statDeals');
     if (sd) sd.textContent = deals.length.toLocaleString('fr-FR');
     console.log('[PATCH] ' + deals.length + ' deals affichés');
+    // Synchroniser allDeals pour que openDeal() puisse trouver les deals
+    try {
+      if (typeof window.allDeals !== 'undefined') {
+        // Fusionner: garder les deals API existants, ajouter ceux qui manquent
+        var existingIds = window.allDeals.map(function(d) { return d.id; });
+        deals.forEach(function(d) {
+          if (existingIds.indexOf(d.id) === -1) window.allDeals.push(d);
+        });
+        if (window.allDeals.length === 0) window.allDeals = deals.slice();
+      }
+    } catch(e) {}
   }
 
   // Démarrer le patch

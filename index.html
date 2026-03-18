@@ -2976,8 +2976,30 @@ function startCountdowns() {
 
 // ── MODAL ─────────────────────────────────────────────────────
 async function openDeal(id) {
-  const deal = allDeals.find(d => d.id === id);
-  if (!deal) return;
+  // Support: id numérique, objet deal direct, ou string
+  let deal = (typeof id === 'object' && id !== null) ? id : allDeals.find(d => d.id === id || d.id === Number(id));
+
+  // Si pas dans allDeals, chercher dans l'API directement
+  if (!deal && id) {
+    try {
+      const r = await fetchWithTimeout(API + '/deals/' + id, {}, 4000);
+      if (r.ok) deal = await r.json();
+    } catch(e) {}
+  }
+
+  // Fallback: construire un deal minimal à partir de la carte HTML cliquée
+  if (!deal) {
+    const card = document.querySelector('[onclick*="openDeal(' + id + ')"]');
+    if (card) {
+      const name  = card.querySelector('.deal-name, [style*="font-size:13px"]')?.textContent?.trim() || 'Produit';
+      const price = parseFloat(card.querySelector('.price-new, [style*="font-size:17px"]')?.textContent) || 0;
+      deal = { id: id, name: name, current_price: price, store: '', category: 'default',
+               novadeal_score: 80, affiliate_url: '#', discount_pct: 0 };
+    } else {
+      showToast('⚠️ Détail non disponible');
+      return;
+    }
+  }
   const score = deal.novadeal_score || 50;
   const cat   = deal.category || 'default';
   const img   = CAT_IMG[cat] || CAT_IMG.default;
@@ -4995,7 +5017,7 @@ function checkPushBanner() {
 async function registerServiceWorkerPush() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    const reg = await navigator.// SW désactivé temporairement
+    const reg = await navigator.serviceWorker.ready;
     const token = localStorage.getItem('token');
     if (token) {
       await fetch(API + '/push/subscribe', {
@@ -5744,12 +5766,7 @@ function dismissInstallPrompt() {
   try { localStorage.setItem('ds_install_dismissed', '1'); } catch(e) {}
 }
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.// SW désactivé temporairement
-  });
-}
+// Register Service Worker - déjà enregistré plus haut
 
 // Handle URL shortcuts from manifest
 const _urlParams = new URLSearchParams(window.location.search);
