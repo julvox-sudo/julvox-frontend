@@ -2559,7 +2559,9 @@ if ('caches' in window) {
 // ── Service Worker (cache offline) ───────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.// SW désactivé temporairement
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('[SW] Enregistré:', reg.scope))
+      .catch(err => console.warn('[SW] Erreur:', err));
   });
 }
 
@@ -2862,6 +2864,38 @@ async function _refreshDealsBackground(cat, minSc, cacheKey) {
   } catch(e) {} // Silencieux
 }
 
+// Prix corrects des produits démo (fix DB ancienne version)
+const DEMO_PRICES = {
+  'macbook air m3':           {cur:999,   ori:1499},
+  'samsung galaxy s25 ultra': {cur:899,   ori:1329},
+  'sony wh-1000xm5':          {cur:219,   ori:380},
+  'ps5 slim':                 {cur:449,   ori:619},
+  'lg oled 65':               {cur:1299,  ori:2199},
+  'nike air max':             {cur:79,    ori:149},
+  'adidas stan smith':        {cur:59,    ori:100},
+  "levi's 501":               {cur:65,    ori:110},
+  'lait lactel':              {cur:5.99,  ori:8.50},
+  'saumon fumé':              {cur:7.99,  ori:12.90},
+  'café nespresso':           {cur:19.99, ori:32},
+  'canapé convertible':       {cur:349,   ori:599},
+  'robot aspirateur roomba':  {cur:349,   ori:599},
+};
+
+function fixDealPrice(d) {
+  const name = (d.name || '').toLowerCase();
+  for (const [key, fix] of Object.entries(DEMO_PRICES)) {
+    if (name.includes(key)) {
+      // Si le prix est > 1.5x le prix correct, c'est un bug DB
+      if (d.current_price > fix.cur * 1.5) {
+        d = {...d, current_price: fix.cur, original_price: fix.ori,
+          discount_pct: Math.round((fix.ori - fix.cur) / fix.ori * 100)};
+      }
+      break;
+    }
+  }
+  return d;
+}
+
 function renderDeals(deals) {
   const grid = document.getElementById('dealsGrid');
   if (!grid) { return; }
@@ -2869,7 +2903,7 @@ function renderDeals(deals) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Aucun deal trouvé</div></div>`;
     return;
   }
-  grid.innerHTML = sortDeals(deals).map(d => dealCard(d)).join('');
+  grid.innerHTML = sortDeals(deals.map(fixDealPrice)).map(d => dealCard(d)).join('');
 }
 
 const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'Too Good To Go':97,'Sephora.fr':95,'Leroy Merlin':93};
