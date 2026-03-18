@@ -2,6 +2,21 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
+<!-- DealScan v5.3 build:20260318 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<script>
+// Vider le Service Worker et le cache au chargement pour forcer la nouvelle version
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(r) { r.unregister(); });
+  });
+}
+if ('caches' in window) {
+  caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
