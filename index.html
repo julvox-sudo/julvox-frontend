@@ -1071,36 +1071,51 @@ if ('caches' in window) {
 </div>
 <div class="deals" id="dealsGrid"></div>
 
-<!-- NEWSLETTER -->
-<div style="margin:24px 16px 8px;background:linear-gradient(135deg,rgba(255,92,43,.12),rgba(255,61,130,.08));border:1px solid rgba(255,92,43,.25);border-radius:20px;padding:20px">
-  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
-  <div style="font-size:13px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals chaque jour — gratuit, désabonnement en 1 clic</div>
-  <div id="nlStatus"></div>
-  <div id="nlForm">
-    <input type="email" id="nlEmail" placeholder="ton@email.com"
-      style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--txt);font-size:14px;font-family:'Inter',sans-serif;box-sizing:border-box;margin-bottom:8px"/>
+<!-- NEWSLETTER SIGNUP -->
+<div style="margin:20px 16px;background:linear-gradient(135deg,rgba(255,92,43,.1),rgba(255,61,130,.06));border:1px solid rgba(255,92,43,.2);border-radius:20px;padding:20px">
+  <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
+  <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals dans ta boîte mail. Gratuit, sans spam, désabonnement en 1 clic.</div>
+  <div id="newsletterForm">
+    <input type="email" id="newsletterEmail" placeholder="ton@email.com"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px">📅 Fréquence des envois :</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px" id="nlFreqGrid">
+      <button class="nl-freq active" onclick="selectNlFreq(this,'daily')" data-freq="daily"
+        style="background:rgba(255,92,43,.15);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'Inter',sans-serif">
+        📆 Tous les jours
+      </button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'weekly')" data-freq="weekly"
+        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
+        📅 1 fois par semaine
+      </button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'monthly')" data-freq="monthly"
+        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
+        🗓️ 1 fois par mois
+      </button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'custom')" data-freq="custom"
+        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
+        ⚙️ Personnalisé
+      </button>
+    </div>
+    <div id="nlCustomFreq" style="display:none;margin-bottom:10px;background:var(--bg2);border-radius:12px;padding:12px;border:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Combien de mails par :</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <input type="number" id="nlCustomCount" min="1" max="30" value="3"
+          style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:14px;color:var(--txt);text-align:center"/>
+        <select id="nlCustomPeriod" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--txt);font-family:'Inter',sans-serif">
+          <option value="day">par jour</option>
+          <option value="week" selected>par semaine</option>
+          <option value="month">par mois</option>
+        </select>
+      </div>
+    </div>
     <button onclick="subscribeNewsletter()"
       style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
-      🔥 Je veux les deals du jour !
-    </button>
-    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:8px">Pas de spam. Désabonnement immédiat.</div>
-  </div>
-</div>
-
-<!-- NEWSLETTER SIGNUP -->
-<div style="margin:20px 16px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:20px;padding:20px">
-  <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
-  <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals chaque matin dans ta boîte mail. Gratuit, sans spam.</div>
-  <div style="display:flex;gap:8px" id="newsletterForm">
-    <input type="email" id="newsletterEmail" placeholder="ton@email.com"
-      style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none"
-      onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
-    <button onclick="subscribeNewsletter()"
-      style="background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">
-      S'inscrire →
+      🔥 Je m'inscris gratuitement !
     </button>
   </div>
-  <div id="newsletterMsg" style="margin-top:10px;font-size:12px;display:none"></div>
+  <div id="newsletterMsg" style="margin-top:10px;font-size:13px;display:none"></div>
 </div>
 
 <!-- FOOTER LEGAL -->
@@ -3027,16 +3042,58 @@ async function openDeal(id) {
   const maxH = Math.max(...fakeH);
   const minH = Math.min(...fakeH);
   // Graphique SVG inline (plus précis que les barres)
-  const svgW = 280, svgH = 60;
+  const svgW = 280, svgH = 90;
+  const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
+  const padL = 52, padB = 4, chartW = svgW - padL, chartH = svgH - padB - 10;
   const pts = fakeH.map((p,i) => {
-    const x = Math.round(i / (fakeH.length-1) * svgW);
-    const y = Math.round(svgH - ((p - minH) / Math.max(1, maxH - minH)) * (svgH - 8) - 4);
+    const x = Math.round(padL + i / (fakeH.length-1) * chartW);
+    const y = Math.round(10 + (1 - (p - minH) / Math.max(1, maxH - minH)) * chartH);
     return x + ',' + y;
   }).join(' ');
-  const lastX = svgW, lastY = Math.round(svgH - ((deal.current_price - minH) / Math.max(1, maxH - minH)) * (svgH - 8) - 4);
-  const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
-  const chartSVG = '<svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;height:'+svgH+'px;overflow:visible"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.3"/><stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/></linearGradient></defs><polyline points="'+pts+'" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+lastX+'" cy="'+lastY+'" r="4" fill="'+scoreColor+'" stroke="white" stroke-width="1.5"/></svg>';
-  const bars = ''; // Remplacement par SVG ci-dessus
+  const lastX = padL + chartW;
+  const lastY = Math.round(10 + (1 - (deal.current_price - minH) / Math.max(1, maxH - minH)) * chartH);
+  // Polygon fill under the line
+  const firstPt = pts.split(' ')[0];
+  const polyPts = firstPt + ' ' + pts + ' ' + lastX + ',' + (10 + chartH) + ' ' + padL + ',' + (10 + chartH);
+  // Y-axis labels: max, mid, min prices
+  const midH = (maxH + minH) / 2;
+  const yMax = 14, yMid = Math.round(10 + chartH/2), yMin = 10 + chartH;
+  // Format price short: 1299 -> 1299€, 12.90 -> 12,90€
+  const fmtP = p => p >= 100 ? Math.round(p)+'€' : p.toFixed(2).replace('.',',')+'€';
+  // Dot label for current price
+  const dotLabel = fmtP(deal.current_price);
+  const labelX = lastX - 2, labelY = lastY - 8;
+  const chartSVG = \`<svg viewBox="0 0 \${svgW} \${svgH}" style="width:100%;height:\${svgH}px;overflow:visible">
+    <defs>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <!-- Y-axis line -->
+    <line x1="\${padL}" y1="10" x2="\${padL}" y2="\${10+chartH}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+    <!-- Horizontal grid lines -->
+    <line x1="\${padL}" y1="10" x2="\${svgW}" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="\${padL}" y1="\${yMid}" x2="\${svgW}" y2="\${yMid}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="\${padL}" y1="\${10+chartH}" x2="\${svgW}" y2="\${10+chartH}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <!-- Y-axis price labels -->
+    <text x="\${padL-4}" y="\${yMax+1}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(maxH)}</text>
+    <text x="\${padL-4}" y="\${yMid}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(midH)}</text>
+    <text x="\${padL-4}" y="\${yMin}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(minH)}</text>
+    <!-- X-axis labels -->
+    <text x="\${padL}" y="\${svgH}" fill="rgba(255,255,255,.3)" font-size="8" text-anchor="start">−90j</text>
+    <text x="\${lastX}" y="\${svgH}" fill="rgba(255,255,255,.3)" font-size="8" text-anchor="end">Auj.</text>
+    <!-- Area fill -->
+    <polygon points="\${polyPts}" fill="url(#cg)"/>
+    <!-- Price line -->
+    <polyline points="\${pts}" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Current price dot -->
+    <circle cx="\${lastX}" cy="\${lastY}" r="5" fill="\${scoreColor}" stroke="white" stroke-width="2"/>
+    <!-- Current price label -->
+    <rect x="\${labelX > svgW-55 ? svgW-58 : labelX-2}" y="\${labelY-11}" width="54" height="14" rx="4" fill="\${scoreColor}" opacity="0.9"/>
+    <text x="\${labelX > svgW-55 ? svgW-31 : labelX+25}" y="\${labelY-1}" fill="white" font-size="9" text-anchor="middle" font-weight="bold">\${dotLabel}</text>
+  </svg>\`;
+  const bars = '';
 
   document.getElementById('modalBody').innerHTML = `
     <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}"/>
@@ -3071,7 +3128,22 @@ async function openDeal(id) {
       <button class="vote-btn down" id="voteDn_${deal.id}" onclick="voteDeal(${deal.id},'down')">👎 <span id="voteDnN_${deal.id}">—</span></button>
     </div>
     <div id="modalExtra" style="padding:0 0 8px 0"></div>
-    <a class="cta-main" href="${deal.affiliate_url||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
+    <a class="cta-main" href="${(()=>{
+      const u=deal.affiliate_url||'';
+      if(u&&u!='#'&&u.indexOf('demo')===-1) return u;
+      const n=encodeURIComponent(deal.name||'');
+      const s=(deal.store||'').toLowerCase();
+      if(s.indexOf('amazon')!==-1) return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
+      if(s.indexOf('fnac')!==-1) return 'https://www.fnac.com/SearchResult/ResultList.aspx?Search='+n;
+      if(s.indexOf('darty')!==-1) return 'https://www.darty.com/nav/recherche?text='+n;
+      if(s.indexOf('zalando')!==-1) return 'https://www.zalando.fr/catalog/?q='+n;
+      if(s.indexOf('boulanger')!==-1) return 'https://www.boulanger.com/recherche/r?key='+n;
+      if(s.indexOf('cdiscount')!==-1) return 'https://www.cdiscount.com/search/10/'+n+'.html';
+      if(s.indexOf('ikea')!==-1) return 'https://www.ikea.com/fr/fr/search/products/?q='+n;
+      if(s.indexOf('nike')!==-1) return 'https://www.nike.com/fr/w?q='+n;
+      if(s.indexOf('carrefour')!==-1||s.indexOf('leclerc')!==-1||s.indexOf('lidl')!==-1) return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
+      return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
+    })()}" target="_blank" onclick="showToast('✅ Redirection vers '+escHtml(deal.store)+'...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -3541,30 +3613,71 @@ function logout() {
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
 }
+// Newsletter frequency selector
+let _nlFreq = 'daily';
+function selectNlFreq(btn, freq) {
+  _nlFreq = freq;
+  document.querySelectorAll('.nl-freq').forEach(b => {
+    b.style.background = 'var(--bg)';
+    b.style.border = '1px solid var(--border)';
+    b.style.color = 'var(--txt2)';
+  });
+  btn.style.background = 'rgba(255,92,43,.15)';
+  btn.style.border = '1px solid var(--accent)';
+  btn.style.color = 'var(--accent)';
+  const custom = document.getElementById('nlCustomFreq');
+  if (custom) custom.style.display = freq === 'custom' ? 'block' : 'none';
+}
+
 function subscribeNewsletter() {
   const email = (document.getElementById('newsletterEmail')?.value || '').trim();
   const msg   = document.getElementById('newsletterMsg');
-  if (!email || !email.includes('@')) {
+  if (!email || !email.includes('@') || !email.includes('.')) {
     if (msg) { msg.style.display='block'; msg.style.color='#FF5C2B'; msg.textContent='⚠️ Saisis un email valide.'; }
     return;
   }
-  // Sauvegarder localement
-  try { localStorage.setItem('ds_newsletter_email', email); } catch(e) {}
-  // Envoyer à l'API si disponible
+
+  // Calculer la fréquence finale
+  let frequency = _nlFreq;
+  if (_nlFreq === 'custom') {
+    const count  = parseInt(document.getElementById('nlCustomCount')?.value || '3');
+    const period = document.getElementById('nlCustomPeriod')?.value || 'week';
+    frequency    = count + '_per_' + period; // ex: "3_per_week"
+  }
+
+  const btn = document.querySelector('#newsletterForm button:last-of-type');
+  if (btn) { btn.disabled = true; btn.textContent = 'Inscription…'; }
+
+  // Enregistrer localement
+  try { localStorage.setItem('ds_nl_email', email); localStorage.setItem('ds_nl_freq', frequency); } catch(e) {}
+
+  // Envoyer à l'API
   fetch(API + '/newsletter/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, source: 'footer' })
-  }).catch(() => {}); // silencieux si API indisponible
-  // Feedback immédiat
-  const form = document.getElementById('newsletterForm');
-  if (form) form.style.display = 'none';
-  if (msg) {
-    msg.style.display = 'block';
-    msg.style.color = '#00D084';
-    msg.style.fontSize = '14px';
-    msg.textContent = '🎉 Inscription confirmée ! Tu recevras les meilleurs deals chaque matin.';
-  }
+    body: JSON.stringify({ email, name: currentUser?.name || 'Ami DealScan', frequency, categories: ['all'] })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const form = document.getElementById('newsletterForm');
+    if (form) form.style.display = 'none';
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.color = '#00D084';
+      msg.style.fontSize = '14px';
+      const freqLabel = {'daily':'chaque jour','weekly':'chaque semaine','monthly':'chaque mois'}[_nlFreq] || frequency;
+      msg.textContent = data.message || `✅ Inscription confirmée ! Tu recevras les meilleurs deals ${freqLabel}.`;
+    }
+  })
+  .catch(() => {
+    // Fallback offline
+    const form = document.getElementById('newsletterForm');
+    if (form) form.style.display = 'none';
+    if (msg) {
+      msg.style.display = 'block'; msg.style.color = '#00D084'; msg.style.fontSize = '14px';
+      msg.textContent = '✅ Inscription enregistrée ! Tu recevras les meilleurs deals bientôt.';
+    }
+  });
 }
 
 function updateNavForUser() {
@@ -7575,58 +7688,6 @@ document.addEventListener('keydown', (e) => {
 ══ FIN ATTENTE ══ */
 
 // ── DEMO DATA ─────────────────────────────────────────────────
-
-// ── NEWSLETTER ────────────────────────────────────────────────
-async function subscribeNewsletter() {
-  const email = (document.getElementById('nlEmail')?.value || '').trim();
-  const status = document.getElementById('nlStatus');
-  if (!email || !email.includes('@')) {
-    if (status) { status.innerHTML = '<div style="color:#FF5C2B;font-size:13px;margin-bottom:8px">⚠️ Entrez un email valide</div>'; }
-    return;
-  }
-  const btn = document.querySelector('#nlForm button');
-  if (btn) { btn.disabled = true; btn.textContent = 'Inscription…'; }
-  try {
-    const r = await fetch(API + '/newsletter/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: currentUser?.name || 'Ami DealScan', categories: ['all'], frequency: 'daily' })
-    });
-    const data = await r.json();
-    const isOk = data.status === 'subscribed' || data.status === 'pending_verification';
-    if (status) {
-      status.innerHTML = '<div style="background:rgba(0,208,132,.12);border:1px solid #00D084;border-radius:10px;padding:12px;font-size:13px;color:#00D084;margin-bottom:8px">' +
-        (isOk ? '✅ ' : '⚠️ ') + (data.message || 'Inscription enregistrée !') + '</div>';
-    }
-    if (isOk) {
-      const form = document.getElementById('nlForm');
-      if (form) form.style.display = 'none';
-      try { localStorage.setItem('ds_nl_subscribed', email); } catch(e) {}
-    } else if (btn) { btn.disabled = false; btn.textContent = '🔥 Je veux les deals du jour !'; }
-  } catch(e) {
-    // Fallback: enregistrement local si API indisponible
-    if (status) {
-      status.innerHTML = '<div style="background:rgba(0,208,132,.12);border:1px solid #00D084;border-radius:10px;padding:12px;font-size:13px;color:#00D084;margin-bottom:8px">' +
-        '✅ Inscription enregistrée ! Tu recevras les meilleurs deals très bientôt.</div>';
-    }
-    const form = document.getElementById('nlForm');
-    if (form) form.style.display = 'none';
-    try { localStorage.setItem('ds_nl_subscribed', email); } catch(e2) {}
-  }
-}
-
-// Si déjà inscrit, masquer le formulaire
-(function() {
-  try {
-    const sub = localStorage.getItem('ds_nl_subscribed');
-    if (sub) {
-      const form = document.getElementById('nlForm');
-      const status = document.getElementById('nlStatus');
-      if (form) form.style.display = 'none';
-      if (status) status.innerHTML = '<div style="font-size:13px;color:#00D084;margin-bottom:8px">✅ Tu es déjà inscrit(e) avec ' + sub + '</div>';
-    }
-  } catch(e) {}
-})();
 
 function getDemoDeals(cat) {
   const all = [
