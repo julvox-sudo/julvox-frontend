@@ -3,8 +3,8 @@
 //  Cache offline-first pour une expérience fluide même sans réseau
 // ============================================================
 
-const CACHE_NAME   = 'dealscan-v5';
-const CACHE_STATIC = 'dealscan-static-v5';
+const CACHE_NAME   = 'dealscan-v6';
+const CACHE_STATIC = 'dealscan-static-v6';
 
 // Ressources à mettre en cache immédiatement à l'installation
 const STATIC_ASSETS = [
