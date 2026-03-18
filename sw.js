@@ -1,19 +1,10 @@
-// AUTO-CLEAR au démarrage
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
-    }).then(() => self.clients.claim())
-  );
-});
-
 // ============================================================
 //  DealScan — Service Worker v5
 //  Cache offline-first pour une expérience fluide même sans réseau
 // ============================================================
 
-const CACHE_NAME   = 'dealscan-v6';
-const CACHE_STATIC = 'dealscan-static-v6';
+const CACHE_NAME   = 'dealscan-v5';
+const CACHE_STATIC = 'dealscan-static-v5';
 
 // Ressources à mettre en cache immédiatement à l'installation
 const STATIC_ASSETS = [

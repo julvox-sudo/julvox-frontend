@@ -2,10 +2,6 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<!-- DealScan v5.2 build:20260318_FINAL -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
@@ -240,9 +236,8 @@ a{text-decoration:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── OVERLAY PAGES ───────────────────────────────────────── */
-.page{display:none!important;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;visibility:hidden;pointer-events:none}
-.page.open{display:flex!important;flex-direction:column;visibility:visible;pointer-events:all}
-.page.open{display:block!important}
+.page{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto}
+.page.open{display:block}
 .page-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
 .page-back{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--txt2);font-family:'Inter',sans-serif}
 .page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
@@ -925,38 +920,6 @@ a{text-decoration:none}
 
 
 /* FIN ATTENTE */ </style>
-
-  <!-- Force cache-bust + SW update -->
-  <script>
-    // DÉSACTIVATION SW + vidage cache pour forcer rechargement
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-}
-if ('caches' in window) {
-  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-}
-  </script>
-
-  <script>
-    // Force hide all secondary pages before render
-    document.addEventListener('DOMContentLoaded', function() {
-      var pages = document.querySelectorAll('.page');
-      pages.forEach(function(p) {
-        if (!p.classList.contains('open')) {
-          p.style.display = 'none';
-        }
-      });
-      // Specifically close scanner and other auto-open pages
-      ['scanPage','squadPage','gamificationPage','socialContentPage',
-       'cashbackPage','tiktokPage','reportPage','proPage','communityPage',
-       'darkPatternPage','embedPage','apiDocsPage','recoPage'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) { el.style.display = 'none'; el.classList.remove('open'); }
-      });
-    });
-  </script>
 </head>
 <body>
 
@@ -1046,7 +1009,7 @@ if ('caches' in window) {
   <button class="sort-btn" onclick="openPage('analyzePage')">⚡ Analyser</button>
   <button class="sort-btn" onclick="openPage('comparePageV2')">🔍 Comparer</button>
   <button class="sort-btn" onclick="openPage('calendarPage');loadCalendar('high-tech')">📅 Calendrier</button>
-  <button class="sort-btn" onclick="openAIChat()">🤖 Assistant</button>
+  <button class="sort-btn" onclick="openAIChat()">🤖 IA</button>
   <button class="sort-btn" onclick="openPage('wishlistPage');loadWishlist()">❤️ Wishlist</button>
   <button class="sort-btn" onclick="openPage('budgetPage')">💰 Budget</button>
   <button class="sort-btn" onclick="openDealOfDay()">⭐ Deal du jour</button>
@@ -1079,30 +1042,17 @@ if ('caches' in window) {
     <input type="email" id="newsletterEmail" placeholder="ton@email.com"
       style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px"
       onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
-    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px">📅 Fréquence des envois :</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px" id="nlFreqGrid">
-      <button class="nl-freq active" onclick="selectNlFreq(this,'daily')" data-freq="daily"
-        style="background:rgba(255,92,43,.15);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'Inter',sans-serif">
-        📆 Tous les jours
-      </button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'weekly')" data-freq="weekly"
-        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
-        📅 1 fois par semaine
-      </button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'monthly')" data-freq="monthly"
-        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
-        🗓️ 1 fois par mois
-      </button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'custom')" data-freq="custom"
-        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">
-        ⚙️ Personnalisé
-      </button>
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px">📅 Fréquence :</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      <button class="nl-freq active" onclick="selectNlFreq(this,'daily')" style="background:rgba(255,92,43,.15);border:1px solid var(--accent);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'Inter',sans-serif">📆 Tous les jours</button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'weekly')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">📅 1x par semaine</button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'monthly')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">🗓️ 1x par mois</button>
+      <button class="nl-freq" onclick="selectNlFreq(this,'custom')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">⚙️ Personnalisé</button>
     </div>
     <div id="nlCustomFreq" style="display:none;margin-bottom:10px;background:var(--bg2);border-radius:12px;padding:12px;border:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Combien de mails par :</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <input type="number" id="nlCustomCount" min="1" max="30" value="3"
-          style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:14px;color:var(--txt);text-align:center"/>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Nombre de mails :</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" id="nlCustomCount" min="1" max="30" value="3" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px;font-size:14px;color:var(--txt);text-align:center"/>
         <select id="nlCustomPeriod" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--txt);font-family:'Inter',sans-serif">
           <option value="day">par jour</option>
           <option value="week" selected>par semaine</option>
@@ -1110,8 +1060,7 @@ if ('caches' in window) {
         </select>
       </div>
     </div>
-    <button onclick="subscribeNewsletter()"
-      style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+    <button onclick="subscribeNewsletter()" style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
       🔥 Je m'inscris gratuitement !
     </button>
   </div>
@@ -1192,7 +1141,7 @@ if ('caches' in window) {
 </div>
 
 <!-- FLASH PAGE -->
-<div class="page" id="flashPage" style="display:none">
+<div class="page" id="flashPage">
   <div class="flash-page-head">
     <button class="page-back" onclick="closePage('flashPage')">← Retour</button>
     <div class="page-title">⚡ Ventes Flash <div class="live-pill"><div class="live-dot"></div>Live</div></div>
@@ -1201,7 +1150,7 @@ if ('caches' in window) {
 </div>
 
 <!-- FAVORIS PAGE -->
-<div class="page" id="favPage" style="display:none">
+<div class="page" id="favPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('favPage')">← Retour</button>
     <div class="page-title">❤️ Mes Favoris</div>
@@ -1210,7 +1159,7 @@ if ('caches' in window) {
 </div>
 
 <!-- PROMOS PAGE -->
-<div class="page" id="promosPage" style="display:none">
+<div class="page" id="promosPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('promosPage')">← Retour</button>
     <div class="page-title">🏷️ Codes Promo</div>
@@ -1219,7 +1168,7 @@ if ('caches' in window) {
 </div>
 
 <!-- TENDANCES PAGE -->
-<div class="page" id="trendsPage" style="display:none">
+<div class="page" id="trendsPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('trendsPage')">← Retour</button>
     <div class="page-title">📈 Tendances</div>
@@ -1228,7 +1177,7 @@ if ('caches' in window) {
 </div>
 
 <!-- COMPARATEUR PAGE -->
-<div class="page" id="comparePage" style="display:none">
+<div class="page" id="comparePage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('comparePage')">← Retour</button>
     <div class="page-title">⚖️ Comparateur</div>
@@ -1243,7 +1192,7 @@ if ('caches' in window) {
 </div>
 
 <!-- PREMIUM PAGE -->
-<div class="page" id="premiumPage" style="display:none">
+<div class="page" id="premiumPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('premiumPage')">← Retour</button>
     <div class="page-title">⭐ Premium</div>
@@ -1252,7 +1201,7 @@ if ('caches' in window) {
 </div>
 
 <!-- MON COMPTE PAGE -->
-<div class="page" id="accountPage" style="display:none">
+<div class="page" id="accountPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('accountPage')">← Retour</button>
     <div class="page-title">👤 Mon Compte</div>
@@ -1261,7 +1210,7 @@ if ('caches' in window) {
 </div>
 
 <!-- PARRAINAGE PAGE -->
-<div class="page" id="referralPage" style="display:none">
+<div class="page" id="referralPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('referralPage')">← Retour</button>
     <div class="page-title">🎁 Parrainage</div>
@@ -1270,7 +1219,7 @@ if ('caches' in window) {
 </div>
 
 <!-- CGU PAGE -->
-<div class="page" id="cguPage" style="display:none">
+<div class="page" id="cguPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('cguPage')">← Retour</button>
     <div class="page-title">📄 Conditions Générales d'Utilisation</div>
@@ -1304,7 +1253,7 @@ if ('caches' in window) {
 </div>
 
 <!-- CONFIDENTIALITÉ PAGE -->
-<div class="page" id="privacyPage" style="display:none">
+<div class="page" id="privacyPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('privacyPage')">← Retour</button>
     <div class="page-title">🔒 Politique de Confidentialité</div>
@@ -1373,7 +1322,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      DEAL OU PAS DEAL ? — Analyse NovaDeal™ v2
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="analyzePage" style="display:none">
+<div class="page" id="analyzePage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('analyzePage')">← Retour</button>
     <div class="page-title">⚡ Deal ou pas Deal ?</div>
@@ -1429,7 +1378,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      SWIPE MODE — Feed TikTok style
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="swipePage" style="display:none">
+<div class="page" id="swipePage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('swipePage');bnClick(document.getElementById('bn-home'),'home')">← Retour</button>
     <div class="page-title">🔥 Mode Swipe</div>
@@ -1463,7 +1412,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      COMPARATEUR AMÉLIORÉ v2
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="comparePageV2" style="display:none">
+<div class="page" id="comparePageV2">
   <div class="page-head">
     <button class="page-back" onclick="closePage('comparePageV2')">← Retour</button>
     <div class="page-title">🔍 Comparateur</div>
@@ -1480,7 +1429,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      CALENDRIER DES PROMOS
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="calendarPage" style="display:none">
+<div class="page" id="calendarPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('calendarPage')">← Retour</button>
     <div class="page-title">📅 Calendrier Promos</div>
@@ -1503,8 +1452,8 @@ if ('caches' in window) {
      COMMUNAUTÉ — Leaderboard & Soumettre un deal
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="communityPage" style="display:none">
+<!-- ══ ATTENTE 🤝 COMMUNAUTÉ — En attente (1000 users) ══
+<div class="page" id="communityPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('communityPage')">← Retour</button>
     <div class="page-title">🤝 Communauté</div>
@@ -1559,14 +1508,15 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      RAPPORT MENSUEL PUBLIC
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="reportPage" style="display:none">
+<!-- ══ ATTENTE 📊 RAPPORT MENSUEL — En attente (1000 users) ══
+<div class="page" id="reportPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('reportPage')">← Retour</button>
     <div class="page-title">📊 Rapport Mensuel</div>
@@ -1578,14 +1528,15 @@ if ('caches' in window) {
     <div id="reportContent"><div style="text-align:center;padding:30px;color:var(--txt3)">📊 Chargement du rapport…</div></div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      PRO B2B — Plans & Tarifs
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="proPage" style="display:none">
+<!-- ══ ATTENTE 💼 PRO B2B — En attente (1000 users) ══
+<div class="page" id="proPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('proPage')">← Retour</button>
     <div class="page-title">💼 DealScan Pro</div>
@@ -1598,14 +1549,16 @@ if ('caches' in window) {
     <div id="proPlans"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
   </div>
 </div>
-</div>
+
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Comparer en magasin
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="scanPage" style="display:none">
+<!-- ══ ATTENTE 📷 SCANNER CODE-BARRES — En attente (1000 users) ══
+<div class="page" id="scanPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('scanPage')">← Retour</button>
     <div class="page-title">📷 Scan Produit</div>
@@ -1648,14 +1601,15 @@ if ('caches' in window) {
     <div id="scanResults" style="margin-top:16px"></div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL SQUAD — Achats groupés
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="squadPage" style="display:none">
+<!-- ══ ATTENTE 👥 DEAL SQUAD — En attente (1000 users) ══
+<div class="page" id="squadPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('squadPage')">← Retour</button>
     <div class="page-title">👥 Deal Squad</div>
@@ -1697,12 +1651,13 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL DU JOUR — Page dédiée avec partage
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="dealOfDayPage" style="display:none">
+<div class="page" id="dealOfDayPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('dealOfDayPage')">← Retour</button>
     <div class="page-title">⭐ Deal du Jour</div>
@@ -1716,8 +1671,8 @@ if ('caches' in window) {
      API DOCS — Documentation publique
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="apiDocsPage" style="display:none">
+<!-- ══ ATTENTE 🔌 API DOCS — En attente (1000 users) ══
+<div class="page" id="apiDocsPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('apiDocsPage')">← Retour</button>
     <div class="page-title">🔌 API Publique</div>
@@ -1774,12 +1729,14 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Vérification produit en magasin
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="scanPage" style="display:none">
+<div class="page" id="scanPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('scanPage');stopScanner()">← Retour</button>
     <div class="page-title">📷 Scan Produit</div>
@@ -1819,7 +1776,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      TIKTOK — Générateur de contenu viral
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="tiktokPage" style="display:none">
+<div class="page" id="tiktokPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('tiktokPage')">← Retour</button>
     <div class="page-title" style="background:linear-gradient(135deg,#ff0050,#00f2ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent">TikTok Content</div>
@@ -1843,7 +1800,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      PAGE SEO — Guide Deals & FAQ
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="guidePage" style="display:none">
+<div class="page" id="guidePage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('guidePage')">← Retour</button>
     <div class="page-title">📖 Guide Deals</div>
@@ -1938,7 +1895,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      MODE BUDGET
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="budgetPage" style="display:none">
+<div class="page" id="budgetPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('budgetPage')">← Retour</button>
     <div class="page-title">💰 Mode Budget</div>
@@ -1975,7 +1932,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      WISHLIST TRACKING
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="wishlistPage" style="display:none">
+<div class="page" id="wishlistPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('wishlistPage')">← Retour</button>
     <div class="page-title">🎯 Ma Wishlist</div>
@@ -1998,7 +1955,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      SOCIAL CONTENT — TikTok, Instagram, Twitter
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="socialPage" style="display:none">
+<div class="page" id="socialPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('socialPage')">← Retour</button>
     <div class="page-title">📱 Contenu Social</div>
@@ -2084,7 +2041,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      TRENDING DEALS
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="trendingPage" style="display:none">
+<div class="page" id="trendingPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('trendingPage')">← Retour</button>
     <div class="page-title">🔥 Tendances</div>
@@ -2103,7 +2060,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      WISHLIST INTELLIGENTE
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="wishlistPage" style="display:none">
+<div class="page" id="wishlistPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('wishlistPage')">← Retour</button>
     <div class="page-title">❤️ Wishlist</div>
@@ -2134,7 +2091,7 @@ if ('caches' in window) {
 <!-- ══════════════════════════════════════════════════════════
      MODE BUDGET
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="budgetPage" style="display:none">
+<div class="page" id="budgetPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('budgetPage')">← Retour</button>
     <div class="page-title">💰 Mode Budget</div>
@@ -2164,8 +2121,8 @@ if ('caches' in window) {
      GAMIFICATION — Succès & Missions
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="gamificationPage" style="display:none">
+<!-- ══ ATTENTE 🏆 GAMIFICATION — En attente (1000 users) ══
+<div class="page" id="gamificationPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('gamificationPage')">← Retour</button>
     <div class="page-title">🏆 Succès & Missions</div>
@@ -2187,14 +2144,15 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      CONTENU SOCIAL — Scripts TikTok & Instagram
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="socialContentPage" style="display:none">
+<!-- ══ ATTENTE 📱 SOCIAL CONTENT — En attente (1000 users) ══
+<div class="page" id="socialContentPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('socialContentPage')">← Retour</button>
     <div class="page-title">📱 Contenu Social</div>
@@ -2228,14 +2186,15 @@ if ('caches' in window) {
     <div id="tiktokResults"></div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      DARK PATTERNS DETECTOR
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="darkPatternPage" style="display:none">
+<!-- ══ ATTENTE 🕵️ DARK PATTERNS — En attente (1000 users) ══
+<div class="page" id="darkPatternPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('darkPatternPage')">← Retour</button>
     <div class="page-title">🕵️ Dark Patterns</div>
@@ -2251,12 +2210,14 @@ if ('caches' in window) {
     <div id="darkPatternResults" style="margin-top:16px"></div>
   </div>
 </div>
-</div>
+
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      ASSISTANT IA DEALSCAN
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="aiChatPage" style="display:none">
+<div class="page" id="aiChatPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('aiChatPage')">← Retour</button>
     <div class="page-title">🤖 Assistant IA</div>
@@ -2299,8 +2260,8 @@ if ('caches' in window) {
      RECOMMANDATIONS ML PERSONNALISÉES
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="recoPage" style="display:none">
+<!-- ══ ATTENTE ✨ RECO ML — Conservé mais accessible via IA uniquement ══
+<div class="page" id="recoPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('recoPage')">← Retour</button>
     <div class="page-title">✨ Pour vous</div>
@@ -2313,14 +2274,16 @@ if ('caches' in window) {
     <div id="recoContent"><div style="text-align:center;padding:30px;color:var(--txt3)">🧠 Analyse de vos préférences…</div></div>
   </div>
 </div>
-</div>
+
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      CASHBACK
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="cashbackPage" style="display:none">
+<!-- ══ ATTENTE 💸 CASHBACK — En attente (partenariat requis) ══
+<div class="page" id="cashbackPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('cashbackPage')">← Retour</button>
     <div class="page-title">💸 Cashback</div>
@@ -2369,14 +2332,15 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      ANALYTICS OWNER (caché si pas owner)
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="analyticsPage" style="display:none">
+<!-- ══ ATTENTE 📊 ANALYTICS OWNER — En attente (accès owner uniquement) ══
+<div class="page" id="analyticsPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('analyticsPage')">← Retour</button>
     <div class="page-title">📊 Analytics Owner</div>
@@ -2385,14 +2349,15 @@ if ('caches' in window) {
     <div style="text-align:center;padding:30px;color:var(--txt3)">Chargement…</div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      WIDGET EMBED — Pour partenaires
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="embedPage" style="display:none">
+<!-- ══ ATTENTE 🖼️ WIDGET EMBED — En attente (1000 users) ══
+<div class="page" id="embedPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('embedPage')">← Retour</button>
     <div class="page-title">🔌 Widget Embed</div>
@@ -2428,14 +2393,15 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- ══════════════════════════════════════════════════════════
      PARAMÈTRES NOTIFICATIONS AVANCÉS
 ══════════════════════════════════════════════════════════ -->
 
-<div style="display:none">
-<div class="page" id="notifSettingsPage" style="display:none">
+<!-- ══ ATTENTE 🔔 NOTIF SETTINGS — En attente (1000 users) ══
+<div class="page" id="notifSettingsPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('notifSettingsPage')">← Retour</button>
     <div class="page-title">🔔 Notifications</div>
@@ -2484,7 +2450,8 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-</div>
+
+══ FIN ATTENTE ══ -->
 
 <!-- OFFLINE BAR -->
 <div class="offline-bar" id="offlineBar">📡 Hors ligne — deals affichés depuis le cache</div>
@@ -2514,7 +2481,7 @@ if ('caches' in window) {
 </div>
 
 <!-- NOTIFICATIONS PAGE -->
-<div class="page" id="notifsPage" style="display:none">
+<div class="page" id="notifsPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('notifsPage')">← Retour</button>
     <div class="page-title">🔔 Mes Notifications</div>
@@ -2523,7 +2490,7 @@ if ('caches' in window) {
 </div>
 
 <!-- ACCESSIBILITE PAGE -->
-<div class="page" id="a11yPage" style="display:none">
+<div class="page" id="a11yPage">
   <div class="page-head">
     <button class="page-back" onclick="closePage('a11yPage')">← Retour</button>
     <div class="page-title">♿ Accessibilité</div>
@@ -2589,9 +2556,7 @@ if ('caches' in window) {
 // ── Service Worker (cache offline) ───────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('[SW] Enregistré:', reg.scope))
-      .catch(err => console.warn('[SW] Erreur:', err));
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
 
@@ -2752,25 +2717,8 @@ const PROMO_CODES = [
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Vider le cache localStorage des deals pour forcer rechargement
-  try {
-    ['deals_all_0_score','deals__0_score','deals_all_0_recent','deals_all_0_discount'].forEach(k => {
-      localStorage.removeItem(k);
-      localStorage.removeItem('dealscan_' + k);
-    });
-    // Vider TOUT le cache dealscan
-    Object.keys(localStorage).filter(k => k.startsWith('ds_') || k.startsWith('deals')).forEach(k => localStorage.removeItem(k));
-  } catch(e) {}
-  
-  // Afficher valeur immédiate pour statDeals
-  var sd = document.getElementById('statDeals');
-  if (sd) sd.textContent = '13';
-  
-  try { renderFlash(); } catch(e) { console.warn('renderFlash:', e.message); }
-  try { await loadDeals(); } catch(e) {
-    console.warn('loadDeals:', e.message);
-    try { allDeals = getDemoDeals(''); renderDeals(allDeals); } catch(e2) {}
-  }
+  renderFlash();
+  await loadDeals();
   await loadStats();
   startCountdowns();
   updateFavBadge();
@@ -2779,14 +2727,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initOfflineDetection();
   initOnboarding();
   initA11y();
-  // Fallback : si grille vide après 5s, forcer les démos
-  setTimeout(() => {
-    const grid = document.getElementById('dealsGrid');
-    if (grid && (!grid.children.length || grid.querySelector('.skeleton-card'))) {
-      console.log('[DealScan] Fallback forcé après 5s');
-      try { allDeals = getDemoDeals(''); renderDeals(allDeals); } catch(e) {}
-    }
-  }, 5000);
   // Vérifier URL params
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
@@ -2828,38 +2768,23 @@ async function loadDeals(cat = '', minSc = 0) {
 
   // 3. Appel API avec timeout
   try {
-    console.log('[DealScan] Chargement deals...', {cat, minSc, sort: currentSort});
     const params = new URLSearchParams({ limit: 60, min_score: minSc });
     if (cat) params.set('category', cat);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
-    // Essayer /deals/cached d'abord, fallback sur /deals si route manquante
-    let r = await fetch(`${API}/deals/cached?${params}`, { signal: controller.signal });
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const r = await fetch(`${API}/deals/cached?${params}`, { signal: controller.signal });
     clearTimeout(timeout);
-    if (r.status === 404 || r.status === 405) {
-      // Route /deals/cached pas encore déployée → utiliser /deals
-      const controller2 = new AbortController();
-      const timeout2 = setTimeout(() => controller2.abort(), 8000);
-      r = await fetch(`${API}/deals?${params}`, { signal: controller2.signal });
-      clearTimeout(timeout2);
-    }
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
-    console.log('[DealScan] API réponse:', {total: data.total, deals: (data.deals||[]).length, from_cache: data.from_cache});
     allDeals = data.deals || data || [];
-    // Si l'API répond mais sans deals (DB vide), utiliser les démos
-    if (allDeals.length === 0) {
-      allDeals = getDemoDeals(cat);
-    }
     renderDeals(allDeals);
     document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
-    // Mettre en cache seulement si vrais deals
-    if (allDeals.length > 0 && _lsCache && data.deals && data.deals.length > 0) {
+    // Mettre en cache
+    if (allDeals.length > 0 && _lsCache) {
       _lsCache.set(cacheKey, allDeals, 3);
       try { localStorage.setItem('ds_deals_cache', JSON.stringify(allDeals.slice(0,50))); } catch(e) {}
     }
   } catch(e) {
-    console.warn('[DealScan] API erreur:', e.message, '→ fallback démo');
     // Fallback 1 : cache expiré
     const stale = (() => { try { return JSON.parse(localStorage.getItem('ds_deals_cache')||'[]'); } catch(e2) { return []; } })();
     if (stale.length > 0) {
@@ -2888,52 +2813,20 @@ async function _refreshDealsBackground(cat, minSc, cacheKey) {
       allDeals = fresh;
       renderDeals(allDeals);
       document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
-    var sd2 = document.getElementById('statDeals');
-    if (sd2 && allDeals.length > 0) sd2.textContent = allDeals.length.toLocaleString('fr-FR');
     }
   } catch(e) {} // Silencieux
 }
 
-// Prix corrects des produits démo (fix DB ancienne version)
-const DEMO_PRICES = {
-  'macbook air m3':           {cur:999,   ori:1499},
-  'samsung galaxy s25 ultra': {cur:899,   ori:1329},
-  'sony wh-1000xm5':          {cur:219,   ori:380},
-  'ps5 slim':                 {cur:449,   ori:619},
-  'lg oled 65':               {cur:1299,  ori:2199},
-  'nike air max':             {cur:79,    ori:149},
-  'adidas stan smith':        {cur:59,    ori:100},
-  "levi's 501":               {cur:65,    ori:110},
-  'lait lactel':              {cur:5.99,  ori:8.50},
-  'saumon fumé':              {cur:7.99,  ori:12.90},
-  'café nespresso':           {cur:19.99, ori:32},
-  'canapé convertible':       {cur:349,   ori:599},
-  'robot aspirateur roomba':  {cur:349,   ori:599},
-};
-
-function fixDealPrice(d) {
-  const name = (d.name || '').toLowerCase();
-  for (const [key, fix] of Object.entries(DEMO_PRICES)) {
-    if (name.includes(key)) {
-      // Si le prix est > 1.5x le prix correct, c'est un bug DB
-      if (d.current_price > fix.cur * 1.5) {
-        d = {...d, current_price: fix.cur, original_price: fix.ori,
-          discount_pct: Math.round((fix.ori - fix.cur) / fix.ori * 100)};
-      }
-      break;
-    }
-  }
-  return d;
-}
-
 function renderDeals(deals) {
   const grid = document.getElementById('dealsGrid');
-  if (!grid) { return; }
-  if (!deals || !deals.length) {
+  if (!deals.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Aucun deal trouvé</div></div>`;
     return;
   }
-  grid.innerHTML = sortDeals(deals.map(fixDealPrice)).map(d => dealCard(d)).join('');
+  // Fix prix aberrants base de données ancienne version
+  const DPFIX={'macbook air m3':{c:999,o:1499},'samsung galaxy s25':{c:899,o:1329},'sony wh-1000xm5':{c:219,o:380},'ps5 slim':{c:449,o:619},'lg oled 65':{c:1299,o:2199},'nike air max':{c:79,o:149},'adidas stan smith':{c:59,o:100},"levi's 501":{c:65,o:110},'lait lactel':{c:5.99,o:8.50},'saumon fumé':{c:7.99,o:12.90},'café nespresso':{c:19.99,o:32},'canapé convertible':{c:349,o:599},'robot aspirateur roomba':{c:349,o:599}};
+  const fixedDeals=deals.map(d=>{const n=(d.name||'').toLowerCase();for(const[k,f]of Object.entries(DPFIX)){if(n.includes(k)&&d.current_price>f.c*1.5){d={...d,current_price:f.c,original_price:f.o,discount_pct:Math.round((f.o-f.c)/f.o*100)};break;}}return d;});
+  grid.innerHTML = sortDeals(fixedDeals).map(d => dealCard(d)).join('');
 }
 
 const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'Too Good To Go':97,'Sephora.fr':95,'Leroy Merlin':93};
@@ -2955,7 +2848,7 @@ function dealCard(d) {
   return `
   <div class="deal" onclick="openDeal(${d.id})">
     <div class="deal-img-wrap">
-      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy"/>
+      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
       <div class="deal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
       ${pct > 0 ? `<div class="deal-pct${score>=90?'':' gold'}">−${Math.round(pct)}%</div>` : ''}
       <button class="deal-fav" onclick="event.stopPropagation();toggleFav(${d.id})">${isFav?'❤️':'🤍'}</button>
@@ -3006,30 +2899,16 @@ function startCountdowns() {
 
 // ── MODAL ─────────────────────────────────────────────────────
 async function openDeal(id) {
-  // Support: id numérique, objet deal direct, ou string
+  // Accepte objet deal direct ou id numérique
   let deal = (typeof id === 'object' && id !== null) ? id : allDeals.find(d => d.id === id || d.id === Number(id));
-
-  // Si pas dans allDeals, chercher dans l'API directement
+  // Si pas dans allDeals, fetch direct API
   if (!deal && id) {
     try {
       const r = await fetchWithTimeout(API + '/deals/' + id, {}, 4000);
       if (r.ok) deal = await r.json();
     } catch(e) {}
   }
-
-  // Fallback: construire un deal minimal à partir de la carte HTML cliquée
-  if (!deal) {
-    const card = document.querySelector('[onclick*="openDeal(' + id + ')"]');
-    if (card) {
-      const name  = card.querySelector('.deal-name, [style*="font-size:13px"]')?.textContent?.trim() || 'Produit';
-      const price = parseFloat(card.querySelector('.price-new, [style*="font-size:17px"]')?.textContent) || 0;
-      deal = { id: id, name: name, current_price: price, store: '', category: 'default',
-               novadeal_score: 80, affiliate_url: '#', discount_pct: 0 };
-    } else {
-      showToast('⚠️ Détail non disponible');
-      return;
-    }
-  }
+  if (!deal) { showToast('⚠️ Détail non disponible'); return; }
   const score = deal.novadeal_score || 50;
   const cat   = deal.category || 'default';
   const img   = CAT_IMG[cat] || CAT_IMG.default;
@@ -3042,61 +2921,40 @@ async function openDeal(id) {
   const maxH = Math.max(...fakeH);
   const minH = Math.min(...fakeH);
   // Graphique SVG inline (plus précis que les barres)
-  const svgW = 280, svgH = 90;
   const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
-  const padL = 52, padB = 4, chartW = svgW - padL, chartH = svgH - padB - 10;
+  const svgW = 280, svgH = 90, padL = 52, chartW = svgW-padL, chartH = 70;
   const pts = fakeH.map((p,i) => {
-    const x = Math.round(padL + i / (fakeH.length-1) * chartW);
-    const y = Math.round(10 + (1 - (p - minH) / Math.max(1, maxH - minH)) * chartH);
-    return x + ',' + y;
+    const x = Math.round(padL + i/(fakeH.length-1)*chartW);
+    const y = Math.round(10 + (1-(p-minH)/Math.max(1,maxH-minH))*chartH);
+    return x+','+y;
   }).join(' ');
-  const lastX = padL + chartW;
-  const lastY = Math.round(10 + (1 - (deal.current_price - minH) / Math.max(1, maxH - minH)) * chartH);
-  // Polygon fill under the line
-  const firstPt = pts.split(' ')[0];
-  const polyPts = firstPt + ' ' + pts + ' ' + lastX + ',' + (10 + chartH) + ' ' + padL + ',' + (10 + chartH);
-  // Y-axis labels: max, mid, min prices
-  const midH = (maxH + minH) / 2;
-  const yMax = 14, yMid = Math.round(10 + chartH/2), yMin = 10 + chartH;
-  // Format price short: 1299 -> 1299€, 12.90 -> 12,90€
-  const fmtP = p => p >= 100 ? Math.round(p)+'€' : p.toFixed(2).replace('.',',')+'€';
-  // Dot label for current price
+  const lastX = padL+chartW, lastY = Math.round(10+(1-(deal.current_price-minH)/Math.max(1,maxH-minH))*chartH);
+  const polyPts = pts.split(' ')[0]+' '+pts+' '+lastX+','+(10+chartH)+' '+padL+','+(10+chartH);
+  const midH = (maxH+minH)/2, yMid = Math.round(10+chartH/2);
+  const fmtP = p => p>=100 ? Math.round(p)+'€' : p.toFixed(2).replace('.',',')+'€';
   const dotLabel = fmtP(deal.current_price);
-  const labelX = lastX - 2, labelY = lastY - 8;
-  const chartSVG = \`<svg viewBox="0 0 \${svgW} \${svgH}" style="width:100%;height:\${svgH}px;overflow:visible">
-    <defs>
-      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.25"/>
-        <stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <!-- Y-axis line -->
-    <line x1="\${padL}" y1="10" x2="\${padL}" y2="\${10+chartH}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-    <!-- Horizontal grid lines -->
-    <line x1="\${padL}" y1="10" x2="\${svgW}" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <line x1="\${padL}" y1="\${yMid}" x2="\${svgW}" y2="\${yMid}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <line x1="\${padL}" y1="\${10+chartH}" x2="\${svgW}" y2="\${10+chartH}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <!-- Y-axis price labels -->
-    <text x="\${padL-4}" y="\${yMax+1}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(maxH)}</text>
-    <text x="\${padL-4}" y="\${yMid}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(midH)}</text>
-    <text x="\${padL-4}" y="\${yMin}" fill="rgba(255,255,255,.45)" font-size="9" text-anchor="end" dominant-baseline="middle">\${fmtP(minH)}</text>
-    <!-- X-axis labels -->
-    <text x="\${padL}" y="\${svgH}" fill="rgba(255,255,255,.3)" font-size="8" text-anchor="start">−90j</text>
-    <text x="\${lastX}" y="\${svgH}" fill="rgba(255,255,255,.3)" font-size="8" text-anchor="end">Auj.</text>
-    <!-- Area fill -->
-    <polygon points="\${polyPts}" fill="url(#cg)"/>
-    <!-- Price line -->
-    <polyline points="\${pts}" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Current price dot -->
-    <circle cx="\${lastX}" cy="\${lastY}" r="5" fill="\${scoreColor}" stroke="white" stroke-width="2"/>
-    <!-- Current price label -->
-    <rect x="\${labelX > svgW-55 ? svgW-58 : labelX-2}" y="\${labelY-11}" width="54" height="14" rx="4" fill="\${scoreColor}" opacity="0.9"/>
-    <text x="\${labelX > svgW-55 ? svgW-31 : labelX+25}" y="\${labelY-1}" fill="white" font-size="9" text-anchor="middle" font-weight="bold">\${dotLabel}</text>
-  </svg>\`;
+  const lx = lastX>svgW-60?svgW-58:lastX-2, ly = lastY-8;
+  const chartSVG = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;overflow:visible">
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.2"/><stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/></linearGradient></defs>
+    <line x1="${padL}" y1="10" x2="${padL}" y2="${10+chartH}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+    <line x1="${padL}" y1="10" x2="${svgW}" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="${padL}" y1="${yMid}" x2="${svgW}" y2="${yMid}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="${padL}" y1="${10+chartH}" x2="${svgW}" y2="${10+chartH}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${padL-4}" y="14" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(maxH)}</text>
+    <text x="${padL-4}" y="${yMid}" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(midH)}</text>
+    <text x="${padL-4}" y="${10+chartH}" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(minH)}</text>
+    <text x="${padL}" y="${svgH}" fill="rgba(255,255,255,.25)" font-size="8" text-anchor="start">−90j</text>
+    <text x="${lastX}" y="${svgH}" fill="rgba(255,255,255,.25)" font-size="8" text-anchor="end">Auj.</text>
+    <polygon points="${polyPts}" fill="url(#cg)"/>
+    <polyline points="${pts}" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX}" cy="${lastY}" r="5" fill="${scoreColor}" stroke="white" stroke-width="2"/>
+    <rect x="${lx}" y="${ly-11}" width="52" height="14" rx="4" fill="${scoreColor}" opacity="0.9"/>
+    <text x="${lx+26}" y="${ly-1}" fill="white" font-size="9" text-anchor="middle" font-weight="bold">${dotLabel}</text>
+  </svg>`;
   const bars = '';
 
   document.getElementById('modalBody').innerHTML = `
-    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}"/>
+    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
     <div class="modal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
     <div class="modal-name">${escHtml(deal.name)}</div>
     <div class="modal-sub">${escHtml(deal.brand || deal.store)} · ${escHtml(deal.category || '')}</div>
@@ -3131,8 +2989,7 @@ async function openDeal(id) {
     <a class="cta-main" href="${(()=>{
       const u=deal.affiliate_url||'';
       if(u&&u!='#'&&u.indexOf('demo')===-1) return u;
-      const n=encodeURIComponent(deal.name||'');
-      const s=(deal.store||'').toLowerCase();
+      const n=encodeURIComponent(deal.name||''),s=(deal.store||'').toLowerCase();
       if(s.indexOf('amazon')!==-1) return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
       if(s.indexOf('fnac')!==-1) return 'https://www.fnac.com/SearchResult/ResultList.aspx?Search='+n;
       if(s.indexOf('darty')!==-1) return 'https://www.darty.com/nav/recherche?text='+n;
@@ -3141,9 +2998,8 @@ async function openDeal(id) {
       if(s.indexOf('cdiscount')!==-1) return 'https://www.cdiscount.com/search/10/'+n+'.html';
       if(s.indexOf('ikea')!==-1) return 'https://www.ikea.com/fr/fr/search/products/?q='+n;
       if(s.indexOf('nike')!==-1) return 'https://www.nike.com/fr/w?q='+n;
-      if(s.indexOf('carrefour')!==-1||s.indexOf('leclerc')!==-1||s.indexOf('lidl')!==-1) return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
       return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
-    })()}" target="_blank" onclick="showToast('✅ Redirection vers '+escHtml(deal.store)+'...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
+    })()}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -3397,10 +3253,7 @@ function openFlashPage() {
 
 // ── PAGES ─────────────────────────────────────────────────────
 function openPage(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = '';   // retire le display:none éventuel
-  el.classList.add('open');
+  document.getElementById(id).classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closePage(id) {
@@ -3613,73 +3466,6 @@ function logout() {
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
 }
-// Newsletter frequency selector
-let _nlFreq = 'daily';
-function selectNlFreq(btn, freq) {
-  _nlFreq = freq;
-  document.querySelectorAll('.nl-freq').forEach(b => {
-    b.style.background = 'var(--bg)';
-    b.style.border = '1px solid var(--border)';
-    b.style.color = 'var(--txt2)';
-  });
-  btn.style.background = 'rgba(255,92,43,.15)';
-  btn.style.border = '1px solid var(--accent)';
-  btn.style.color = 'var(--accent)';
-  const custom = document.getElementById('nlCustomFreq');
-  if (custom) custom.style.display = freq === 'custom' ? 'block' : 'none';
-}
-
-function subscribeNewsletter() {
-  const email = (document.getElementById('newsletterEmail')?.value || '').trim();
-  const msg   = document.getElementById('newsletterMsg');
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    if (msg) { msg.style.display='block'; msg.style.color='#FF5C2B'; msg.textContent='⚠️ Saisis un email valide.'; }
-    return;
-  }
-
-  // Calculer la fréquence finale
-  let frequency = _nlFreq;
-  if (_nlFreq === 'custom') {
-    const count  = parseInt(document.getElementById('nlCustomCount')?.value || '3');
-    const period = document.getElementById('nlCustomPeriod')?.value || 'week';
-    frequency    = count + '_per_' + period; // ex: "3_per_week"
-  }
-
-  const btn = document.querySelector('#newsletterForm button:last-of-type');
-  if (btn) { btn.disabled = true; btn.textContent = 'Inscription…'; }
-
-  // Enregistrer localement
-  try { localStorage.setItem('ds_nl_email', email); localStorage.setItem('ds_nl_freq', frequency); } catch(e) {}
-
-  // Envoyer à l'API
-  fetch(API + '/newsletter/subscribe', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, name: currentUser?.name || 'Ami DealScan', frequency, categories: ['all'] })
-  })
-  .then(r => r.json())
-  .then(data => {
-    const form = document.getElementById('newsletterForm');
-    if (form) form.style.display = 'none';
-    if (msg) {
-      msg.style.display = 'block';
-      msg.style.color = '#00D084';
-      msg.style.fontSize = '14px';
-      const freqLabel = {'daily':'chaque jour','weekly':'chaque semaine','monthly':'chaque mois'}[_nlFreq] || frequency;
-      msg.textContent = data.message || `✅ Inscription confirmée ! Tu recevras les meilleurs deals ${freqLabel}.`;
-    }
-  })
-  .catch(() => {
-    // Fallback offline
-    const form = document.getElementById('newsletterForm');
-    if (form) form.style.display = 'none';
-    if (msg) {
-      msg.style.display = 'block'; msg.style.color = '#00D084'; msg.style.fontSize = '14px';
-      msg.textContent = '✅ Inscription enregistrée ! Tu recevras les meilleurs deals bientôt.';
-    }
-  });
-}
-
 function updateNavForUser() {
   const area=document.getElementById('authNavArea');
   if (currentUser) {
@@ -5171,7 +4957,7 @@ function checkPushBanner() {
 async function registerServiceWorkerPush() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await navigator.serviceWorker.register('/sw.js');
     const token = localStorage.getItem('token');
     if (token) {
       await fetch(API + '/push/subscribe', {
@@ -5920,7 +5706,14 @@ function dismissInstallPrompt() {
   try { localStorage.setItem('ds_install_dismissed', '1'); } catch(e) {}
 }
 
-// Register Service Worker - déjà enregistré plus haut
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
 
 // Handle URL shortcuts from manifest
 const _urlParams = new URLSearchParams(window.location.search);
@@ -6259,12 +6052,11 @@ window.openDeal = function(deal) {
 
 // ── INIT BLOC 3 ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Check install prompt after 10s (PWA)
+  // Check install prompt after 10s
   setTimeout(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     if (!isStandalone) showInstallPrompt();
   }, 10000);
-  // Note: openDealOfDay retiré du démarrage auto - accessible via le bouton ⭐
 });
 
 
@@ -7689,6 +7481,46 @@ document.addEventListener('keydown', (e) => {
 
 // ── DEMO DATA ─────────────────────────────────────────────────
 
+// ── NEWSLETTER AVEC FRÉQUENCE ─────────────────────────────────
+let _nlFreq = 'daily';
+function selectNlFreq(btn, freq) {
+  _nlFreq = freq;
+  document.querySelectorAll('.nl-freq').forEach(b => {
+    b.style.background='var(--bg)'; b.style.border='1px solid var(--border)'; b.style.color='var(--txt2)';
+  });
+  btn.style.background='rgba(255,92,43,.15)'; btn.style.border='1px solid var(--accent)'; btn.style.color='var(--accent)';
+  const c=document.getElementById('nlCustomFreq'); if(c) c.style.display=freq==='custom'?'block':'none';
+}
+function subscribeNewsletter() {
+  const email = (document.getElementById('newsletterEmail')?.value || '').trim();
+  const msg = document.getElementById('newsletterMsg');
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    if (msg) { msg.style.display='block'; msg.style.color='#FF5C2B'; msg.textContent='⚠️ Saisis un email valide.'; }
+    return;
+  }
+  let frequency = _nlFreq;
+  if (_nlFreq === 'custom') {
+    const count = parseInt(document.getElementById('nlCustomCount')?.value||'3');
+    const period = document.getElementById('nlCustomPeriod')?.value||'week';
+    frequency = count+'_per_'+period;
+  }
+  const btn = document.querySelector('#newsletterForm button:last-of-type');
+  if (btn) { btn.disabled=true; btn.textContent='Inscription…'; }
+  try { localStorage.setItem('ds_nl_email',email); } catch(e) {}
+  fetch(API+'/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,name:currentUser?.name||'Ami DealScan',frequency,categories:['all']})})
+  .then(r=>r.json()).then(data=>{
+    const form=document.getElementById('newsletterForm'); if(form) form.style.display='none';
+    if(msg){msg.style.display='block';msg.style.color='#00D084';msg.style.fontSize='14px';
+      const lbl={'daily':'chaque jour','weekly':'chaque semaine','monthly':'chaque mois'}[_nlFreq]||frequency;
+      msg.textContent=data.message||`✅ Inscription confirmée ! Tu recevras les meilleurs deals ${lbl}.`;}
+  }).catch(()=>{
+    const form=document.getElementById('newsletterForm'); if(form) form.style.display='none';
+    if(msg){msg.style.display='block';msg.style.color='#00D084';msg.style.fontSize='14px';
+      msg.textContent='✅ Inscription enregistrée ! Tu recevras les meilleurs deals bientôt.';}
+  });
+}
+
 function getDemoDeals(cat) {
   const all = [
     {id:1,name:'MacBook Air M3 16Go/512Go',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:999,original_price:1499,discount_pct:33,novadeal_score:98,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
@@ -7707,7 +7539,6 @@ function getDemoDeals(cat) {
   return cat ? all.filter(d=>d.category===cat) : all;
 }
 </script>
-<!-- Patch v2.0 chargé depuis /patch.js -->
 <script src="/patch.js" defer></script>
 </body>
 </html>

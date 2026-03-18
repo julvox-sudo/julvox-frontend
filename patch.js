@@ -339,3 +339,80 @@
 
   console.log('[DealScan Patch v4.0] Chargé — openDeal override + prix fix + fallback urgence');
 })();
+
+// ═══════════════════════════════════════════════════════════
+// PATCH 6 — Fix urgence pour boutons cassés dans ancienne version
+// S'applique seulement si les fonctions ne marchent pas
+// ═══════════════════════════════════════════════════════════
+setTimeout(function() {
+
+  // Fix toggleTheme si cassé
+  var themeBtn = document.getElementById('themeBtn');
+  if (themeBtn && !window._themeFixed) {
+    themeBtn.addEventListener('click', function() {
+      var html = document.documentElement;
+      var current = html.getAttribute('data-theme') || 'dark';
+      var next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      themeBtn.textContent = next === 'dark' ? '🌙' : '☀️';
+      try { localStorage.setItem('ds_theme', next); } catch(e) {}
+      console.log('[Patch] Theme:', next);
+    });
+    // Appliquer le thème sauvegardé
+    try {
+      var saved = localStorage.getItem('ds_theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        themeBtn.textContent = saved === 'dark' ? '🌙' : '☀️';
+      }
+    } catch(e) {}
+    window._themeFixed = true;
+    console.log('[Patch] toggleTheme fixé');
+  }
+
+  // Fix bouton Connexion si cassé
+  var connBtn = document.querySelector('.user-btn');
+  var authOverlay = document.getElementById('authOverlay');
+  if (connBtn && authOverlay && !window._authFixed) {
+    // Vérifier si openAuth fonctionne
+    if (typeof window.openAuth !== 'function') {
+      connBtn.addEventListener('click', function() {
+        authOverlay.classList.add('open');
+        // Rendre le formulaire de login si authBody vide
+        var body = document.getElementById('authBody');
+        if (body && !body.innerHTML.trim()) {
+          body.innerHTML = '<div style="padding:20px"><div style="font-size:18px;font-weight:700;margin-bottom:4px">Bon retour ! 👋</div>' +
+            '<div style="font-size:13px;color:var(--txt2);margin-bottom:16px">Connecte-toi à ton compte DealScan</div>' +
+            '<div style="margin-bottom:10px"><input type="email" id="authEmail" placeholder="ton@email.com" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--txt);font-size:14px;box-sizing:border-box"/></div>' +
+            '<div style="margin-bottom:14px"><input type="password" id="authPwd" placeholder="Mot de passe" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--txt);font-size:14px;box-sizing:border-box"/></div>' +
+            '<button onclick="if(typeof submitLogin===\'function\')submitLogin()" style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer">Se connecter →</button>' +
+            '</div>';
+        }
+      });
+      window._authFixed = true;
+      console.log('[Patch] bouton Connexion fixé');
+    }
+  }
+
+  // Fix filtres catégories si cassés
+  if (typeof window.filterCat !== 'function') {
+    window.filterCat = function(el, cat) {
+      document.querySelectorAll('.cat').forEach(function(c) { c.classList.remove('active'); });
+      el.classList.add('active');
+      if (typeof window.loadDeals === 'function') window.loadDeals(cat, 0);
+      console.log('[Patch] filterCat:', cat);
+    };
+    console.log('[Patch] filterCat fixé');
+  }
+
+  // Fix setSort si cassé  
+  if (typeof window.setSort !== 'function') {
+    window.setSort = function(el, sort) {
+      document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+      el.classList.add('active');
+      if (typeof window.renderDeals === 'function' && window.allDeals) window.renderDeals(window.allDeals);
+    };
+  }
+
+}, 800);
+
