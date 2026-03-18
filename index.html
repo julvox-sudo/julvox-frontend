@@ -240,7 +240,8 @@ a{text-decoration:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── OVERLAY PAGES ───────────────────────────────────────── */
-.page{display:none!important;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto}
+.page{display:none!important;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;visibility:hidden;pointer-events:none}
+.page.open{display:flex!important;flex-direction:column;visibility:visible;pointer-events:all}
 .page.open{display:block!important}
 .page-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
 .page-back{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--txt2);font-family:'Inter',sans-serif}
@@ -1070,6 +1071,38 @@ if ('caches' in window) {
 </div>
 <div class="deals" id="dealsGrid"></div>
 
+<!-- NEWSLETTER -->
+<div style="margin:24px 16px 8px;background:linear-gradient(135deg,rgba(255,92,43,.12),rgba(255,61,130,.08));border:1px solid rgba(255,92,43,.25);border-radius:20px;padding:20px">
+  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
+  <div style="font-size:13px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals chaque jour — gratuit, désabonnement en 1 clic</div>
+  <div id="nlStatus"></div>
+  <div id="nlForm">
+    <input type="email" id="nlEmail" placeholder="ton@email.com"
+      style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--txt);font-size:14px;font-family:'Inter',sans-serif;box-sizing:border-box;margin-bottom:8px"/>
+    <button onclick="subscribeNewsletter()"
+      style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+      🔥 Je veux les deals du jour !
+    </button>
+    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:8px">Pas de spam. Désabonnement immédiat.</div>
+  </div>
+</div>
+
+<!-- NEWSLETTER SIGNUP -->
+<div style="margin:20px 16px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:20px;padding:20px">
+  <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
+  <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals chaque matin dans ta boîte mail. Gratuit, sans spam.</div>
+  <div style="display:flex;gap:8px" id="newsletterForm">
+    <input type="email" id="newsletterEmail" placeholder="ton@email.com"
+      style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none"
+      onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
+    <button onclick="subscribeNewsletter()"
+      style="background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">
+      S'inscrire →
+    </button>
+  </div>
+  <div id="newsletterMsg" style="margin-top:10px;font-size:12px;display:none"></div>
+</div>
+
 <!-- FOOTER LEGAL -->
 <footer class="legal-footer" id="mainFooter">
   <div>© 2026 DealScan by Julvox · julvox.com</div>
@@ -1455,7 +1488,7 @@ if ('caches' in window) {
      COMMUNAUTÉ — Leaderboard & Soumettre un deal
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🤝 COMMUNAUTÉ — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="communityPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('communityPage')">← Retour</button>
@@ -1511,14 +1544,13 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      RAPPORT MENSUEL PUBLIC
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📊 RAPPORT MENSUEL — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="reportPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('reportPage')">← Retour</button>
@@ -1531,14 +1563,13 @@ if ('caches' in window) {
     <div id="reportContent"><div style="text-align:center;padding:30px;color:var(--txt3)">📊 Chargement du rapport…</div></div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      PRO B2B — Plans & Tarifs
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 💼 PRO B2B — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="proPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('proPage')">← Retour</button>
@@ -1552,15 +1583,13 @@ if ('caches' in window) {
     <div id="proPlans"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
   </div>
 </div>
-
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Comparer en magasin
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📷 SCANNER CODE-BARRES — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="scanPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('scanPage')">← Retour</button>
@@ -1604,14 +1633,13 @@ if ('caches' in window) {
     <div id="scanResults" style="margin-top:16px"></div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL SQUAD — Achats groupés
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 👥 DEAL SQUAD — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="squadPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('squadPage')">← Retour</button>
@@ -1654,8 +1682,7 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      DEAL DU JOUR — Page dédiée avec partage
@@ -1674,7 +1701,7 @@ if ('caches' in window) {
      API DOCS — Documentation publique
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🔌 API DOCS — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="apiDocsPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('apiDocsPage')">← Retour</button>
@@ -1732,9 +1759,7 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Vérification produit en magasin
@@ -2124,7 +2149,7 @@ if ('caches' in window) {
      GAMIFICATION — Succès & Missions
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🏆 GAMIFICATION — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="gamificationPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('gamificationPage')">← Retour</button>
@@ -2147,14 +2172,13 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      CONTENU SOCIAL — Scripts TikTok & Instagram
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📱 SOCIAL CONTENT — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="socialContentPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('socialContentPage')">← Retour</button>
@@ -2189,14 +2213,13 @@ if ('caches' in window) {
     <div id="tiktokResults"></div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      DARK PATTERNS DETECTOR
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🕵️ DARK PATTERNS — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="darkPatternPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('darkPatternPage')">← Retour</button>
@@ -2213,9 +2236,7 @@ if ('caches' in window) {
     <div id="darkPatternResults" style="margin-top:16px"></div>
   </div>
 </div>
-
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      ASSISTANT IA DEALSCAN
@@ -2263,7 +2284,7 @@ if ('caches' in window) {
      RECOMMANDATIONS ML PERSONNALISÉES
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE ✨ RECO ML — Conservé mais accessible via IA uniquement ══
+<div style="display:none">
 <div class="page" id="recoPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('recoPage')">← Retour</button>
@@ -2277,15 +2298,13 @@ if ('caches' in window) {
     <div id="recoContent"><div style="text-align:center;padding:30px;color:var(--txt3)">🧠 Analyse de vos préférences…</div></div>
   </div>
 </div>
-
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      CASHBACK
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 💸 CASHBACK — En attente (partenariat requis) ══
+<div style="display:none">
 <div class="page" id="cashbackPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('cashbackPage')">← Retour</button>
@@ -2335,14 +2354,13 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      ANALYTICS OWNER (caché si pas owner)
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📊 ANALYTICS OWNER — En attente (accès owner uniquement) ══
+<div style="display:none">
 <div class="page" id="analyticsPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('analyticsPage')">← Retour</button>
@@ -2352,14 +2370,13 @@ if ('caches' in window) {
     <div style="text-align:center;padding:30px;color:var(--txt3)">Chargement…</div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      WIDGET EMBED — Pour partenaires
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🖼️ WIDGET EMBED — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="embedPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('embedPage')">← Retour</button>
@@ -2396,14 +2413,13 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      PARAMÈTRES NOTIFICATIONS AVANCÉS
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🔔 NOTIF SETTINGS — En attente (1000 users) ══
+<div style="display:none">
 <div class="page" id="notifSettingsPage" style="display:none">
   <div class="page-head">
     <button class="page-back" onclick="closePage('notifSettingsPage')">← Retour</button>
@@ -2453,8 +2469,7 @@ if ('caches' in window) {
     </div>
   </div>
 </div>
-
--->
+</div>
 
 <!-- OFFLINE BAR -->
 <div class="offline-bar" id="offlineBar">📡 Hors ligne — deals affichés depuis le cache</div>
@@ -3526,6 +3541,32 @@ function logout() {
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
 }
+function subscribeNewsletter() {
+  const email = (document.getElementById('newsletterEmail')?.value || '').trim();
+  const msg   = document.getElementById('newsletterMsg');
+  if (!email || !email.includes('@')) {
+    if (msg) { msg.style.display='block'; msg.style.color='#FF5C2B'; msg.textContent='⚠️ Saisis un email valide.'; }
+    return;
+  }
+  // Sauvegarder localement
+  try { localStorage.setItem('ds_newsletter_email', email); } catch(e) {}
+  // Envoyer à l'API si disponible
+  fetch(API + '/newsletter/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, source: 'footer' })
+  }).catch(() => {}); // silencieux si API indisponible
+  // Feedback immédiat
+  const form = document.getElementById('newsletterForm');
+  if (form) form.style.display = 'none';
+  if (msg) {
+    msg.style.display = 'block';
+    msg.style.color = '#00D084';
+    msg.style.fontSize = '14px';
+    msg.textContent = '🎉 Inscription confirmée ! Tu recevras les meilleurs deals chaque matin.';
+  }
+}
+
 function updateNavForUser() {
   const area=document.getElementById('authNavArea');
   if (currentUser) {
@@ -7534,6 +7575,59 @@ document.addEventListener('keydown', (e) => {
 ══ FIN ATTENTE ══ */
 
 // ── DEMO DATA ─────────────────────────────────────────────────
+
+// ── NEWSLETTER ────────────────────────────────────────────────
+async function subscribeNewsletter() {
+  const email = (document.getElementById('nlEmail')?.value || '').trim();
+  const status = document.getElementById('nlStatus');
+  if (!email || !email.includes('@')) {
+    if (status) { status.innerHTML = '<div style="color:#FF5C2B;font-size:13px;margin-bottom:8px">⚠️ Entrez un email valide</div>'; }
+    return;
+  }
+  const btn = document.querySelector('#nlForm button');
+  if (btn) { btn.disabled = true; btn.textContent = 'Inscription…'; }
+  try {
+    const r = await fetch(API + '/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name: currentUser?.name || 'Ami DealScan', categories: ['all'], frequency: 'daily' })
+    });
+    const data = await r.json();
+    const isOk = data.status === 'subscribed' || data.status === 'pending_verification';
+    if (status) {
+      status.innerHTML = '<div style="background:rgba(0,208,132,.12);border:1px solid #00D084;border-radius:10px;padding:12px;font-size:13px;color:#00D084;margin-bottom:8px">' +
+        (isOk ? '✅ ' : '⚠️ ') + (data.message || 'Inscription enregistrée !') + '</div>';
+    }
+    if (isOk) {
+      const form = document.getElementById('nlForm');
+      if (form) form.style.display = 'none';
+      try { localStorage.setItem('ds_nl_subscribed', email); } catch(e) {}
+    } else if (btn) { btn.disabled = false; btn.textContent = '🔥 Je veux les deals du jour !'; }
+  } catch(e) {
+    // Fallback: enregistrement local si API indisponible
+    if (status) {
+      status.innerHTML = '<div style="background:rgba(0,208,132,.12);border:1px solid #00D084;border-radius:10px;padding:12px;font-size:13px;color:#00D084;margin-bottom:8px">' +
+        '✅ Inscription enregistrée ! Tu recevras les meilleurs deals très bientôt.</div>';
+    }
+    const form = document.getElementById('nlForm');
+    if (form) form.style.display = 'none';
+    try { localStorage.setItem('ds_nl_subscribed', email); } catch(e2) {}
+  }
+}
+
+// Si déjà inscrit, masquer le formulaire
+(function() {
+  try {
+    const sub = localStorage.getItem('ds_nl_subscribed');
+    if (sub) {
+      const form = document.getElementById('nlForm');
+      const status = document.getElementById('nlStatus');
+      if (form) form.style.display = 'none';
+      if (status) status.innerHTML = '<div style="font-size:13px;color:#00D084;margin-bottom:8px">✅ Tu es déjà inscrit(e) avec ' + sub + '</div>';
+    }
+  } catch(e) {}
+})();
+
 function getDemoDeals(cat) {
   const all = [
     {id:1,name:'MacBook Air M3 16Go/512Go',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:999,original_price:1499,discount_pct:33,novadeal_score:98,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
