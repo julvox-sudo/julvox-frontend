@@ -1216,7 +1216,7 @@ a{text-decoration:none}
   <div class="page-body">
     <div class="legal-block">
       <div class="legal-block-title">🏢 Article 1 — Présentation</div>
-      <div class="legal-block-text">DealScan est un service d'agrégation de promotions exploité par Julvox (<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a7975746e7b796e5a706f766c756234797577">[email&#160;protected]</a>). En utilisant le service, vous acceptez les présentes CGU. Le service est réservé aux personnes majeures (18 ans et plus).</div>
+      <div class="legal-block-text">DealScan est un service d'agrégation de promotions exploité par Julvox (contact@julvox.com). En utilisant le service, vous acceptez les présentes CGU. Le service est réservé aux personnes majeures (18 ans et plus).</div>
     </div>
     <div class="legal-block">
       <div class="legal-block-title">💳 Article 2 — Abonnement Premium</div>
@@ -1236,7 +1236,7 @@ a{text-decoration:none}
     </div>
     <div class="legal-block">
       <div class="legal-block-title">📬 Article 6 — Contact</div>
-      <div class="legal-block-text">Pour toute question : <a href="/cdn-cgi/l/email-protection#30535f5e44515344705a455c465f481e535f5d" style="color:var(--accent)"><span class="__cf_email__" data-cfemail="6d0e0203190c0e192d0718011b0215430e0200">[email&#160;protected]</span></a> — julvox.com</div>
+      <div class="legal-block-text">Pour toute question : contact@julvox.com — julvox.com</div>
     </div>
   </div>
 </div>
@@ -1974,7 +1974,7 @@ a{text-decoration:none}
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px">
         <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)">📬 Signaler un problème</div>
         <div style="font-size:13px;color:var(--txt2);margin-bottom:10px">DealScan s'engage à être accessible à tous. Signalez tout problème.</div>
-        <a href="/cdn-cgi/l/email-protection#12717d7c667371665278677e647d6a3c717d7f2d616770787771662f5371717761617b707b7e7b66d1bb325677737e4171737c" style="color:var(--accent);font-size:14px;font-weight:600"><span class="__cf_email__" data-cfemail="6b0804051f0a081f2b011e071d041345080406">[email&#160;protected]</span></a>
+        contact@julvox.com
       </div>
     </div>
   </div>
@@ -1991,7 +1991,7 @@ a{text-decoration:none}
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ── CONFIG ────────────────────────────────────────────────────
 
 // ══════════════════════════════════════════════════════════════
@@ -2736,23 +2736,8 @@ function _processToastQueue() {
 
 // ── RGPD — Suppression de compte ─────────────────────────────
 function requestAccountDeletion() {
-  const confirmed = confirm(
-    '⚠️ Supprimer votre compte ?
-
-' +
-    'Cette action est irréversible :
-' +
-    '• Votre compte sera supprimé
-' +
-    '• Vos alertes prix seront annulées
-' +
-    '• Votre abonnement Premium sera résilié
-' +
-    '• Vos données seront effacées sous 30 jours
-
-' +
-    'Confirmer la suppression ?'
-  );
+  const msg = "\u26a0\ufe0f Supprimer votre compte ?\n\nCette action est irr\u00e9versible :\n\u2022 Votre compte sera supprim\u00e9\n\u2022 Vos alertes prix seront annul\u00e9es\n\u2022 Votre abonnement Premium sera r\u00e9sili\u00e9\n\u2022 Vos donn\u00e9es seront effac\u00e9es sous 30 jours\n\nConfirmer la suppression ?";
+  const confirmed = confirm(msg);
   if (!confirmed) return;
 
   const token = localStorage.getItem('token');
@@ -5071,7 +5056,7 @@ function showInstallPrompt() {
   const btn       = document.getElementById('installPwaBtn');
 
   if (isIOS) {
-    instrEl.innerHTML = '1. Appuyez sur <strong>Partager</strong> (icône carré ↑)<br>2. Faites défiler et tapez <strong>"Sur l'écran d'accueil"</strong><br>3. Confirmez avec <strong>Ajouter</strong>';
+    instrEl.innerHTML = `1. Appuyez sur <strong>Partager</strong> (ic\u00f4ne carr\u00e9 \u2191)<br>2. Faites d\u00e9filer et tapez <strong>"Sur l'\u00e9cran d'accueil"</strong><br>3. Confirmez avec <strong>Ajouter</strong>`;
     if (btn) btn.style.display = 'none';
   } else if (deferredInstallPrompt) {
     instrEl.innerHTML = 'Installez DealScan pour un accès rapide, notifications push et mode hors ligne.';
@@ -5301,7 +5286,7 @@ function renderTikTokTop3(deals, el) {
       <div class="tiktok-copy">Vidéo : 15-30 sec · Musique tendance + texte deals + CTA bio</div>
       <div class="tiktok-script">${script.replace(/\n/g,'<br>')}</div>
       <div class="tiktok-tags">${tags.map(t=>`<span class="tiktok-tag">${t}</span>`).join('')}</div>
-      <button class="tiktok-btn" onclick="copyTikTokScript('${script.replace(/'/g,"\'")}')">📋 Copier le script</button>
+      <button class="tiktok-btn" onclick="copyTikTokScript(0)">📋 Copier le script</button>
     </div>
     ${deals.map(d => `
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
@@ -5339,7 +5324,7 @@ function renderTikTokSingle(deal, el) {
       <div class="tiktok-copy">Format : 15 sec · Capture deal + Prix barré + Prix actuel + CTA</div>
       <div class="tiktok-script">${script.replace(/\n/g,'<br>')}</div>
       <div class="tiktok-tags">${tags.map(t=>`<span class="tiktok-tag">${t}</span>`).join('')}</div>
-      <button class="tiktok-btn" onclick="copyTikTokScript('${script.replace(/'/g,"\'").replace(/
+      <button class="tiktok-btn" onclick="copyTikTokScript(0)">📋 Copier le script</button>
 /g,'\n')}')">📋 Copier le script</button>
     </div>`;
 }
@@ -5358,14 +5343,13 @@ function renderTikTokCompare(deals, el) {
       <div class="tiktok-copy">Format : 30 sec · Split screen des 2 produits + score NovaDeal™ + révélation du gagnant</div>
       <div class="tiktok-script">${script.replace(/\n/g,'<br>')}</div>
       <div class="tiktok-tags">${tags.map(t=>`<span class="tiktok-tag">${t}</span>`).join('')}</div>
-      <button class="tiktok-btn" onclick="copyTikTokScript('${script.replace(/'/g,"\'").replace(/
+      <button class="tiktok-btn" onclick="copyTikTokScript(0)">📋 Copier le script</button>
 /g,'\n')}')">📋 Copier le script</button>
     </div>`;
 }
 
 function copyTikTokScript(text) {
-  const clean = text.replace(/\n/g, '
-');
+  const clean = text.replace(/\n/g, '\n');
   navigator.clipboard.writeText(clean).then(() => showToast('📋 Script copié !')).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = clean;
@@ -6315,11 +6299,8 @@ function appendChatBubble(role, text) {
   const bubble = document.createElement('div');
   bubble.className = `bubble ${role === 'user' ? 'user' : ''}`;
   bubble.innerHTML = role === 'user'
-    ? `<div class="bubble-content user">${text.replace(/
-/g,'<br>')}</div>`
-    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${text.replace(/
-/g,'<br>')}</div>`;
-
+    ? `<div class="bubble-content user">${text.replace(/\n/g,'<br>')}</div>`
+    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${text.replace(/\n/g,'<br>')}</div>`;
   container.appendChild(bubble);
   container.scrollTop = container.scrollHeight;
 }
@@ -6342,37 +6323,14 @@ function removeTypingIndicator() {
 function getLocalAIResponse(msg) {
   const m = msg.toLowerCase();
   if (m.includes('deal') || m.includes('promo') || m.includes('offre'))
-    return '🔥 Pour les meilleurs deals du moment, utilisez le bouton **🔥 Accueil** et filtrez par catégorie. Les deals avec un score NovaDeal™ ≥ 85 sont des vraies bonnes affaires !';
+    return "🔥 Pour les meilleurs deals du moment, utilisez le bouton 🔥 Accueil et filtrez par catégorie. Les deals avec un score NovaDeal™ ≥ 85 sont de vraies bonnes affaires !";
   if (m.includes('novadeal') || m.includes('score'))
-    return '⭐ Le score NovaDeal™ note chaque deal de 0 à 100 :
-• ≥ 90 = Prix record 🏆
-• ≥ 75 = Très bon deal ✅
-• ≥ 60 = Bon deal 👍
-• < 40 = Attendez ⏳
-
-L'algorithme analyse remise réelle, rareté du prix, confiance marchand, et détecte les fausses promos.';
+    return "⭐ Le score NovaDeal™ note chaque deal de 0 à 100 :\n• ≥ 90 = Prix record 🏆\n• ≥ 75 = Très bon deal ✅\n• ≥ 60 = Bon deal 👍\n• < 40 = Attendez ⏳\n\nL'algorithme analyse remise réelle, rareté du prix, confiance marchand, et détecte les fausses promos.";
   if (m.includes('premium') || m.includes('abonnement'))
-    return '⭐ DealScan Premium à **4,99€/mois** :
-✅ Alertes prix illimitées
-✅ Wishlist illimitée
-✅ Deals en avant-première
-✅ Score NovaDeal™ détaillé
-✅ Sans publicité
-
-Activable depuis l'onglet ⭐ Premium.';
+    return "⭐ DealScan Premium à 4,99€/mois :\n✅ Alertes prix illimitées\n✅ Wishlist illimitée\n✅ Deals en avant-première\n✅ Score NovaDeal™ détaillé\n✅ Sans publicité\n\nActivable depuis l'onglet ⭐ Premium.";
   if (m.includes('black friday') || m.includes('quand acheter') || m.includes('soldes'))
-    return '📅 Meilleures périodes d'achat :
-🖥️ High-Tech : Black Friday (nov), Prime Day (juil)
-👗 Mode : Soldes d'été (juin), Soldes d'hiver (janv)
-🎮 Gaming : Black Friday, Noël
-
-Consultez le 📅 **Calendrier Promos** pour les dates exactes !';
-  return '🤔 Je n'ai pas tout compris. Essayez d'utiliser :
-• ⚡ **Analyser** pour un deal spécifique
-• 🔍 **Comparer** pour trouver le meilleur prix
-• 📅 **Calendrier** pour savoir quand acheter
-
-Ou reformulez votre question !';
+    return "📅 Meilleures périodes d'achat :\n🖥️ High-Tech : Black Friday (nov), Prime Day (juil)\n👗 Mode : Soldes d'été (juin), Soldes d'hiver (janv)\n🎮 Gaming : Black Friday, Noël\n\nConsultez le 📅 Calendrier Promos pour les dates exactes !";
+  return "🤔 Je n'ai pas tout compris. Essayez d'utiliser :\n• ⚡ Analyser pour un deal spécifique\n• 🔍 Comparer pour trouver le meilleur prix\n• 📅 Calendrier pour savoir quand acheter\n\nOu reformulez votre question !";
 }
 
 // ── ML RECOMMANDATIONS ────────────────────────────────────────
