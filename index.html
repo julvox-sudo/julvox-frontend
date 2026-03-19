@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
@@ -2184,67 +2184,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── STATS ─────────────────────────────────────────────────────
 async function loadStats() {
+  // Afficher une valeur immédiatement
+  const el = document.getElementById('statDeals');
+  if (el) el.textContent = '12 841';
+  // Mettre à jour depuis l'API en arrière-plan
   try {
-    const r = await fetch(`${API}/stats`);
-    if (!r.ok) throw new Error();
+    const r = await fetch(API + '/stats');
+    if (!r.ok) return;
     const d = await r.json();
-    document.getElementById('statDeals').textContent = d.total_deals.toLocaleString('fr-FR');
-  } catch { document.getElementById('statDeals').textContent = '12 841'; }
+    if (el && d.total_deals) el.textContent = d.total_deals.toLocaleString('fr-FR');
+  } catch(e) {} // Silencieux
 }
 
 // ── DEALS ─────────────────────────────────────────────────────
 async function loadDeals(cat = '', minSc = 0) {
-  const grid = document.getElementById('dealsGrid');
-  const cacheKey = `deals_${cat||'all'}_${minSc}_${currentSort}`;
+  const countEl = document.getElementById('dealCount');
 
-  // 1. Afficher skeleton immédiatement (zéro délai perçu)
-  grid.innerHTML = renderSkeletons(8);
+  // 1. Afficher les données démo IMMÉDIATEMENT
+  const demo = getDemoDeals(cat);
+  const filtered = minSc > 0 ? demo.filter(d => (d.novadeal_score||0) >= minSc) : demo;
+  allDeals = filtered.length ? filtered : demo;
+  renderDeals(allDeals);
+  if (countEl) countEl.textContent = allDeals.length + ' offres';
 
-  // 2. Essayer le cache localStorage d'abord (TTL 3 min)
-  const cached = _lsCache ? _lsCache.get(cacheKey) : null;
-  if (cached && cached.length > 0) {
-    allDeals = cached;
-    renderDeals(allDeals);
-    document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
-    // Refresh silencieux en arrière-plan
-    _refreshDealsBackground(cat, minSc, cacheKey);
-    return;
-  }
-
-  // 3. Appel API avec timeout
+  // 2. Essayer l'API en arrière-plan
   try {
     const params = new URLSearchParams({ limit: 60, min_score: minSc });
     if (cat) params.set('category', cat);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const r = await fetch(`${API}/deals/cached?${params}`, { signal: controller.signal });
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const r = await fetch(API + '/deals/cached?' + params.toString(), { signal: controller.signal });
     clearTimeout(timeout);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!r.ok) return;
     const data = await r.json();
-    allDeals = data.deals || data || [];
-    renderDeals(allDeals);
-    document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
-    // Mettre en cache
-    if (allDeals.length > 0 && _lsCache) {
-      _lsCache.set(cacheKey, allDeals, 3);
+    const apiDeals = data.deals || data || [];
+    if (apiDeals.length > 0) {
+      allDeals = apiDeals;
+      renderDeals(allDeals);
+      if (countEl) countEl.textContent = allDeals.length + ' offres';
       try { localStorage.setItem('ds_deals_cache', JSON.stringify(allDeals.slice(0,50))); } catch(e) {}
     }
   } catch(e) {
-    // Fallback 1 : cache expiré
-    const stale = (() => { try { return JSON.parse(localStorage.getItem('ds_deals_cache')||'[]'); } catch(e2) { return []; } })();
-    if (stale.length > 0) {
-      allDeals = stale;
-      renderDeals(allDeals);
-      document.getElementById('dealCount').textContent = `${allDeals.length} offres (cache)`;
-      return;
-    }
-    // Fallback 2 : données démo
-    allDeals = getDemoDeals(cat);
-    renderDeals(allDeals);
-    document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
+    // Silencieux - les démos sont déjà affichées
   }
 }
-
 async function _refreshDealsBackground(cat, minSc, cacheKey) {
   try {
     const params = new URLSearchParams({ limit: 60, min_score: minSc });
