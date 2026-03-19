@@ -2209,7 +2209,7 @@ async function loadDeals(cat = '', minSc = 0) {
 
   // 2. Essayer l'API en arrière-plan
   try {
-    const params = new URLSearchParams({ limit: 60, min_score: minSc });
+    const params = new URLSearchParams({ limit: 60, min_score: Math.max(0, parseInt(minSc) || 0) });
     if (cat) params.set('category', cat);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
@@ -2230,7 +2230,7 @@ async function loadDeals(cat = '', minSc = 0) {
 }
 async function _refreshDealsBackground(cat, minSc, cacheKey) {
   try {
-    const params = new URLSearchParams({ limit: 60, min_score: minSc });
+    const params = new URLSearchParams({ limit: 60, min_score: Math.max(0, parseInt(minSc) || 0) });
     if (cat) params.set('category', cat);
     const r = await fetch(`${API}/deals/cached?${params}`);
     if (!r.ok) return;
@@ -5395,7 +5395,7 @@ function updateSEOMeta(deal) {
 // ── INIT BLOC 3 ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   // Load deal of day on homepage
-  setTimeout(openDealOfDay, 1500);
+  // openDealOfDay appelée depuis le DOMContentLoaded principal
   // Check install prompt after 10s
   setTimeout(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
