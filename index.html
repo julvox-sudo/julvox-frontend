@@ -1441,62 +1441,6 @@ a{text-decoration:none}
      COMMUNAUTÉ — Leaderboard & Soumettre un deal
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🤝 COMMUNAUTÉ — En attente (1000 users) ══
-<div class="page" id="communityPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('communityPage')">← Retour</button>
-    <div class="page-title">🤝 Communauté</div>
-  </div>
-  <div class="page-body">
-    <!-- Push notification banner -->
-    <div class="push-banner" id="pushBanner" style="display:none">
-      <div style="font-size:24px">🔔</div>
-      <div class="push-banner-text"><strong>Alertes instantanées</strong><br>Active les notifications pour ne manquer aucun deal</div>
-      <button class="push-banner-btn" onclick="requestPushPermission()">Activer</button>
-    </div>
-
-    <!-- Ma réputation -->
-    <div id="myReputationBlock" style="margin-bottom:20px"></div>
-
-    <!-- Onglets -->
-    <div style="display:flex;gap:0;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:4px">
-      <button class="auth-tab active" id="tabLeader" onclick="switchCommunityTab('leaderboard')" style="flex:1;border-radius:9px;margin:0">🏆 Classement</button>
-      <button class="auth-tab" id="tabSubmit" onclick="switchCommunityTab('submit')" style="flex:1;border-radius:9px;margin:0">➕ Soumettre</button>
-      <button class="auth-tab" id="tabCommunityDeals" onclick="switchCommunityTab('deals')" style="flex:1;border-radius:9px;margin:0">📋 Deals</button>
-    </div>
-
-    <!-- Leaderboard -->
-    <div id="leaderboardSection">
-      <div id="leaderboardList"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
-    </div>
-
-    <!-- Submit deal -->
-    <div id="submitSection" style="display:none">
-      <div class="submit-form">
-        <div style="font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.5">
-          Soumettez un deal que vous avez trouvé. Il sera analysé par NovaDeal™ et soumis au vote de la communauté. Gagnez des points de réputation !
-        </div>
-        <input class="submit-input" type="text" id="submitProductName" placeholder="Nom du produit"/>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <input class="submit-input" type="number" id="submitPrice" placeholder="Prix (€)" step="0.01"/>
-          <select class="submit-input" id="submitStore" style="cursor:pointer">
-            <option value="">Marchand…</option>
-            <option>Amazon.fr</option><option>Fnac.com</option><option>Darty.com</option>
-            <option>Boulanger.com</option><option>Cdiscount.com</option><option>Zalando.fr</option>
-            <option>Nike.com</option><option>IKEA.com</option><option>Autre</option>
-          </select>
-        </div>
-        <input class="submit-input" type="url" id="submitUrl" placeholder="URL du deal (optionnel)"/>
-        <button class="submit-btn" onclick="submitCommunityDeal()">➕ Soumettre ce deal · +10 pts</button>
-      </div>
-    </div>
-
-    <!-- Community deals -->
-    <div id="communityDealsSection" style="display:none">
-      <div id="communityDealsList"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -1504,19 +1448,6 @@ a{text-decoration:none}
      RAPPORT MENSUEL PUBLIC
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📊 RAPPORT MENSUEL — En attente (1000 users) ══
-<div class="page" id="reportPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('reportPage')">← Retour</button>
-    <div class="page-title">📊 Rapport Mensuel</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Rapport de transparence mensuel DealScan — fausses promos détectées, meilleurs deals, marchands les plus fiables.
-    </p>
-    <div id="reportContent"><div style="text-align:center;padding:30px;color:var(--txt3)">📊 Chargement du rapport…</div></div>
-  </div>
-</div>
 
 
 
@@ -1524,20 +1455,6 @@ a{text-decoration:none}
      PRO B2B — Plans & Tarifs
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 💼 PRO B2B — En attente (1000 users) ══
-<div class="page" id="proPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('proPage')">← Retour</button>
-    <div class="page-title">💼 DealScan Pro</div>
-  </div>
-  <div class="page-body">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px">API de veille tarifaire</div>
-      <div style="font-size:14px;color:var(--txt2);line-height:1.5">Surveillez les prix de vos concurrents en temps réel.<br>Données NovaDeal™ pour les professionnels.</div>
-    </div>
-    <div id="proPlans"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
-  </div>
-</div>
 
 
 
@@ -1546,50 +1463,6 @@ a{text-decoration:none}
      SCAN CODE-BARRES — Comparer en magasin
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📷 SCANNER CODE-BARRES — En attente (1000 users) ══
-<div class="page" id="scanPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('scanPage')">← Retour</button>
-    <div class="page-title">📷 Scan Produit</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Scannez le code-barres d'un produit en magasin pour voir les prix en ligne en temps réel.
-    </p>
-
-    <!-- Scanner simulé (en prod: utiliser BarcodeDetector API ou ZXing) -->
-    <div style="position:relative;border-radius:20px;background:#000;overflow:hidden;margin-bottom:16px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center" id="scannerArea">
-      <div style="position:relative;width:220px;height:220px">
-        <div class="scanner-corner-tl"></div>
-        <div class="scanner-corner-tr"></div>
-        <div class="scanner-corner-bl"></div>
-        <div class="scanner-corner-br"></div>
-        <div class="scanner-line"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
-          <div style="font-size:40px">📷</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.6);text-align:center">Pointez vers<br>le code-barres</div>
-        </div>
-      </div>
-    </div>
-
-    <button onclick="startBarcodeScanner()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;margin-bottom:10px">
-      📷 Activer la caméra
-    </button>
-
-    <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--txt3)">ou</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-
-    <div style="display:flex;gap:8px">
-      <input class="analyze-input" type="text" id="manualBarcode" placeholder="Entrer EAN/UPC manuellement…" style="flex:1"/>
-      <button onclick="lookupBarcode()" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--txt);flex-shrink:0">🔍</button>
-    </div>
-
-    <div id="scanResults" style="margin-top:16px"></div>
-  </div>
-</div>
 
 
 
@@ -1597,49 +1470,6 @@ a{text-decoration:none}
      DEAL SQUAD — Achats groupés
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 👥 DEAL SQUAD — En attente (1000 users) ══
-<div class="page" id="squadPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('squadPage')">← Retour</button>
-    <div class="page-title">👥 Deal Squad</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Regroupez-vous pour obtenir une remise collective ! Quand l'objectif est atteint, le deal se débloque pour tout le groupe.
-    </p>
-
-    <!-- Créer un squad -->
-    <div class="submit-form" id="createSquadForm">
-      <div style="font-size:14px;font-weight:600;margin-bottom:12px">➕ Créer un Deal Squad</div>
-      <input class="submit-input" type="text" id="squadProduct" placeholder="Nom du produit visé…"/>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input class="submit-input" type="number" id="squadTargetPrice" placeholder="Prix cible (€)"/>
-        <input class="submit-input" type="number" id="squadTargetCount" placeholder="Nb personnes" value="10" min="2" max="100"/>
-      </div>
-      <select class="submit-input" id="squadStore" style="cursor:pointer">
-        <option value="">Marchand préféré…</option>
-        <option>Amazon.fr</option><option>Fnac.com</option><option>Darty.com</option>
-        <option>Boulanger.com</option><option>Cdiscount.com</option><option>Autre</option>
-      </select>
-      <button class="squad-share-btn" onclick="createSquad()">👥 Créer le Squad</button>
-    </div>
-
-    <!-- Squad actif -->
-    <div id="activeSquadSection" style="display:none">
-      <div style="font-size:14px;font-weight:600;margin-bottom:12px">🎯 Mon Squad actif</div>
-      <div id="activeSquadCard"></div>
-    </div>
-
-    <!-- Rejoindre un squad -->
-    <div style="margin-top:16px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">🔗 Rejoindre un Squad</div>
-      <div style="display:flex;gap:8px">
-        <input class="submit-input" type="text" id="joinSquadCode" placeholder="Code Squad (ex: AB12CD34)" style="flex:1;margin-bottom:0"/>
-        <button onclick="joinSquad()" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--txt);flex-shrink:0">Rejoindre</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -1660,64 +1490,6 @@ a{text-decoration:none}
      API DOCS — Documentation publique
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🔌 API DOCS — En attente (1000 users) ══
-<div class="page" id="apiDocsPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('apiDocsPage')">← Retour</button>
-    <div class="page-title">🔌 API Publique</div>
-  </div>
-  <div class="page-body">
-    <div style="background:linear-gradient(135deg,rgba(255,92,43,.1),rgba(255,61,130,.06));border:1px solid rgba(255,92,43,.2);border-radius:14px;padding:16px;margin-bottom:20px">
-      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">DealScan API v1</div>
-      <div style="font-size:13px;color:var(--txt2);line-height:1.5">Intégrez les données DealScan dans vos applications. Accès gratuit limité ou Pro illimité.</div>
-      <div style="margin-top:10px;font-family:monospace;font-size:12px;background:var(--bg3);border-radius:8px;padding:8px;color:var(--txt2)">Base URL: https://julvox-dealscan-backend-production.up.railway.app</div>
-    </div>
-
-    <div style="font-size:12px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Endpoints disponibles</div>
-
-    <div class="api-endpoint">
-      <span class="api-method get">GET</span><span class="api-path">/api/v1/deals</span>
-      <div class="api-desc">Récupère les meilleurs deals filtrables par catégorie et score minimum</div>
-      <div class="api-code">GET /api/v1/deals?category=high-tech&min_score=80&limit=20</div>
-    </div>
-
-    <div class="api-endpoint">
-      <span class="api-method get">GET</span><span class="api-path">/api/v1/score</span>
-      <div class="api-desc">Calcul rapide du score NovaDeal™ pour un prix donné</div>
-      <div class="api-code">GET /api/v1/score?price=799&original=1499&store=Amazon.fr</div>
-    </div>
-
-    <div class="api-endpoint">
-      <span class="api-method post">POST</span><span class="api-path">/deals/analyze</span>
-      <div class="api-desc">Analyse complète d'un deal : fausse promo, rareté, tendance, verdict</div>
-      <div class="api-code">POST /deals/analyze {"current_price":799,"claimed_original":1499}</div>
-    </div>
-
-    <div class="api-endpoint">
-      <span class="api-method get">GET</span><span class="api-path">/calendar/{category}</span>
-      <div class="api-desc">Calendrier des meilleures périodes d'achat par catégorie</div>
-      <div class="api-code">GET /calendar/high-tech</div>
-    </div>
-
-    <div class="api-endpoint">
-      <span class="api-method get">GET</span><span class="api-path">/scan/barcode/{ean}</span>
-      <div class="api-desc">Recherche les deals pour un produit par son code-barres EAN</div>
-      <div class="api-code">GET /scan/barcode/3700615516224</div>
-    </div>
-
-    <div class="api-endpoint">
-      <span class="api-method get">GET</span><span class="api-path">/reports/monthly</span>
-      <div class="api-desc">Rapport mensuel public — statistiques et tendances</div>
-      <div class="api-code">GET /reports/monthly</div>
-    </div>
-
-    <div style="margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">🔑 Obtenir une clé API Pro</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Accès illimité, support prioritaire, données temps réel.</div>
-      <button onclick="openProPage()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif">Voir les plans Pro →</button>
-    </div>
-  </div>
-</div>
 
 
 
@@ -2030,29 +1802,6 @@ a{text-decoration:none}
      GAMIFICATION — Succès & Missions
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🏆 GAMIFICATION — En attente (1000 users) ══
-<div class="page" id="gamificationPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('gamificationPage')">← Retour</button>
-    <div class="page-title">🏆 Succès & Missions</div>
-  </div>
-  <div class="page-body">
-    <!-- Missions du jour -->
-    <div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:14px;font-weight:700">🎯 Missions du jour</div>
-        <div id="missionPtsDisplay" style="font-size:12px;color:var(--gold);font-weight:600"></div>
-      </div>
-      <div id="dailyMissionsList"><div style="text-align:center;padding:16px;color:var(--txt3)">Chargement…</div></div>
-    </div>
-
-    <!-- Succès -->
-    <div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:12px">🏅 Succès <span id="achProgress" style="font-size:12px;color:var(--txt3);font-weight:400"></span></div>
-      <div class="ach-grid" id="achievementsGrid"><div style="text-align:center;padding:16px;color:var(--txt3)">Chargement…</div></div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -2060,41 +1809,6 @@ a{text-decoration:none}
      CONTENU SOCIAL — Scripts TikTok & Instagram
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📱 SOCIAL CONTENT — En attente (1000 users) ══
-<div class="page" id="socialContentPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('socialContentPage')">← Retour</button>
-    <div class="page-title">📱 Contenu Social</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">Générez des scripts TikTok/Reels et légendes Instagram en un clic pour vos deals.</p>
-
-    <!-- Style selector -->
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Style de contenu</div>
-      <div style="display:flex;gap:8px">
-        <button class="tiktok-style-btn active" id="styleEnergetic" onclick="setTikTokStyle('energetic',this)">🔥 Énergique</button>
-        <button class="tiktok-style-btn" id="styleInformative" onclick="setTikTokStyle('informative',this)">📊 Informatif</button>
-        <button class="tiktok-style-btn" id="styleFunny" onclick="setTikTokStyle('funny',this)">😂 Humour</button>
-      </div>
-    </div>
-
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Catégorie</div>
-      <select class="submit-input" id="socialCategory" onchange="loadTikTokScript()" style="cursor:pointer">
-        <option value="">Toutes catégories</option>
-        <option value="high-tech">💻 High-Tech</option>
-        <option value="mode">👗 Mode</option>
-        <option value="gaming">🎮 Gaming</option>
-        <option value="maison">🏠 Maison</option>
-      </select>
-    </div>
-
-    <button onclick="loadTikTokScript()" class="analyze-btn" style="margin-bottom:16px">📱 Générer le script</button>
-
-    <div id="tiktokResults"></div>
-  </div>
-</div>
 
 
 
@@ -2102,23 +1816,6 @@ a{text-decoration:none}
      DARK PATTERNS DETECTOR
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🕵️ DARK PATTERNS — En attente (1000 users) ══
-<div class="page" id="darkPatternPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('darkPatternPage')">← Retour</button>
-    <div class="page-title">🕵️ Dark Patterns</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">Détectez les manipulations psychologiques dans les descriptions de deals. Collez le texte d'une page produit pour l'analyser.</p>
-    <textarea class="analyze-input" id="darkPatternText" rows="5" placeholder="Collez ici la description du deal ou la page produit à analyser…" style="resize:vertical;height:120px"></textarea>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <input class="analyze-input" type="text" id="darkPatternStore" placeholder="Marchand (optionnel)"/>
-      <input class="analyze-input" type="url" id="darkPatternUrl" placeholder="URL (optionnel)"/>
-    </div>
-    <button onclick="runDarkPatternAnalysis()" class="analyze-btn" style="margin-top:10px">🕵️ Analyser</button>
-    <div id="darkPatternResults" style="margin-top:16px"></div>
-  </div>
-</div>
 
 
 
@@ -2169,20 +1866,6 @@ a{text-decoration:none}
      RECOMMANDATIONS ML PERSONNALISÉES
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE ✨ RECO ML — Conservé mais accessible via IA uniquement ══
-<div class="page" id="recoPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('recoPage')">← Retour</button>
-    <div class="page-title">✨ Pour vous</div>
-    <div style="margin-left:auto"><span class="ml-badge">🧠 ML</span></div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Deals sélectionnés pour vous par NovaDeal™ ML, basés sur vos préférences et interactions.
-    </p>
-    <div id="recoContent"><div style="text-align:center;padding:30px;color:var(--txt3)">🧠 Analyse de vos préférences…</div></div>
-  </div>
-</div>
 
 
 
@@ -2191,56 +1874,6 @@ a{text-decoration:none}
      CASHBACK
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 💸 CASHBACK — En attente (partenariat requis) ══
-<div class="page" id="cashbackPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('cashbackPage')">← Retour</button>
-    <div class="page-title">💸 Cashback</div>
-  </div>
-  <div class="page-body">
-    <!-- Mon solde -->
-    <div class="cashback-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-        <div>
-          <div style="font-size:11px;color:rgba(0,208,132,.8);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Mon solde cashback</div>
-          <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--green)" id="cbBalance">—</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:11px;color:var(--txt3)">En attente</div>
-          <div id="cbPending" style="font-size:16px;font-weight:700;color:var(--gold)">—</div>
-        </div>
-      </div>
-      <button onclick="openPage('premiumPage')" style="background:rgba(0,208,132,.2);border:1px solid rgba(0,208,132,.3);color:var(--green);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif">
-        💳 Retirer mes gains →
-      </button>
-    </div>
-
-    <!-- Simulateur -->
-    <div class="cb-simulate">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">🧮 Simuler mon cashback</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <select class="submit-input" id="cbSimStore" style="cursor:pointer;margin-bottom:0">
-          <option value="Amazon.fr">Amazon.fr</option>
-          <option value="Fnac.com">Fnac.com</option>
-          <option value="Zalando.fr">Zalando.fr</option>
-          <option value="Nike.com">Nike.com</option>
-          <option value="La Redoute">La Redoute</option>
-        </select>
-        <input class="submit-input" type="number" id="cbSimAmount" placeholder="Montant (€)" style="margin-bottom:0"/>
-      </div>
-      <button onclick="simulateCashback()" style="width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif">
-        💸 Simuler
-      </button>
-      <div id="cbSimResult" style="margin-top:10px"></div>
-    </div>
-
-    <!-- Taux par marchand -->
-    <div style="font-size:13px;font-weight:600;margin-bottom:10px">🏪 Taux par marchand</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px" id="cbRatesList">
-      <div style="text-align:center;padding:16px;color:var(--txt3)">Chargement…</div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -2248,16 +1881,6 @@ a{text-decoration:none}
      ANALYTICS OWNER (caché si pas owner)
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 📊 ANALYTICS OWNER — En attente (accès owner uniquement) ══
-<div class="page" id="analyticsPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('analyticsPage')">← Retour</button>
-    <div class="page-title">📊 Analytics Owner</div>
-  </div>
-  <div class="page-body" id="analyticsContent">
-    <div style="text-align:center;padding:30px;color:var(--txt3)">Chargement…</div>
-  </div>
-</div>
 
 
 
@@ -2265,43 +1888,6 @@ a{text-decoration:none}
      WIDGET EMBED — Pour partenaires
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🖼️ WIDGET EMBED — En attente (1000 users) ══
-<div class="page" id="embedPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('embedPage')">← Retour</button>
-    <div class="page-title">🔌 Widget Embed</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Intégrez DealScan sur votre site en ajoutant simplement un iframe. Le widget s'adapte automatiquement.
-    </p>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <select class="submit-input" id="embedCat" onchange="updateEmbedCode()" style="cursor:pointer;margin-bottom:0">
-        <option value="">Toutes catégories</option>
-        <option value="high-tech">💻 High-Tech</option>
-        <option value="mode">👗 Mode</option>
-        <option value="gaming">🎮 Gaming</option>
-        <option value="maison">🏠 Maison</option>
-      </select>
-      <select class="submit-input" id="embedTheme" onchange="updateEmbedCode()" style="cursor:pointer;margin-bottom:0">
-        <option value="dark">🌙 Thème sombre</option>
-        <option value="light">☀️ Thème clair</option>
-      </select>
-    </div>
-
-    <div style="font-size:11px;color:var(--txt3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Code à copier</div>
-    <div class="embed-code" id="embedCodeDisplay"></div>
-    <button onclick="copyEmbedCode()" style="width:100%;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:13px;font-weight:600;color:var(--txt)">
-      📋 Copier le code
-    </button>
-
-    <div style="font-size:11px;color:var(--txt3);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">Aperçu</div>
-    <div class="embed-preview">
-      <iframe id="embedPreviewFrame" src="" width="100%" height="280" frameborder="0" style="display:block"></iframe>
-    </div>
-  </div>
-</div>
 
 
 
@@ -2309,56 +1895,6 @@ a{text-decoration:none}
      PARAMÈTRES NOTIFICATIONS AVANCÉS
 ══════════════════════════════════════════════════════════ -->
 
-<!-- ══ ATTENTE 🔔 NOTIF SETTINGS — En attente (1000 users) ══
-<div class="page" id="notifSettingsPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('notifSettingsPage')">← Retour</button>
-    <div class="page-title">🔔 Notifications</div>
-  </div>
-  <div class="page-body">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px">
-      <div class="notif-opt">
-        <div>
-          <div style="font-size:14px;font-weight:600">🏆 Prix records</div>
-          <div style="font-size:12px;color:var(--txt3)">Score NovaDeal™ ≥ 92/100</div>
-        </div>
-        <button class="toggle on" id="notif-records" onclick="toggleNotif(this,'records')"><div class="toggle-dot"></div></button>
-      </div>
-      <div class="notif-opt">
-        <div>
-          <div style="font-size:14px;font-weight:600">🔔 Alertes prix</div>
-          <div style="font-size:12px;color:var(--txt3)">Quand votre prix cible est atteint</div>
-        </div>
-        <button class="toggle on" id="notif-alerts" onclick="toggleNotif(this,'alerts')"><div class="toggle-dot"></div></button>
-      </div>
-      <div class="notif-opt">
-        <div>
-          <div style="font-size:14px;font-weight:600">📅 Promos saisonnières</div>
-          <div style="font-size:12px;color:var(--txt3)">Black Friday, Soldes, Prime Day…</div>
-        </div>
-        <button class="toggle on" id="notif-seasonal" onclick="toggleNotif(this,'seasonal')"><div class="toggle-dot"></div></button>
-      </div>
-      <div class="notif-opt">
-        <div>
-          <div style="font-size:14px;font-weight:600">🎯 Missions quotidiennes</div>
-          <div style="font-size:12px;color:var(--txt3)">Rappel des missions du jour</div>
-        </div>
-        <button class="toggle" id="notif-missions" onclick="toggleNotif(this,'missions')"><div class="toggle-dot"></div></button>
-      </div>
-      <div class="notif-opt">
-        <div>
-          <div style="font-size:14px;font-weight:600">🏷️ Newsletter quotidienne</div>
-          <div style="font-size:12px;color:var(--txt3)">Top deals envoyés à 8h00</div>
-        </div>
-        <button class="toggle" id="notif-newsletter" onclick="toggleNotif(this,'newsletter')"><div class="toggle-dot"></div></button>
-      </div>
-    </div>
-
-    <div style="font-size:12px;color:var(--txt3);line-height:1.5;text-align:center">
-      Les notifications respectent votre vie privée.<br>Aucune donnée partagée avec des tiers.
-    </div>
-  </div>
-</div>
 
 
 
