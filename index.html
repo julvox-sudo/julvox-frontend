@@ -1725,42 +1725,6 @@ a{text-decoration:none}
 <!-- ══════════════════════════════════════════════════════════
      SCAN CODE-BARRES — Vérification produit en magasin
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="scanPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('scanPage');stopScanner()">← Retour</button>
-    <div class="page-title">📷 Scan Produit</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">
-      Scannez le code-barres d'un produit en magasin. DealScan vérifie instantanément si c'est moins cher en ligne.
-    </p>
-
-    <!-- Scanner vidéo -->
-    <div class="scanner-wrap" id="scannerWrap">
-      <video id="scannerVideo" class="scanner-video" autoplay playsinline muted></video>
-      <div class="scanner-overlay">
-        <div class="scanner-frame">
-          <div class="scanner-line"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Fallback saisie manuelle -->
-    <div style="margin-top:14px">
-      <div style="font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:center">— ou saisir manuellement —</div>
-      <div class="barcode-input-wrap">
-        <input class="barcode-input" type="text" id="barcodeInput" placeholder="Code EAN (ex: 3700123456789)" inputmode="numeric" pattern="[0-9]*"/>
-        <button onclick="searchBarcode(document.getElementById('barcodeInput').value)" style="background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap">Chercher</button>
-      </div>
-    </div>
-
-    <!-- Résultat scan -->
-    <div id="scanResult"></div>
-
-    <!-- Historique scans récents -->
-    <div id="recentScans" style="margin-top:16px"></div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      TIKTOK — Générateur de contenu viral
@@ -1921,25 +1885,6 @@ a{text-decoration:none}
 <!-- ══════════════════════════════════════════════════════════
      WISHLIST TRACKING
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="wishlistPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('wishlistPage')">← Retour</button>
-    <div class="page-title">🎯 Ma Wishlist</div>
-  </div>
-  <div class="page-body">
-    <div class="submit-form" style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">➕ Surveiller un produit</div>
-      <input class="submit-input" type="text" id="wishName" placeholder="Nom du produit…"/>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input class="submit-input" type="number" id="wishCurrentPrice" placeholder="Prix actuel (€)" step="0.01"/>
-        <input class="submit-input" type="number" id="wishTargetPrice" placeholder="Prix cible (€)" step="0.01"/>
-      </div>
-      <button class="submit-btn" onclick="addToWishlist()">🎯 Surveiller le prix</button>
-    </div>
-    <div style="font-size:12px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Produits surveillés</div>
-    <div id="wishlistItems"><div style="text-align:center;padding:20px;color:var(--txt3)">Chargement…</div></div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      SOCIAL CONTENT — TikTok, Instagram, Twitter
@@ -2080,31 +2025,6 @@ a{text-decoration:none}
 <!-- ══════════════════════════════════════════════════════════
      MODE BUDGET
 ══════════════════════════════════════════════════════════ -->
-<div class="page" id="budgetPage">
-  <div class="page-head">
-    <button class="page-back" onclick="closePage('budgetPage')">← Retour</button>
-    <div class="page-title">💰 Mode Budget</div>
-  </div>
-  <div class="page-body">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.5">Entrez votre budget et DealScan sélectionne automatiquement la meilleure combinaison de deals.</p>
-    <div class="budget-input-wrap">
-      <span class="budget-euro">€</span>
-      <input class="budget-input" type="number" id="budgetAmount" placeholder="100" min="1" max="10000"/>
-    </div>
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Catégories</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px" id="budgetCatFilters">
-        <button class="cat" onclick="toggleBudgetCat(this,'high-tech')">💻 High-Tech</button>
-        <button class="cat" onclick="toggleBudgetCat(this,'mode')">👗 Mode</button>
-        <button class="cat" onclick="toggleBudgetCat(this,'gaming')">🎮 Gaming</button>
-        <button class="cat" onclick="toggleBudgetCat(this,'maison')">🏠 Maison</button>
-        <button class="cat" onclick="toggleBudgetCat(this,'alimentaire')">🛒 Alim.</button>
-      </div>
-    </div>
-    <button onclick="optimizeBudget()" class="analyze-btn">💰 Optimiser mon budget</button>
-    <div id="budgetResults" style="margin-top:16px"></div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      GAMIFICATION — Succès & Missions
