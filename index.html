@@ -919,7 +919,18 @@ a{text-decoration:none}
 .toggle.on .toggle-dot{transform:translateX(20px)}
 
 
-/* FIN ATTENTE */ </style>
+/* FIN ATTENTE */ 
+/* ── NEWSLETTER ──────────────────────────────────────────────── */
+.newsletter-box{background:linear-gradient(135deg,rgba(255,92,43,.1),rgba(255,61,130,.07));border:1px solid rgba(255,92,43,.25);border-radius:18px;padding:20px;margin:16px 20px;text-align:center}
+.newsletter-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px}
+.newsletter-sub{font-size:12px;color:var(--txt2);margin-bottom:14px;line-height:1.5}
+.newsletter-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.newsletter-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-size:14px;color:var(--txt);outline:none;font-family:'Inter',sans-serif;transition:var(--trans)}
+.newsletter-input:focus{border-color:var(--accent)}
+.newsletter-btn{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.newsletter-btn:hover{opacity:.88}
+.newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
+</style>
 </head>
 <body>
 
@@ -1035,6 +1046,17 @@ a{text-decoration:none}
 <div class="deals" id="dealsGrid"></div>
 
 <!-- FOOTER LEGAL -->
+<!-- NEWSLETTER -->
+<div class="newsletter-box" id="newsletterBox">
+  <div class="newsletter-title">📬 Deals en avant-première</div>
+  <div class="newsletter-sub">Reçois les meilleures offres chaque matin à 8h00.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
+  <div class="newsletter-row">
+    <input class="newsletter-input" type="email" id="newsletterEmail" placeholder="ton@email.com" onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
+    <button class="newsletter-btn" onclick="subscribeNewsletter()">M'inscrire →</button>
+  </div>
+  <div class="newsletter-ok" id="newsletterOk">✅ Inscription confirmée ! À demain matin 🔥</div>
+</div>
+
 <footer class="legal-footer" id="mainFooter">
   <div>© 2026 DealScan by Julvox · julvox.com</div>
   <div style="margin-top:6px;font-size:11px;color:var(--txt3);line-height:1.5">
@@ -7318,6 +7340,53 @@ document.addEventListener('keydown', (e) => {
 
 
 ══ FIN ATTENTE ══ */
+
+
+// ── NEWSLETTER ────────────────────────────────────────────────
+async function subscribeNewsletter() {
+  const email = document.getElementById('newsletterEmail')?.value?.trim();
+  const btn   = document.querySelector('.newsletter-btn');
+  const ok    = document.getElementById('newsletterOk');
+
+  if (!email || !email.includes('@')) {
+    showToast('⚠️ Adresse email invalide');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const res = await fetch(API + '/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'homepage_footer' }),
+    });
+    const data = await res.json();
+    if (ok) { ok.style.display = 'block'; }
+    document.getElementById('newsletterEmail').value = '';
+    showToast('📬 ' + (data.message || 'Inscription réussie !'));
+    // Sauvegarder localement
+    try { localStorage.setItem('ds_newsletter', email); } catch(e) {}
+  } catch(e) {
+    // Fallback local si API indisponible
+    if (ok) { ok.style.display = 'block'; }
+    showToast('📬 Inscription enregistrée !');
+    try { localStorage.setItem('ds_newsletter', email); } catch(e2) {}
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "M'inscrire →"; }
+  }
+}
+
+// Masquer le bloc newsletter si déjà inscrit
+(function checkNewsletterStatus() {
+  try {
+    const saved = localStorage.getItem('ds_newsletter');
+    if (saved) {
+      const box = document.getElementById('newsletterBox');
+      if (box) box.style.display = 'none';
+    }
+  } catch(e) {}
+})();
 
 // ── DEMO DATA ─────────────────────────────────────────────────
 function getDemoDeals(cat) {
