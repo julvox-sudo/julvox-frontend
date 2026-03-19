@@ -2,21 +2,6 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<!-- DealScan v5.3 build:20260318 -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
-<script>
-// Vider le Service Worker et le cache au chargement pour forcer la nouvelle version
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(regs) {
-    regs.forEach(function(r) { r.unregister(); });
-  });
-}
-if ('caches' in window) {
-  caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
-}
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
@@ -1048,39 +1033,6 @@ a{text-decoration:none}
   </div>
 </div>
 <div class="deals" id="dealsGrid"></div>
-
-<!-- NEWSLETTER SIGNUP -->
-<div style="margin:20px 16px;background:linear-gradient(135deg,rgba(255,92,43,.1),rgba(255,61,130,.06));border:1px solid rgba(255,92,43,.2);border-radius:20px;padding:20px">
-  <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📧 Newsletter DealScan</div>
-  <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Reçois les meilleurs deals dans ta boîte mail. Gratuit, sans spam, désabonnement en 1 clic.</div>
-  <div id="newsletterForm">
-    <input type="email" id="newsletterEmail" placeholder="ton@email.com"
-      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px"
-      onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
-    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px">📅 Fréquence :</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-      <button class="nl-freq active" onclick="selectNlFreq(this,'daily')" style="background:rgba(255,92,43,.15);border:1px solid var(--accent);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:'Inter',sans-serif">📆 Tous les jours</button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'weekly')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">📅 1x par semaine</button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'monthly')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">🗓️ 1x par mois</button>
-      <button class="nl-freq" onclick="selectNlFreq(this,'custom')" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'Inter',sans-serif">⚙️ Personnalisé</button>
-    </div>
-    <div id="nlCustomFreq" style="display:none;margin-bottom:10px;background:var(--bg2);border-radius:12px;padding:12px;border:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Nombre de mails :</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <input type="number" id="nlCustomCount" min="1" max="30" value="3" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px;font-size:14px;color:var(--txt);text-align:center"/>
-        <select id="nlCustomPeriod" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--txt);font-family:'Inter',sans-serif">
-          <option value="day">par jour</option>
-          <option value="week" selected>par semaine</option>
-          <option value="month">par mois</option>
-        </select>
-      </div>
-    </div>
-    <button onclick="subscribeNewsletter()" style="width:100%;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
-      🔥 Je m'inscris gratuitement !
-    </button>
-  </div>
-  <div id="newsletterMsg" style="margin-top:10px;font-size:13px;display:none"></div>
-</div>
 
 <!-- FOOTER LEGAL -->
 <footer class="legal-footer" id="mainFooter">
@@ -2668,14 +2620,7 @@ const _lsCache = {
 };
 
 
-const API = (function() {
-  // Si servi depuis Railway (même domaine), utiliser URL relative
-  const host = window.location.hostname;
-  if (host.includes('railway.app') || host.includes('julvox.com')) {
-    return window.location.origin;
-  }
-  return 'https://julvox-dealscan-backend-production.up.railway.app';
-})();
+const API = 'https://julvox-dealscan-backend-production.up.railway.app';
 let allDeals = [], currentCat = '', currentSort = 'score', minScore = 0, timers = {};
 let favorites = new Set();
 try { favorites = new Set(JSON.parse(localStorage.getItem('ds_favs') || '[]')); } catch(e) {}
@@ -2845,10 +2790,7 @@ function renderDeals(deals) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Aucun deal trouvé</div></div>`;
     return;
   }
-  // Fix prix aberrants base de données ancienne version
-  const DPFIX={'macbook air m3':{c:999,o:1499},'samsung galaxy s25':{c:899,o:1329},'sony wh-1000xm5':{c:219,o:380},'ps5 slim':{c:449,o:619},'lg oled 65':{c:1299,o:2199},'nike air max':{c:79,o:149},'adidas stan smith':{c:59,o:100},"levi's 501":{c:65,o:110},'lait lactel':{c:5.99,o:8.50},'saumon fumé':{c:7.99,o:12.90},'café nespresso':{c:19.99,o:32},'canapé convertible':{c:349,o:599},'robot aspirateur roomba':{c:349,o:599}};
-  const fixedDeals=deals.map(d=>{const n=(d.name||'').toLowerCase();for(const[k,f]of Object.entries(DPFIX)){if(n.includes(k)&&d.current_price>f.c*1.5){d={...d,current_price:f.c,original_price:f.o,discount_pct:Math.round((f.o-f.c)/f.o*100)};break;}}return d;});
-  grid.innerHTML = sortDeals(fixedDeals).map(d => dealCard(d)).join('');
+  grid.innerHTML = sortDeals(deals).map(d => dealCard(d)).join('');
 }
 
 const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'Too Good To Go':97,'Sephora.fr':95,'Leroy Merlin':93};
@@ -2921,16 +2863,8 @@ function startCountdowns() {
 
 // ── MODAL ─────────────────────────────────────────────────────
 async function openDeal(id) {
-  // Accepte objet deal direct ou id numérique
-  let deal = (typeof id === 'object' && id !== null) ? id : allDeals.find(d => d.id === id || d.id === Number(id));
-  // Si pas dans allDeals, fetch direct API
-  if (!deal && id) {
-    try {
-      const r = await fetchWithTimeout(API + '/deals/' + id, {}, 4000);
-      if (r.ok) deal = await r.json();
-    } catch(e) {}
-  }
-  if (!deal) { showToast('⚠️ Détail non disponible'); return; }
+  const deal = allDeals.find(d => d.id === id);
+  if (!deal) return;
   const score = deal.novadeal_score || 50;
   const cat   = deal.category || 'default';
   const img   = CAT_IMG[cat] || CAT_IMG.default;
@@ -2943,37 +2877,16 @@ async function openDeal(id) {
   const maxH = Math.max(...fakeH);
   const minH = Math.min(...fakeH);
   // Graphique SVG inline (plus précis que les barres)
-  const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
-  const svgW = 280, svgH = 90, padL = 52, chartW = svgW-padL, chartH = 70;
+  const svgW = 280, svgH = 60;
   const pts = fakeH.map((p,i) => {
-    const x = Math.round(padL + i/(fakeH.length-1)*chartW);
-    const y = Math.round(10 + (1-(p-minH)/Math.max(1,maxH-minH))*chartH);
-    return x+','+y;
+    const x = Math.round(i / (fakeH.length-1) * svgW);
+    const y = Math.round(svgH - ((p - minH) / Math.max(1, maxH - minH)) * (svgH - 8) - 4);
+    return x + ',' + y;
   }).join(' ');
-  const lastX = padL+chartW, lastY = Math.round(10+(1-(deal.current_price-minH)/Math.max(1,maxH-minH))*chartH);
-  const polyPts = pts.split(' ')[0]+' '+pts+' '+lastX+','+(10+chartH)+' '+padL+','+(10+chartH);
-  const midH = (maxH+minH)/2, yMid = Math.round(10+chartH/2);
-  const fmtP = p => p>=100 ? Math.round(p)+'€' : p.toFixed(2).replace('.',',')+'€';
-  const dotLabel = fmtP(deal.current_price);
-  const lx = lastX>svgW-60?svgW-58:lastX-2, ly = lastY-8;
-  const chartSVG = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;overflow:visible">
-    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.2"/><stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/></linearGradient></defs>
-    <line x1="${padL}" y1="10" x2="${padL}" y2="${10+chartH}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-    <line x1="${padL}" y1="10" x2="${svgW}" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <line x1="${padL}" y1="${yMid}" x2="${svgW}" y2="${yMid}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <line x1="${padL}" y1="${10+chartH}" x2="${svgW}" y2="${10+chartH}" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,3"/>
-    <text x="${padL-4}" y="14" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(maxH)}</text>
-    <text x="${padL-4}" y="${yMid}" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(midH)}</text>
-    <text x="${padL-4}" y="${10+chartH}" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="end" dominant-baseline="middle">${fmtP(minH)}</text>
-    <text x="${padL}" y="${svgH}" fill="rgba(255,255,255,.25)" font-size="8" text-anchor="start">−90j</text>
-    <text x="${lastX}" y="${svgH}" fill="rgba(255,255,255,.25)" font-size="8" text-anchor="end">Auj.</text>
-    <polygon points="${polyPts}" fill="url(#cg)"/>
-    <polyline points="${pts}" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${lastX}" cy="${lastY}" r="5" fill="${scoreColor}" stroke="white" stroke-width="2"/>
-    <rect x="${lx}" y="${ly-11}" width="52" height="14" rx="4" fill="${scoreColor}" opacity="0.9"/>
-    <text x="${lx+26}" y="${ly-1}" fill="white" font-size="9" text-anchor="middle" font-weight="bold">${dotLabel}</text>
-  </svg>`;
-  const bars = '';
+  const lastX = svgW, lastY = Math.round(svgH - ((deal.current_price - minH) / Math.max(1, maxH - minH)) * (svgH - 8) - 4);
+  const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
+  const chartSVG = '<svg viewBox="0 0 '+svgW+' '+svgH+'" style="width:100%;height:'+svgH+'px;overflow:visible"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF5C2B" stop-opacity="0.3"/><stop offset="100%" stop-color="#FF5C2B" stop-opacity="0"/></linearGradient></defs><polyline points="'+pts+'" fill="none" stroke="#FF5C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+lastX+'" cy="'+lastY+'" r="4" fill="'+scoreColor+'" stroke="white" stroke-width="1.5"/></svg>';
+  const bars = ''; // Remplacement par SVG ci-dessus
 
   document.getElementById('modalBody').innerHTML = `
     <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
@@ -3008,20 +2921,7 @@ async function openDeal(id) {
       <button class="vote-btn down" id="voteDn_${deal.id}" onclick="voteDeal(${deal.id},'down')">👎 <span id="voteDnN_${deal.id}">—</span></button>
     </div>
     <div id="modalExtra" style="padding:0 0 8px 0"></div>
-    <a class="cta-main" href="${(()=>{
-      const u=deal.affiliate_url||'';
-      if(u&&u!='#'&&u.indexOf('demo')===-1) return u;
-      const n=encodeURIComponent(deal.name||''),s=(deal.store||'').toLowerCase();
-      if(s.indexOf('amazon')!==-1) return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
-      if(s.indexOf('fnac')!==-1) return 'https://www.fnac.com/SearchResult/ResultList.aspx?Search='+n;
-      if(s.indexOf('darty')!==-1) return 'https://www.darty.com/nav/recherche?text='+n;
-      if(s.indexOf('zalando')!==-1) return 'https://www.zalando.fr/catalog/?q='+n;
-      if(s.indexOf('boulanger')!==-1) return 'https://www.boulanger.com/recherche/r?key='+n;
-      if(s.indexOf('cdiscount')!==-1) return 'https://www.cdiscount.com/search/10/'+n+'.html';
-      if(s.indexOf('ikea')!==-1) return 'https://www.ikea.com/fr/fr/search/products/?q='+n;
-      if(s.indexOf('nike')!==-1) return 'https://www.nike.com/fr/w?q='+n;
-      return 'https://www.amazon.fr/s?k='+n+'&tag=julvox-21';
-    })()}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
+    <a class="cta-main" href="${deal.affiliate_url||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -6074,6 +5974,8 @@ window.openDeal = function(deal) {
 
 // ── INIT BLOC 3 ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Load deal of day on homepage
+  setTimeout(openDealOfDay, 1500);
   // Check install prompt after 10s
   setTimeout(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -7502,47 +7404,6 @@ document.addEventListener('keydown', (e) => {
 ══ FIN ATTENTE ══ */
 
 // ── DEMO DATA ─────────────────────────────────────────────────
-
-// ── NEWSLETTER AVEC FRÉQUENCE ─────────────────────────────────
-let _nlFreq = 'daily';
-function selectNlFreq(btn, freq) {
-  _nlFreq = freq;
-  document.querySelectorAll('.nl-freq').forEach(b => {
-    b.style.background='var(--bg)'; b.style.border='1px solid var(--border)'; b.style.color='var(--txt2)';
-  });
-  btn.style.background='rgba(255,92,43,.15)'; btn.style.border='1px solid var(--accent)'; btn.style.color='var(--accent)';
-  const c=document.getElementById('nlCustomFreq'); if(c) c.style.display=freq==='custom'?'block':'none';
-}
-function subscribeNewsletter() {
-  const email = (document.getElementById('newsletterEmail')?.value || '').trim();
-  const msg = document.getElementById('newsletterMsg');
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    if (msg) { msg.style.display='block'; msg.style.color='#FF5C2B'; msg.textContent='⚠️ Saisis un email valide.'; }
-    return;
-  }
-  let frequency = _nlFreq;
-  if (_nlFreq === 'custom') {
-    const count = parseInt(document.getElementById('nlCustomCount')?.value||'3');
-    const period = document.getElementById('nlCustomPeriod')?.value||'week';
-    frequency = count+'_per_'+period;
-  }
-  const btn = document.querySelector('#newsletterForm button:last-of-type');
-  if (btn) { btn.disabled=true; btn.textContent='Inscription…'; }
-  try { localStorage.setItem('ds_nl_email',email); } catch(e) {}
-  fetch(API+'/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email,name:currentUser?.name||'Ami DealScan',frequency,categories:['all']})})
-  .then(r=>r.json()).then(data=>{
-    const form=document.getElementById('newsletterForm'); if(form) form.style.display='none';
-    if(msg){msg.style.display='block';msg.style.color='#00D084';msg.style.fontSize='14px';
-      const lbl={'daily':'chaque jour','weekly':'chaque semaine','monthly':'chaque mois'}[_nlFreq]||frequency;
-      msg.textContent=data.message||`✅ Inscription confirmée ! Tu recevras les meilleurs deals ${lbl}.`;}
-  }).catch(()=>{
-    const form=document.getElementById('newsletterForm'); if(form) form.style.display='none';
-    if(msg){msg.style.display='block';msg.style.color='#00D084';msg.style.fontSize='14px';
-      msg.textContent='✅ Inscription enregistrée ! Tu recevras les meilleurs deals bientôt.';}
-  });
-}
-
 function getDemoDeals(cat) {
   const all = [
     {id:1,name:'MacBook Air M3 16Go/512Go',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:999,original_price:1499,discount_pct:33,novadeal_score:98,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
@@ -7561,6 +7422,5 @@ function getDemoDeals(cat) {
   return cat ? all.filter(d=>d.category===cat) : all;
 }
 </script>
-<script src="/patch.js" defer></script>
 </body>
 </html>
