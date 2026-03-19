@@ -2944,26 +2944,27 @@ async function _enrichDealModal(deal) {
     if (!analysis) return;
     const extra = document.getElementById('modalExtra');
     if (!extra) return;
-    const fake  = analysis.fake_promo || {};
-    const rarity= analysis.rarity || {};
-    const trend = analysis.trend || {};
-    const alerts= (analysis.predictive_alert || {}).alerts || [];
+    const fake   = analysis.fake_promo || {};
+    const rarity = analysis.rarity || {};
+    const alerts = (analysis.predictive_alert || {}).alerts || [];
     let html = '';
     if (fake.is_fake) {
-      html += \`<div style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);border-radius:12px;padding:12px;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:#FF3B30;margin-bottom:6px">⚠️ Signaux de fausse promo détectés</div>
-        \${(fake.reasons||[]).slice(0,2).map(r=>\`<div style="font-size:11px;color:var(--txt2);margin-bottom:3px">→ \${r}</div>\`).join('')}
-      </div>\`;
+      const reasons = (fake.reasons || []).slice(0, 2)
+        .map(r => '<div style="font-size:11px;color:var(--txt2);margin-bottom:3px">→ ' + r + '</div>')
+        .join('');
+      html += '<div style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);border-radius:12px;padding:12px;margin-bottom:10px">'
+            + '<div style="font-size:12px;font-weight:700;color:#FF3B30;margin-bottom:6px">⚠️ Signaux de fausse promo détectés</div>'
+            + reasons + '</div>';
     }
     if (rarity.badge === 'record') {
-      html += \`<div style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.25);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--green)">🏆 Prix historiquement bas — \${rarity.label}</div>\`;
+      html += '<div style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.25);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--green)">🏆 Prix historiquement bas — ' + (rarity.label || '') + '</div>';
     }
     if (alerts.length > 0) {
-      html += alerts.slice(0,1).map(a=>\`
-        <div style="background:rgba(255,92,43,.08);border:1px solid rgba(255,92,43,.2);border-radius:12px;padding:12px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700;margin-bottom:4px">\${a.title}</div>
-          <div style="font-size:11px;color:var(--txt2)">\${a.message}</div>
-        </div>\`).join('');
+      html += alerts.slice(0, 1).map(a =>
+        '<div style="background:rgba(255,92,43,.08);border:1px solid rgba(255,92,43,.2);border-radius:12px;padding:12px;margin-bottom:8px">'
+        + '<div style="font-size:12px;font-weight:700;margin-bottom:4px">' + (a.title || '') + '</div>'
+        + '<div style="font-size:11px;color:var(--txt2)">' + (a.message || '') + '</div></div>'
+      ).join('');
     }
     if (html) extra.innerHTML = html;
   } catch(e) {} // Silencieux
@@ -3041,6 +3042,24 @@ function toggleFav(id) {
   try { localStorage.setItem('ds_favs', JSON.stringify([...favorites])); } catch(e) {}
   updateFavBadge();
   renderDeals(allDeals);
+}
+
+// Ajoute silencieusement un deal aux favoris (sans toggle ni toast optionnel)
+function addToFav(id, silent) {
+  favorites.add(id);
+  try { localStorage.setItem('ds_favs', JSON.stringify([...favorites])); } catch(e) {}
+  updateFavBadge();
+  if (!silent) showToast('❤️ Ajouté aux favoris !');
+}
+
+// Ouvre l'auth si non connecté, sinon exécute le callback
+function openAuthRequired(callback) {
+  if (currentUser) {
+    if (typeof callback === 'function') callback();
+  } else {
+    showToast('⚠️ Connecte-toi pour accéder à cette fonctionnalité');
+    setTimeout(() => openAuth('login'), 400);
+  }
 }
 
 function updateFavBadge() {
@@ -3191,7 +3210,7 @@ function bnClick(el, page) {
 }
 
 // ── ALERT ─────────────────────────────────────────────────────
-async async function createAlert(name, price) {
+async function createAlert(name, price) {
   const token = localStorage.getItem('token');
   if (!token) {
     showToast('⚠️ Connecte-toi pour créer une alerte');
@@ -3210,13 +3229,9 @@ async async function createAlert(name, price) {
       setTimeout(() => showToast('💡 ' + data.suggestion_reason), 1500);
     }
   } catch(e) {
-    // Fallback : alerte basique
     showToast('🔔 Alerte enregistrée pour ' + name.slice(0,30));
   }
-}/alerts`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:'web-user',product_name:name,target_price:price*.9,min_score:75})});
-  } catch {}
   closeModal();
-  showToast(`🔔 Alerte créée pour "${name.substring(0,25)}…"`);
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -4765,7 +4780,6 @@ function renderCalendar(data, el, category) {
 }
 
 // ── NovaDeal™ v2 enrichissement de la modale deal ────────────
-const _origOpenDeal = typeof openDeal !== 'undefined' ? openDeal : null;
 
 async function enrichDealModal(deal) {
   // Fetch analysis from API and inject into open modal
@@ -4842,13 +4856,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Intercept openDeal to enrich with v2 data
-const _ds_openDeal_orig = window.openDeal;
-window.openDeal = function(deal) {
-  if (_ds_openDeal_orig) _ds_openDeal_orig(deal);
-  setTimeout(() => enrichDealModal(deal), 100);
-};
 
+// openDeal est enrichi plus bas dans une seule surcharge unifiée
 
 
 // ══════════════════════════════════════════════════════════════
@@ -5094,8 +5103,6 @@ async function voteCommunityDeal(id, vote) {
 }
 
 // ── RAPPORT MENSUEL ───────────────────────────────────────────
-/* DOUBLON SUPPRIMÉ - openReport (version conservée plus haut) */
-}
 
 function getDemoReport() {
   return {
@@ -5700,9 +5707,7 @@ async function startScanner() {
   }
 }
 
-/* DOUBLON SUPPRIMÉ - stopScanner (version conservée plus haut) */
-  if (scannerStream)   { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
-}
+/* stopScanner déjà défini plus haut */
 
 async function onBarcodeDetected(barcode) {
   stopScanner();
@@ -5925,31 +5930,6 @@ function toggleFaq(el) {
   }
 }
 
-// ── DEAL DU JOUR ──────────────────────────────────────────────
-/* DOUBLON SUPPRIMÉ - openDealOfDay (version conservée plus haut) */
-}
-
-/* DOUBLON SUPPRIMÉ - renderDealOfDay (version conservée plus haut) */
-      <div style="display:flex;align-items:flex-start;gap:12px">
-        <div style="font-size:48px;flex-shrink:0">${deal.image_url || getCatEmoji(deal.category)}</div>
-        <div style="flex:1">
-          <div class="dot-name">${deal.name}</div>
-          <div style="font-size:12px;color:var(--txt3);margin-bottom:8px">${deal.store}</div>
-          <div style="display:flex;align-items:flex-end;gap:10px">
-            <div class="dot-price">${deal.current_price}€</div>
-            ${deal.original_price ? `<div style="font-size:14px;color:var(--txt3);text-decoration:line-through;margin-bottom:4px">${deal.original_price}€</div>` : ''}
-            ${saved > 0 ? `<div style="background:rgba(0,208,132,.15);color:var(--green);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;margin-bottom:2px">-${saved}€</div>` : ''}
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
-        <span style="background:rgba(255,184,0,.15);color:var(--gold);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">★ ${deal.novadeal_score}/100</span>
-        ${deal.is_fake ? '<span class="fake-badge">⚠️ VÉRIFIER</span>' : '<span style="background:rgba(0,208,132,.12);color:var(--green);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">✅ Vérifié</span>'}
-        <span style="margin-left:auto;font-size:12px;color:var(--accent);font-weight:600">Voir le deal →</span>
-      </div>
-    </div>`;
-}
-
 // ── DYNAMIC SEO — Update meta on deal open ────────────────────
 function updateSEOMeta(deal) {
   if (!deal) return;
@@ -5965,12 +5945,7 @@ function updateSEOMeta(deal) {
   window.history.replaceState({}, '', url);
 }
 
-// Intercept openDeal to update SEO meta
-const _ds_openDeal_v3_orig = window.openDeal;
-window.openDeal = function(deal) {
-  if (typeof deal === 'object') updateSEOMeta(deal);
-  if (_ds_openDeal_v3_orig) _ds_openDeal_v3_orig(deal);
-};
+// openDeal unifié plus bas
 
 // ── INIT BLOC 3 ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -6418,12 +6393,6 @@ async function loadWishlist() {
   }
 }
 
-/* DOUBLON SUPPRIMÉ - getDemoWishlist (version conservée plus haut) */
-    {id:2, product_name:'Sony WH-1000XM5', target_price:250, price_status:'good', best_price:219, best_store:'Fnac.com', novadeal_score:88, savings:0},
-    {id:3, product_name:'PS5 Slim', target_price:400, price_status:'waiting', best_price:449, best_store:'Darty.com', novadeal_score:72, savings:0},
-  ];
-}
-
 function renderWishlist(items, el) {
   if (!items.length) {
     el.innerHTML = `<div style="text-align:center;padding:30px">
@@ -6464,34 +6433,7 @@ function renderWishlist(items, el) {
   }).join('');
 }
 
-/* DOUBLON SUPPRIMÉ - addToWishlist (version conservée plus haut) */
-  const name  = document.getElementById('wishProductName')?.value?.trim();
-  const price = parseFloat(document.getElementById('wishTargetPrice')?.value) || null;
-  const cat   = document.getElementById('wishCategory')?.value;
-  if (!name) { showToast('⚠️ Nom du produit requis'); return; }
-  try {
-    const res  = await fetch(API + '/wishlist', {
-      method: 'POST',
-      headers: {'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
-      body: JSON.stringify({product_name: name, target_price: price, category: cat}),
-    });
-    const data = await res.json();
-    showToast('❤️ Ajouté à la wishlist !');
-    document.getElementById('addWishlistForm').style.display = 'none';
-    document.getElementById('wishProductName').value = '';
-    loadWishlist();
-    trackMission('add_wishlist');
-  } catch(e) { showToast('❤️ Ajouté ! (démo)'); }
-}
-
-/* DOUBLON SUPPRIMÉ - removeFromWishlist (version conservée plus haut) */
-}
-
 // ── MODE BUDGET ───────────────────────────────────────────────
-let selectedBudgetCats = [];
-
-/* DOUBLON SUPPRIMÉ - toggleBudgetCat (version conservée plus haut) */
-}
 
 async function optimizeBudget() {
   const budget = parseFloat(document.getElementById('budgetAmount')?.value);
@@ -6513,38 +6455,6 @@ async function optimizeBudget() {
   }
   trackMission('view_3_deals');
   unlockAchievement('budget_optimizer');
-}
-
-/* DOUBLON SUPPRIMÉ - getDemoBudgetResult (version conservée plus haut) */
-}
-
-/* DOUBLON SUPPRIMÉ - renderBudgetResults (version conservée plus haut) */
-          <div style="font-size:12px;color:var(--txt3);margin-top:2px">Reste : ${data.remaining || 0}€ · ${deals.length} deals</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:18px;font-weight:700;color:var(--gold)">+${data.total_savings || 0}€</div>
-          <div style="font-size:10px;color:var(--txt3)">économisés</div>
-        </div>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${usedPct}%;background:var(--green);border-radius:3px;transition:width .6s"></div>
-      </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">${usedPct}% du budget utilisé</div>
-    </div>
-    ${deals.map(d => `
-      <div class="budget-deal-card" onclick="openDeal(${JSON.stringify(d).replace(/"/g,'&quot;')})">
-        <div style="font-size:28px;flex-shrink:0">${getCatEmoji(d.category)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
-          <div style="font-size:11px;color:var(--txt3)">${d.store} · ★ ${d.novadeal_score}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:16px;font-weight:700;color:var(--accent)">${d.current_price}€</div>
-          ${d.discount_pct ? `<div style="font-size:10px;color:var(--green)">-${Math.round(d.discount_pct)}%</div>` : ''}
-        </div>
-      </div>`).join('')}
-    ${!deals.length ? '<div style="text-align:center;padding:16px;color:var(--txt3)">Aucun deal dans ce budget</div>' : ''}
-  `;
 }
 
 // ── GAMIFICATION ──────────────────────────────────────────────
@@ -7080,18 +6990,24 @@ function renderMLRecommendations(data, el) {
   `;
 }
 
-// Intercepter openDeal pour tracker pour le ML
-const _origOpenDeal2 = window.openDeal;
+// ── openDeal UNIFIÉ — enrichissement NovaDeal™ v2 + SEO + ML tracking ──
+// Une seule surcharge propre qui remplace les 4 interceptions précédentes
+const _openDeal_base = window.openDeal;
 window.openDeal = function(deal) {
-  if (_origOpenDeal2) _origOpenDeal2(deal);
-  // Track interaction
+  if (_openDeal_base) _openDeal_base(deal);
+  if (!deal) return;
+  // 1. Enrichissement NovaDeal™ v2 (analyse détaillée en arrière-plan)
+  setTimeout(() => enrichDealModal(deal), 100);
+  // 2. SEO meta update
+  if (typeof deal === 'object') updateSEOMeta(deal);
+  // 3. ML tracking
   const token = localStorage.getItem('token');
-  if (token && deal) {
+  if (token) {
     fetch(API + '/ml/track', {
-      method:'POST',
-      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
-      body: JSON.stringify({action:'view', deal_id:deal.id, category:deal.category, novadeal_score:deal.novadeal_score}),
-    }).catch(()=>{});
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'view', deal_id: deal.id, category: deal.category, novadeal_score: deal.novadeal_score }),
+    }).catch(() => {});
   }
 };
 
