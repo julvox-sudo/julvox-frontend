@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://julvox.com/sitemap.xml
+
+# DealScan by Julvox — Meilleurs deals & promos France
