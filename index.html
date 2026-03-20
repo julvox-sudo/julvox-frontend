@@ -6400,13 +6400,17 @@ function renderMLRecommendations(data, el) {
 // Une seule surcharge propre qui remplace les 4 interceptions précédentes
 const _openDeal_base = window.openDeal;
 window.openDeal = function(deal) {
-  if (_openDeal_base) _openDeal_base(deal);
-  if (!deal) return;
-  // 1. Enrichissement NovaDeal™ v2 (analyse détaillée en arrière-plan)
+  // Normaliser: si deal est un id (number), chercher l'objet dans allDeals
+  if (typeof deal === 'number' || typeof deal === 'string') {
+    deal = (allDeals || []).find(d => d.id == deal) || { id: deal };
+  }
+  if (_openDeal_base) _openDeal_base(typeof deal === 'object' ? deal.id : deal);
+  if (!deal || !deal.id) return;
+  // Enrichissement NovaDeal™ v2 en arrière-plan
   setTimeout(() => enrichDealModal(deal), 100);
-  // 2. SEO meta update
+  // SEO meta update
   if (typeof deal === 'object') updateSEOMeta(deal);
-  // 3. ML tracking
+  // ML tracking
   const token = localStorage.getItem('token');
   if (token) {
     fetch(API + '/ml/track', {
