@@ -3,8 +3,8 @@
 //  Cache offline-first pour une expérience fluide même sans réseau
 // ============================================================
 
-const CACHE_NAME   = 'dealscan-v5';
-const CACHE_STATIC = 'dealscan-static-v5';
+const CACHE_NAME   = 'dealscan-v6';
+const CACHE_STATIC = 'dealscan-static-v6';
 
 // Ressources à mettre en cache immédiatement à l'installation
 const STATIC_ASSETS = [
@@ -70,11 +70,7 @@ async function networkFirstWithCache(request, cacheName, ttlSeconds = 60) {
     const networkResponse = await fetch(request.clone());
     if (networkResponse.ok) {
       const cache = await caches.open(cacheName);
-      const responseToCache = networkResponse.clone();
-      // Ajouter header d'expiration
-      const headers = new Headers(responseToCache.headers);
-      headers.set('sw-cached-at', Date.now().toString());
-      cache.put(request, responseToCache);
+      cache.put(request, networkResponse.clone());
     }
     return networkResponse;
   } catch(e) {

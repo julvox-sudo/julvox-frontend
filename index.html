@@ -2,6 +2,7 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
+<meta name="build-version" content="1773984760"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
@@ -1021,9 +1022,9 @@ a{text-decoration:none}
   <button class="sort-btn" onclick="openPage('comparePageV2')">🔍 Comparer</button>
   <button class="sort-btn" onclick="openPage('calendarPage');loadCalendar('high-tech')">📅 Calendrier</button>
   <button class="sort-btn" onclick="openAIChat()">🤖 IA</button>
-  <button class="sort-btn" onclick="openPage('wishlistPage');loadWishlist()">❤️ Wishlist</button>
+  <button class="sort-btn" onclick="openPage('wishlistPage');typeof loadWishlist==='function'&&loadWishlist()">❤️ Wishlist</button>
   <button class="sort-btn" onclick="openPage('budgetPage')">💰 Budget</button>
-  <button class="sort-btn" onclick="openDealOfDay()">⭐ Deal du jour</button>
+  <button class="sort-btn" onclick="typeof openDealOfDay==='function'?openDealOfDay():openPage('dealOfDayPage')">⭐ Deal du jour</button>
   <!-- ATTENTE 1000 users: Communauté, Rapport, Scanner, Squad, Pro, Cashback, Analytics, Gamification, Social, Dark Patterns, Embed, Widget -->
 </div>
 
@@ -2100,6 +2101,96 @@ const _lsCache = {
 
 const API = 'https://julvox-dealscan-backend-production.up.railway.app';
 let allDeals = [], currentCat = '', currentSort = 'score', minScore = 0, timers = {};
+
+async function openDealOfDay() {
+  openPage('dealOfDayPage');
+  const el = document.getElementById('dealOfDayContent');
+  try {
+    const res  = await fetch(API + '/deals?min_score=90&limit=1');
+    const data = await res.json();
+    const deal = (data.deals || [])[0] || getDemoDeals()[0];
+    renderDealOfDay(deal, el);
+  } catch(e) {
+    renderDealOfDay(getDemoDeals()[0], el);
+  }
+}
+
+function renderDealOfDay(deal, el) {
+  if (!deal) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal disponible</div>'; return; }
+  const score    = deal.novadeal_score || 0;
+  const discount = deal.discount_pct ? Math.round(deal.discount_pct) : 0;
+  const scoreColor = score >= 85 ? 'var(--green)' : score >= 65 ? 'var(--gold)' : '#FF5C2B';
+
+  el.innerHTML = `
+    <!-- Deal of the Day Card -->
+    <div class="dotd-card">
+      <div class="dotd-badge">⭐ DEAL DU JOUR</div>
+      <div style="font-size:40px;margin-bottom:10px">${deal.image_url || getCatEmoji(deal.category)}</div>
+      <div class="dotd-title">${deal.name}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:10px">${deal.store}</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:14px">
+        <div class="dotd-price">${deal.current_price}€</div>
+        ${deal.original_price ? `<div style="font-size:16px;text-decoration:line-through;color:rgba(255,255,255,.4);margin-bottom:4px">${deal.original_price}€</div>` : ''}
+        ${discount ? `<div style="background:var(--accent);color:#fff;font-size:13px;font-weight:700;padding:3px 10px;border-radius:8px;margin-bottom:2px">-${discount}%</div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+        <div style="background:${scoreColor}22;border:1px solid ${scoreColor}44;border-radius:8px;padding:4px 10px">
+          <span style="font-size:13px;font-weight:700;color:${scoreColor}">★ ${score}/100</span>
+        </div>
+        <span style="font-size:12px;color:rgba(255,255,255,.5)">NovaDeal™ v2</span>
+      </div>
+      <button onclick="openDeal(${JSON.stringify(deal).replace(/"/g,'&quot;')})" style="width:100%;background:#fff;color:#FF5C2B;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;font-family:'Syne',sans-serif">
+        🔥 Voir le deal
+      </button>
+    </div>
+
+    <!-- Partager -->
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px">📤 Partager ce deal</div>
+    <div class="share-grid">
+      <div class="share-item" onclick="shareDeal('twitter', ${JSON.stringify(deal).replace(/'/g,'')})">
+        <div class="share-item-icon">🐦</div>
+        <div class="share-item-lbl">Twitter/X</div>
+      </div>
+      <div class="share-item" onclick="shareDeal('whatsapp', ${JSON.stringify(deal).replace(/'/g,'')})">
+        <div class="share-item-icon">💬</div>
+        <div class="share-item-lbl">WhatsApp</div>
+      </div>
+      <div class="share-item" onclick="shareDeal('telegram', ${JSON.stringify(deal).replace(/'/g,'')})">
+        <div class="share-item-icon">✈️</div>
+        <div class="share-item-lbl">Telegram</div>
+      </div>
+      <div class="share-item" onclick="copyDealLink(${deal.id})">
+        <div class="share-item-icon">🔗</div>
+        <div class="share-item-lbl">Copier</div>
+      </div>
+    </div>
+
+    <!-- Widget preview iOS -->
+    <div style="font-size:13px;font-weight:600;margin:16px 0 12px">📱 Widget iOS/Android</div>
+    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
+      <!-- Grand widget -->
+      <div class="widget-preview" style="min-width:160px">
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">🔥 DealScan</div>
+        <div style="font-size:13px;font-weight:600;line-height:1.2;margin-bottom:6px">${deal.name.slice(0,30)}…</div>
+        <div style="font-size:22px;font-weight:800;color:#FF5C2B;margin-bottom:4px">${deal.current_price}€</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4)">${discount?'-'+discount+'% · ':''}★ ${score}</div>
+      </div>
+      <!-- Petit widget -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="widget-preview-sm">
+          <div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:700">🔥 DEAL</div>
+          <div style="font-size:14px;font-weight:800;color:#fff">${deal.current_price}€</div>
+        </div>
+        <div style="width:80px;height:80px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;justify-content:space-between">
+          <div style="font-size:9px;color:var(--txt3)">NovaDeal™</div>
+          <div style="font-size:22px;font-weight:800;color:${scoreColor}">${score}</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:8px;line-height:1.5">Les widgets seront disponibles après la publication sur l'App Store et Google Play. Ajoutez DealScan à votre écran d'accueil pour un accès rapide.</div>
+  `;
+}
+
 let favorites = new Set();
 try { favorites = new Set(JSON.parse(localStorage.getItem('ds_favs') || '[]')); } catch(e) {}
 let currentUser = null;
@@ -2228,22 +2319,7 @@ async function loadDeals(cat = '', minSc = 0) {
     // Silencieux - les démos sont déjà affichées
   }
 }
-async function _refreshDealsBackground(cat, minSc, cacheKey) {
-  try {
-    const params = new URLSearchParams({ limit: 60, min_score: Math.max(0, parseInt(minSc) || 0) });
-    if (cat) params.set('category', cat);
-    const r = await fetch(`${API}/deals/cached?${params}`);
-    if (!r.ok) return;
-    const data = await r.json();
-    const fresh = data.deals || [];
-    if (fresh.length > 0) {
-      if (_lsCache) _lsCache.set(cacheKey, fresh, 3);
-      allDeals = fresh;
-      renderDeals(allDeals);
-      document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
-    }
-  } catch(e) {} // Silencieux
-}
+async function _refreshDealsBackground() { /* désactivé - loadDeals gère l'API */ }
 
 function renderDeals(deals) {
   const grid = document.getElementById('dealsGrid');
@@ -4668,95 +4744,6 @@ function contactProPlan(plan, price) {
 // ══════════════════════════════════════════════════════════════
 
 // ── DEAL DU JOUR ──────────────────────────────────────────────
-async function openDealOfDay() {
-  openPage('dealOfDayPage');
-  const el = document.getElementById('dealOfDayContent');
-  try {
-    const res  = await fetch(API + '/deals?min_score=90&limit=1');
-    const data = await res.json();
-    const deal = (data.deals || [])[0] || getDemoDeals()[0];
-    renderDealOfDay(deal, el);
-  } catch(e) {
-    renderDealOfDay(getDemoDeals()[0], el);
-  }
-}
-
-function renderDealOfDay(deal, el) {
-  if (!deal) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal disponible</div>'; return; }
-  const score    = deal.novadeal_score || 0;
-  const discount = deal.discount_pct ? Math.round(deal.discount_pct) : 0;
-  const scoreColor = score >= 85 ? 'var(--green)' : score >= 65 ? 'var(--gold)' : '#FF5C2B';
-
-  el.innerHTML = `
-    <!-- Deal of the Day Card -->
-    <div class="dotd-card">
-      <div class="dotd-badge">⭐ DEAL DU JOUR</div>
-      <div style="font-size:40px;margin-bottom:10px">${deal.image_url || getCatEmoji(deal.category)}</div>
-      <div class="dotd-title">${deal.name}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:10px">${deal.store}</div>
-      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:14px">
-        <div class="dotd-price">${deal.current_price}€</div>
-        ${deal.original_price ? `<div style="font-size:16px;text-decoration:line-through;color:rgba(255,255,255,.4);margin-bottom:4px">${deal.original_price}€</div>` : ''}
-        ${discount ? `<div style="background:var(--accent);color:#fff;font-size:13px;font-weight:700;padding:3px 10px;border-radius:8px;margin-bottom:2px">-${discount}%</div>` : ''}
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
-        <div style="background:${scoreColor}22;border:1px solid ${scoreColor}44;border-radius:8px;padding:4px 10px">
-          <span style="font-size:13px;font-weight:700;color:${scoreColor}">★ ${score}/100</span>
-        </div>
-        <span style="font-size:12px;color:rgba(255,255,255,.5)">NovaDeal™ v2</span>
-      </div>
-      <button onclick="openDeal(${JSON.stringify(deal).replace(/"/g,'&quot;')})" style="width:100%;background:#fff;color:#FF5C2B;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;font-family:'Syne',sans-serif">
-        🔥 Voir le deal
-      </button>
-    </div>
-
-    <!-- Partager -->
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px">📤 Partager ce deal</div>
-    <div class="share-grid">
-      <div class="share-item" onclick="shareDeal('twitter', ${JSON.stringify(deal).replace(/'/g,'')})">
-        <div class="share-item-icon">🐦</div>
-        <div class="share-item-lbl">Twitter/X</div>
-      </div>
-      <div class="share-item" onclick="shareDeal('whatsapp', ${JSON.stringify(deal).replace(/'/g,'')})">
-        <div class="share-item-icon">💬</div>
-        <div class="share-item-lbl">WhatsApp</div>
-      </div>
-      <div class="share-item" onclick="shareDeal('telegram', ${JSON.stringify(deal).replace(/'/g,'')})">
-        <div class="share-item-icon">✈️</div>
-        <div class="share-item-lbl">Telegram</div>
-      </div>
-      <div class="share-item" onclick="copyDealLink(${deal.id})">
-        <div class="share-item-icon">🔗</div>
-        <div class="share-item-lbl">Copier</div>
-      </div>
-    </div>
-
-    <!-- Widget preview iOS -->
-    <div style="font-size:13px;font-weight:600;margin:16px 0 12px">📱 Widget iOS/Android</div>
-    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
-      <!-- Grand widget -->
-      <div class="widget-preview" style="min-width:160px">
-        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">🔥 DealScan</div>
-        <div style="font-size:13px;font-weight:600;line-height:1.2;margin-bottom:6px">${deal.name.slice(0,30)}…</div>
-        <div style="font-size:22px;font-weight:800;color:#FF5C2B;margin-bottom:4px">${deal.current_price}€</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4)">${discount?'-'+discount+'% · ':''}★ ${score}</div>
-      </div>
-      <!-- Petit widget -->
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div class="widget-preview-sm">
-          <div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:700">🔥 DEAL</div>
-          <div style="font-size:14px;font-weight:800;color:#fff">${deal.current_price}€</div>
-        </div>
-        <div style="width:80px;height:80px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;justify-content:space-between">
-          <div style="font-size:9px;color:var(--txt3)">NovaDeal™</div>
-          <div style="font-size:22px;font-weight:800;color:${scoreColor}">${score}</div>
-        </div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--txt3);margin-top:8px;line-height:1.5">Les widgets seront disponibles après la publication sur l'App Store et Google Play. Ajoutez DealScan à votre écran d'accueil pour un accès rapide.</div>
-  `;
-}
-
 function shareDeal(platform, deal) {
   const text = `🔥 ${deal.name} à seulement ${deal.current_price}€ (-${Math.round(deal.discount_pct||0)}%) — Score NovaDeal™ : ${deal.novadeal_score}/100`;
   const url  = `https://julvox.com/?deal=${deal.id}`;
