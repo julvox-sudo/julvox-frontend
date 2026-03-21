@@ -12,16 +12,18 @@
 
 /* ─────────────────────────────────────────────────────────────
    1. GRAPHIQUE HISTORIQUE DES PRIX — données réelles de l'API
+      Remplace le graphique simulé par les vraies données.
+      Un seul graphique affiché.
    ───────────────────────────────────────────────────────────── */
 
 // Override openDeal pour charger le vrai historique de prix
 const _originalOpenDeal = window.openDeal;
 
 window.openDeal = async function(id) {
-  // Appel original (affiche le modal avec données de base)
+  // Appel original (affiche le modal avec données simulées)
   await _originalOpenDeal(id);
 
-  // Charger le vrai historique en parallèle
+  // Charger le vrai historique de l'API
   try {
     const res  = await fetch(`${API}/deals/${id}`);
     if (!res.ok) return;
@@ -29,83 +31,96 @@ window.openDeal = async function(id) {
     const hist = data.price_history || [];
     if (hist.length < 2) return;
 
-    const prices = hist.map(h => h.price);
-    const dates  = hist.map(h => new Date(h.date).toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}));
+    const prices  = hist.map(h => h.price);
+    const dates   = hist.map(h => new Date(h.date));
+    const labels  = hist.map(h => {
+      const d = new Date(h.date);
+      return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short'});
+    });
     const current = data.current_price || prices[prices.length - 1];
-    const minP   = Math.min(...prices);
-    const maxP   = Math.max(...prices);
+    const minP    = Math.min(...prices);
+    const maxP    = Math.max(...prices);
+    const minPt   = prices.indexOf(minP);
+    const scoreC  = current <= minP * 1.05 ? '#00D084' : current >= maxP * 0.95 ? '#FF5C2B' : '#FFB800';
 
-    // Construire le graphique SVG interactif
-    const svgW = 280, svgH = 80;
+    // Construire le SVG
+    const svgW = 280, svgH = 90;
     const pts  = prices.map((p, i) => {
       const x = Math.round(i / (prices.length - 1) * svgW);
-      const y = Math.round(svgH - ((p - minP) / Math.max(1, maxP - minP)) * (svgH - 16) - 8);
-      return { x, y, p, d: dates[i] };
+      const y = Math.round(svgH - ((p - minP) / Math.max(1, maxP - minP)) * (svgH - 20) - 10);
+      return { x, y, p, d: labels[i] };
     });
-
     const polyline = pts.map(pt => `${pt.x},${pt.y}`).join(' ');
     const lastPt   = pts[pts.length - 1];
-    const minPt    = pts.reduce((a, b) => a.p < b.p ? a : b);
-    const scoreC   = current <= minP * 1.05 ? '#00D084' : current >= maxP * 0.95 ? '#FF5C2B' : '#FFB800';
-
-    // Zone sous la courbe
+    const minPtObj = pts[minPt];
     const areaPts  = `0,${svgH} ${polyline} ${svgW},${svgH}`;
 
-    const svg = `<svg viewBox="0 0 ${svgW} ${svgH+10}" style="width:100%;height:${svgH+10}px;overflow:visible">
+    const svg = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;overflow:visible;display:block">
       <defs>
-        <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${scoreC}" stop-opacity="0.25"/>
+        <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${scoreC}" stop-opacity="0.2"/>
           <stop offset="100%" stop-color="${scoreC}" stop-opacity="0"/>
         </linearGradient>
       </defs>
-      <polygon points="${areaPts}" fill="url(#hg)"/>
+      <polygon points="${areaPts}" fill="url(#hg2)"/>
       <polyline points="${polyline}" fill="none" stroke="${scoreC}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${minP < current ? `<circle cx="${minPt.x}" cy="${minPt.y}" r="3" fill="#00D084" stroke="white" stroke-width="1.5"/>
-      <text x="${Math.min(minPt.x + 4, svgW - 50)}" y="${minPt.y - 5}" fill="#00D084" font-size="9" font-family="Inter,sans-serif">min ${minPt.p.toFixed(2)}€</text>` : ''}
+      ${minP < current * 0.98 ? `
+        <circle cx="${minPtObj.x}" cy="${minPtObj.y}" r="3.5" fill="#00D084" stroke="white" stroke-width="1.5"/>
+        <text x="${Math.min(minPtObj.x + 5, svgW - 60)}" y="${Math.max(minPtObj.y - 5, 12)}" fill="#00D084" font-size="9" font-family="Inter,sans-serif">min ${minP.toFixed(2)}€</text>
+      ` : ''}
       <circle cx="${lastPt.x}" cy="${lastPt.y}" r="4" fill="${scoreC}" stroke="white" stroke-width="2"/>
-      <text x="${Math.max(lastPt.x - 40, 0)}" y="${lastPt.y - 6}" fill="${scoreC}" font-size="9" font-family="Inter,sans-serif" font-weight="600">${current.toFixed(2)}€</text>
     </svg>`;
 
-    // Remplacer le graphique existant dans le modal
-    const chartWrap = document.querySelector('.price-chart-wrap') ||
-                      [...document.querySelectorAll('#modalBody div')].find(el =>
-                        el.innerHTML.includes('Historique'));
-    if (chartWrap) {
-      chartWrap.innerHTML = `
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-bottom:6px">
-          <span>${dates[0]}</span>
-          <span style="font-weight:600;color:var(--txt2)">📈 ${hist.length} relevés de prix</span>
-          <span>${dates[dates.length-1]}</span>
+    const chartHTML = `
+      <div id="realPriceChart" style="background:var(--bg3);border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600;color:var(--txt2)">📈 Historique des prix</span>
+          <span style="font-size:10px;color:var(--txt3)">${hist.length} relevés · ${labels[0]} → ${labels[labels.length-1]}</span>
         </div>
         ${svg}
         <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
           <div><span style="color:var(--txt3)">Min </span><strong style="color:#00D084">${minP.toFixed(2)}€</strong></div>
-          <div><span style="color:var(--txt3)">Actuel </span><strong style="color:${scoreC}">${current.toFixed(2)}€</strong></div>
+          <div><strong style="color:${scoreC}">${current.toFixed(2)}€ actuellement</strong></div>
           <div><span style="color:var(--txt3)">Max </span><strong style="color:#FF5C2B">${maxP.toFixed(2)}€</strong></div>
         </div>
-      `;
-    } else {
-      // Trouver la section historique et la remplacer
-      const histSection = [...document.querySelectorAll('#modalBody *')].find(el =>
-        el.textContent.includes('Historique des prix') && el.children.length === 0
-      );
-      if (histSection) {
-        const container = histSection.nextElementSibling;
-        if (container) container.innerHTML = `
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-bottom:6px">
-            <span>${dates[0]}</span>
-            <span style="font-weight:600">${hist.length} relevés</span>
-            <span>${dates[dates.length-1]}</span>
-          </div>
-          ${svg}
-          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
-            <span style="color:#00D084">Min: ${minP.toFixed(2)}€</span>
-            <span style="color:${scoreC}">Actuel: ${current.toFixed(2)}€</span>
-            <span style="color:#FF5C2B">Max: ${maxP.toFixed(2)}€</span>
-          </div>
-        `;
+        <div style="font-size:9px;color:var(--txt3);margin-top:6px;text-align:center">
+          Abscisse : date des relevés · Ordonnée : prix en euros
+        </div>
+      </div>
+    `;
+
+    // Trouver et REMPLACER le graphique original (pas en ajouter un 2ème)
+    // Le graphique original est dans un div avec margin-bottom:12px;background:var(--bg3)
+    // après le titre "Historique des prix"
+    const modalBody = document.getElementById('modalBody');
+    if (!modalBody) return;
+
+    // Chercher l'ancien graphique par son contenu caractéristique
+    const allDivs = modalBody.querySelectorAll('div');
+    for (const div of allDivs) {
+      if (div.id === 'realPriceChart') continue; // déjà remplacé
+      const style = div.getAttribute('style') || '';
+      // Le div original contient le SVG du graphique simulé et les labels min/max
+      if (style.includes('margin-bottom:12px') &&
+          (div.innerHTML.includes('Min :') || div.innerHTML.includes('polyline'))) {
+        div.outerHTML = chartHTML;
+        return;
       }
     }
+
+    // Fallback : chercher le titre "Historique des prix" et remplacer le suivant
+    for (const el of modalBody.querySelectorAll('*')) {
+      if (el.textContent.trim() === '📈 Historique des prix' && el.tagName !== 'DIV') {
+        const nextSibling = el.parentElement?.nextElementSibling ||
+                            el.nextElementSibling;
+        if (nextSibling) {
+          const wrapper = el.parentElement || el;
+          wrapper.outerHTML = chartHTML;
+        }
+        return;
+      }
+    }
+
   } catch(e) {
     // Silencieux — le graphique simulé reste affiché
   }
