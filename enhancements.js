@@ -23,6 +23,31 @@ window.openDeal = async function(id) {
   // Appel original (affiche le modal avec données simulées)
   await _originalOpenDeal(id);
 
+  // ── Supprimer IMMÉDIATEMENT le graphique simulé original ──────
+  // Le div du graphique original contient "Min :" dans son texte
+  // et suit directement le titre "📈 Historique des prix"
+  const modalBody = document.getElementById('modalBody');
+  if (modalBody) {
+    // Chercher tous les divs dans le modal
+    const allDivs = Array.from(modalBody.querySelectorAll('div'));
+    for (const div of allDivs) {
+      // Le graphique original contient exactement "Min :" et un SVG polyline
+      if (div.textContent.includes('Min :') &&
+          div.innerHTML.includes('polyline') &&
+          !div.id.includes('realPriceChart')) {
+        div.id = 'chartToReplace'; // Marquer pour remplacement
+        div.style.display = 'none'; // Masquer immédiatement
+        // Supprimer aussi le titre "📈 Historique des prix" qui précède
+        const prev = div.previousElementSibling;
+        if (prev && prev.textContent.trim() === '📈 Historique des prix') {
+          prev.style.display = 'none';
+          prev.id = 'chartTitleToReplace';
+        }
+        break;
+      }
+    }
+  }
+
   // Charger le vrai historique de l'API
   try {
     const res  = await fetch(`${API}/deals/${id}`);
@@ -89,35 +114,20 @@ window.openDeal = async function(id) {
       </div>
     `;
 
-    // Trouver et REMPLACER le graphique original (pas en ajouter un 2ème)
-    // Le graphique original est dans un div avec margin-bottom:12px;background:var(--bg3)
-    // après le titre "Historique des prix"
-    const modalBody = document.getElementById('modalBody');
-    if (!modalBody) return;
+    // Remplacer le graphique masqué par le vrai
+    const toReplace = document.getElementById('chartToReplace');
+    const titleToReplace = document.getElementById('chartTitleToReplace');
 
-    // Chercher l'ancien graphique par son contenu caractéristique
-    const allDivs = modalBody.querySelectorAll('div');
-    for (const div of allDivs) {
-      if (div.id === 'realPriceChart') continue; // déjà remplacé
-      const style = div.getAttribute('style') || '';
-      // Le div original contient le SVG du graphique simulé et les labels min/max
-      if (style.includes('margin-bottom:12px') &&
-          (div.innerHTML.includes('Min :') || div.innerHTML.includes('polyline'))) {
-        div.outerHTML = chartHTML;
-        return;
-      }
-    }
-
-    // Fallback : chercher le titre "Historique des prix" et remplacer le suivant
-    for (const el of modalBody.querySelectorAll('*')) {
-      if (el.textContent.trim() === '📈 Historique des prix' && el.tagName !== 'DIV') {
-        const nextSibling = el.parentElement?.nextElementSibling ||
-                            el.nextElementSibling;
-        if (nextSibling) {
-          const wrapper = el.parentElement || el;
-          wrapper.outerHTML = chartHTML;
-        }
-        return;
+    if (toReplace) {
+      // Insérer le vrai graphique à la place
+      toReplace.insertAdjacentHTML('beforebegin', chartHTML);
+      toReplace.remove();
+      if (titleToReplace) titleToReplace.remove();
+    } else {
+      // Fallback : insérer avant les votes
+      const voteRow = document.querySelector('[id^="voteRow_"]');
+      if (voteRow) {
+        voteRow.insertAdjacentHTML('beforebegin', chartHTML);
       }
     }
 
