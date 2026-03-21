@@ -2445,7 +2445,7 @@ async function openDeal(id) {
   document.getElementById('modalOverlay').classList.add('open');
   loadDealVotes(deal.id);
   // Enrichissement NovaDeal v2 en arrière-plan (non bloquant)
-  _enrichDealModal(deal);
+  // _enrichDealModal(deal); // désactivé — géré par enhancements.js
 }
 
 async function _enrichDealModal(deal) {
@@ -6388,7 +6388,7 @@ window.openDeal = function(deal) {
   if (_openDeal_base) _openDeal_base(typeof deal === 'object' ? deal.id : deal);
   if (!deal || !deal.id) return;
   // Enrichissement NovaDeal™ v2 en arrière-plan
-  setTimeout(() => enrichDealModal(deal), 100);
+  // setTimeout(() => enrichDealModal(deal), 100); // désactivé — géré par enhancements.js
   // SEO meta update
   if (typeof deal === 'object') updateSEOMeta(deal);
   // ML tracking
