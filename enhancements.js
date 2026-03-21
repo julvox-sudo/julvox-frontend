@@ -23,30 +23,7 @@ window.openDeal = async function(id) {
   // Appel original (affiche le modal avec données simulées)
   await _originalOpenDeal(id);
 
-  // ── Supprimer IMMÉDIATEMENT le graphique simulé original ──────
-  // Le div du graphique original contient "Min :" dans son texte
-  // et suit directement le titre "📈 Historique des prix"
-  const modalBody = document.getElementById('modalBody');
-  if (modalBody) {
-    // Chercher tous les divs dans le modal
-    const allDivs = Array.from(modalBody.querySelectorAll('div'));
-    for (const div of allDivs) {
-      // Le graphique original contient exactement "Min :" et un SVG polyline
-      if (div.textContent.includes('Min :') &&
-          div.innerHTML.includes('polyline') &&
-          !div.id.includes('realPriceChart')) {
-        div.id = 'chartToReplace'; // Marquer pour remplacement
-        div.style.display = 'none'; // Masquer immédiatement
-        // Supprimer aussi le titre "📈 Historique des prix" qui précède
-        const prev = div.previousElementSibling;
-        if (prev && prev.textContent.trim() === '📈 Historique des prix') {
-          prev.style.display = 'none';
-          prev.id = 'chartTitleToReplace';
-        }
-        break;
-      }
-    }
-  }
+
 
   // Charger le vrai historique de l'API
   try {
@@ -114,21 +91,14 @@ window.openDeal = async function(id) {
       </div>
     `;
 
-    // Remplacer le graphique masqué par le vrai
-    const toReplace = document.getElementById('chartToReplace');
-    const titleToReplace = document.getElementById('chartTitleToReplace');
-
-    if (toReplace) {
-      // Insérer le vrai graphique à la place
-      toReplace.insertAdjacentHTML('beforebegin', chartHTML);
-      toReplace.remove();
-      if (titleToReplace) titleToReplace.remove();
+    // Insérer dans le slot prévu (priceChartSlot_ID)
+    const slot = document.getElementById('priceChartSlot_' + id);
+    if (slot) {
+      slot.innerHTML = chartHTML;
     } else {
       // Fallback : insérer avant les votes
-      const voteRow = document.querySelector('[id^="voteRow_"]');
-      if (voteRow) {
-        voteRow.insertAdjacentHTML('beforebegin', chartHTML);
-      }
+      const voteRow = document.getElementById('voteRow_' + id);
+      if (voteRow) voteRow.insertAdjacentHTML('beforebegin', chartHTML);
     }
 
   } catch(e) {
