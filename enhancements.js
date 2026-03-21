@@ -20,12 +20,8 @@
 const _originalOpenDeal = window.openDeal;
 
 window.openDeal = async function(id) {
-  // Appel original (affiche le modal avec données simulées)
   await _originalOpenDeal(id);
 
-
-
-  // Charger le vrai historique de l'API
   try {
     const res  = await fetch(`${API}/deals/${id}`);
     if (!res.ok) return;
@@ -33,77 +29,377 @@ window.openDeal = async function(id) {
     const hist = data.price_history || [];
     if (hist.length < 2) return;
 
-    const prices  = hist.map(h => h.price);
-    const dates   = hist.map(h => new Date(h.date));
+    const prices  = hist.map(h => parseFloat(h.price));
     const labels  = hist.map(h => {
       const d = new Date(h.date);
-      return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short'});
+      return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'2-digit'});
     });
     const current = data.current_price || prices[prices.length - 1];
     const minP    = Math.min(...prices);
     const maxP    = Math.max(...prices);
-    const minPt   = prices.indexOf(minP);
     const scoreC  = current <= minP * 1.05 ? '#00D084' : current >= maxP * 0.95 ? '#FF5C2B' : '#FFB800';
 
-    // Construire le SVG
-    const svgW = 280, svgH = 90;
-    const pts  = prices.map((p, i) => {
+    // Stocker les données pour la modale détaillée
+    window._chartData = window._chartData || {};
+    window._chartData[id] = { prices, labels, current, minP, maxP, scoreC, hist, name: data.name };
+
+    // ── Graphique compact interactif ──────────────────────────
+    const svgW = 300, svgH = 80;
+    const pts = prices.map((p, i) => {
       const x = Math.round(i / (prices.length - 1) * svgW);
-      const y = Math.round(svgH - ((p - minP) / Math.max(1, maxP - minP)) * (svgH - 20) - 10);
-      return { x, y, p, d: labels[i] };
+      const y = Math.round(svgH - ((p - minP) / Math.max(0.01, maxP - minP)) * (svgH - 16) - 8);
+      return { x, y, p };
     });
     const polyline = pts.map(pt => `${pt.x},${pt.y}`).join(' ');
     const lastPt   = pts[pts.length - 1];
-    const minPtObj = pts[minPt];
     const areaPts  = `0,${svgH} ${polyline} ${svgW},${svgH}`;
 
-    const svg = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;overflow:visible;display:block">
-      <defs>
-        <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${scoreC}" stop-opacity="0.2"/>
-          <stop offset="100%" stop-color="${scoreC}" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <polygon points="${areaPts}" fill="url(#hg2)"/>
-      <polyline points="${polyline}" fill="none" stroke="${scoreC}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${minP < current * 0.98 ? `
-        <circle cx="${minPtObj.x}" cy="${minPtObj.y}" r="3.5" fill="#00D084" stroke="white" stroke-width="1.5"/>
-        <text x="${Math.min(minPtObj.x + 5, svgW - 60)}" y="${Math.max(minPtObj.y - 5, 12)}" fill="#00D084" font-size="9" font-family="Inter,sans-serif">min ${minP.toFixed(2)}€</text>
-      ` : ''}
-      <circle cx="${lastPt.x}" cy="${lastPt.y}" r="4" fill="${scoreC}" stroke="white" stroke-width="2"/>
-    </svg>`;
-
     const chartHTML = `
-      <div id="realPriceChart" style="background:var(--bg3);border-radius:12px;padding:12px;margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:13px;font-weight:600;color:var(--txt2)">📈 Historique des prix</span>
-          <span style="font-size:10px;color:var(--txt3)">${hist.length} relevés · ${labels[0]} → ${labels[labels.length-1]}</span>
+      <div id="realPriceChart_${id}"
+           style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer;position:relative"
+           onclick="openPriceDetailModal(${id})"
+           title="Cliquer pour voir l'analyse détaillée">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:600;color:var(--txt)">📈 Historique des prix</span>
+          <span style="font-size:10px;background:rgba(255,255,255,.08);border-radius:6px;padding:2px 8px;color:var(--txt3)">
+            Toucher pour détails →
+          </span>
         </div>
-        ${svg}
-        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px">
-          <div><span style="color:var(--txt3)">Min </span><strong style="color:#00D084">${minP.toFixed(2)}€</strong></div>
-          <div><strong style="color:${scoreC}">${current.toFixed(2)}€ actuellement</strong></div>
-          <div><span style="color:var(--txt3)">Max </span><strong style="color:#FF5C2B">${maxP.toFixed(2)}€</strong></div>
+
+        <div style="position:relative;touch-action:none" id="chartWrap_${id}">
+          <svg id="chartSvg_${id}" viewBox="0 0 ${svgW} ${svgH}"
+               style="width:100%;height:${svgH}px;overflow:visible;display:block;cursor:crosshair">
+            <defs>
+              <linearGradient id="hg_${id}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${scoreC}" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="${scoreC}" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <polygon points="${areaPts}" fill="url(#hg_${id})"/>
+            <polyline points="${polyline}" fill="none" stroke="${scoreC}"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Ligne curseur verticale (cachée par défaut) -->
+            <line id="cursor_${id}" x1="0" y1="0" x2="0" y2="${svgH}"
+              stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-dasharray="3 3"
+              style="display:none"/>
+            <!-- Point curseur -->
+            <circle id="cursorDot_${id}" cx="0" cy="0" r="4"
+              fill="${scoreC}" stroke="white" stroke-width="2"
+              style="display:none"/>
+            <!-- Point actuel -->
+            <circle cx="${lastPt.x}" cy="${lastPt.y}" r="4"
+              fill="${scoreC}" stroke="white" stroke-width="2"/>
+          </svg>
+          <!-- Tooltip curseur -->
+          <div id="chartTooltip_${id}" style="
+            position:absolute;top:0;left:0;
+            background:rgba(15,15,26,0.92);
+            border:1px solid rgba(255,255,255,0.15);
+            border-radius:8px;padding:5px 9px;
+            font-size:11px;font-weight:600;color:#fff;
+            pointer-events:none;display:none;
+            white-space:nowrap;z-index:10;
+            transform:translateX(-50%)">
+          </div>
         </div>
-        <div style="font-size:9px;color:var(--txt3);margin-top:6px;text-align:center">
-          Abscisse : date des relevés · Ordonnée : prix en euros
+
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12px">
+          <div style="display:flex;flex-direction:column;align-items:flex-start">
+            <span style="font-size:9px;color:var(--txt3);margin-bottom:2px">MIN</span>
+            <strong style="color:#00D084">${minP.toFixed(2)}€</strong>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <span style="font-size:9px;color:var(--txt3);margin-bottom:2px">ACTUEL</span>
+            <strong style="color:${scoreC}">${current.toFixed(2)}€</strong>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end">
+            <span style="font-size:9px;color:var(--txt3);margin-bottom:2px">MAX</span>
+            <strong style="color:#FF5C2B">${maxP.toFixed(2)}€</strong>
+          </div>
+        </div>
+
+        <div style="font-size:10px;color:var(--txt3);margin-top:8px;text-align:center">
+          ${labels[0]} → ${labels[labels.length-1]} · ${hist.length} relevés
         </div>
       </div>
     `;
 
-    // Insérer dans le slot prévu (priceChartSlot_ID)
     const slot = document.getElementById('priceChartSlot_' + id);
-    if (slot) {
-      slot.innerHTML = chartHTML;
-    } else {
-      // Fallback : insérer avant les votes
+    if (slot) slot.innerHTML = chartHTML;
+    else {
       const voteRow = document.getElementById('voteRow_' + id);
       if (voteRow) voteRow.insertAdjacentHTML('beforebegin', chartHTML);
     }
 
-  } catch(e) {
-    // Silencieux — le graphique simulé reste affiché
+    // ── Curseur interactif (touch + mouse) ────────────────────
+    setTimeout(() => {
+      const wrap   = document.getElementById('chartWrap_' + id);
+      const svg    = document.getElementById('chartSvg_' + id);
+      const cursor = document.getElementById('cursor_' + id);
+      const dot    = document.getElementById('cursorDot_' + id);
+      const tip    = document.getElementById('chartTooltip_' + id);
+      if (!wrap || !svg || !cursor || !dot || !tip) return;
+
+      function updateCursor(clientX) {
+        const rect  = svg.getBoundingClientRect();
+        const relX  = Math.max(0, Math.min(clientX - rect.left, rect.width));
+        const ratio = relX / rect.width;
+        const idx   = Math.round(ratio * (pts.length - 1));
+        const pt    = pts[Math.max(0, Math.min(idx, pts.length - 1))];
+
+        cursor.setAttribute('x1', pt.x); cursor.setAttribute('x2', pt.x);
+        cursor.style.display = '';
+        dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+        dot.style.display = '';
+
+        tip.style.display  = '';
+        tip.style.left     = `${relX}px`;
+        tip.style.top      = `${(pt.y / svgH) * rect.height - 36}px`;
+        tip.innerHTML      = `<div style="color:${scoreC};font-size:12px">${pt.p.toFixed(2)}€</div>
+                              <div style="color:rgba(255,255,255,0.6);font-size:9px;font-weight:400">${labels[idx]}</div>`;
+      }
+
+      function hideCursor() {
+        cursor.style.display = dot.style.display = tip.style.display = 'none';
+      }
+
+      // Touch
+      wrap.addEventListener('touchmove', e => {
+        e.stopPropagation();
+        updateCursor(e.touches[0].clientX);
+      }, { passive: true });
+      wrap.addEventListener('touchend', hideCursor, { passive: true });
+
+      // Mouse
+      svg.addEventListener('mousemove', e => updateCursor(e.clientX));
+      svg.addEventListener('mouseleave', hideCursor);
+    }, 100);
+
+  } catch(e) {}
+};
+
+
+/* ─────────────────────────────────────────────────────────────
+   MODALE DÉTAIL GRAPHIQUE — plein écran avec analyse complète
+   ───────────────────────────────────────────────────────────── */
+
+window.openPriceDetailModal = function(id) {
+  const d = window._chartData && window._chartData[id];
+  if (!d) return;
+
+  const { prices, labels, current, minP, maxP, scoreC, hist } = d;
+
+  // Détecter les événements remarquables
+  const events = [];
+  for (let i = 1; i < prices.length; i++) {
+    const drop = (prices[i-1] - prices[i]) / prices[i-1];
+    const rise = (prices[i] - prices[i-1]) / prices[i-1];
+    if (drop >= 0.1) events.push({ idx: i, type: 'drop', pct: Math.round(drop*100), label: labels[i] });
+    if (rise >= 0.1) events.push({ idx: i, type: 'rise', pct: Math.round(rise*100), label: labels[i] });
   }
+  const minIdx = prices.indexOf(minP);
+  const maxIdx = prices.indexOf(maxP);
+
+  // Graphique grand format
+  const svgW = 340, svgH = 160;
+  const pts = prices.map((p, i) => {
+    const x = Math.round(i / (prices.length - 1) * svgW);
+    const y = Math.round(svgH - ((p - minP) / Math.max(0.01, maxP - minP)) * (svgH - 24) - 12);
+    return { x, y, p };
+  });
+  const polyline = pts.map(pt => `${pt.x},${pt.y}`).join(' ');
+  const areaPts  = `0,${svgH} ${polyline} ${svgW},${svgH}`;
+  const minPt    = pts[minIdx];
+  const maxPt    = pts[maxIdx];
+  const lastPt   = pts[pts.length - 1];
+
+  // Étiquettes de dates (toutes les ~10 relevés)
+  const step = Math.max(1, Math.floor(prices.length / 6));
+  const dateLabels = pts
+    .filter((_, i) => i % step === 0 || i === pts.length - 1)
+    .map(pt => `<text x="${pt.x}" y="${svgH + 14}" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="8" font-family="Inter,sans-serif">${labels[pts.indexOf(pt)]}</text>`)
+    .join('');
+
+  const modal = document.createElement('div');
+  modal.id    = 'priceDetailModal';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,0.85);
+    display:flex;align-items:flex-end;
+    animation:fadeIn .2s ease;
+  `;
+
+  modal.innerHTML = `
+    <style>
+      @keyframes slideUp2{from{transform:translateY(100%)}to{transform:translateY(0)}}
+      @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    </style>
+    <div style="
+      background:#0f0f1a;border-radius:24px 24px 0 0;
+      width:100%;max-height:92vh;overflow-y:auto;
+      animation:slideUp2 .3s cubic-bezier(.34,1.2,.64,1);
+      padding:0 0 40px;
+    ">
+      <!-- Handle -->
+      <div style="display:flex;justify-content:center;padding:12px 0 4px">
+        <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.2)"></div>
+      </div>
+
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#fff">📈 Analyse des prix</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">${hist.length} relevés · ${labels[0]} → ${labels[labels.length-1]}</div>
+        </div>
+        <button onclick="document.getElementById('priceDetailModal').remove()"
+          style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer">✕</button>
+      </div>
+
+      <!-- Graphique grand format -->
+      <div style="padding:0 16px;margin-bottom:20px;position:relative" id="detailChartWrap">
+        <svg id="detailSvg" viewBox="0 0 ${svgW} ${svgH + 20}"
+             style="width:100%;height:${svgH+20}px;overflow:visible;cursor:crosshair">
+          <defs>
+            <linearGradient id="dhg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${scoreC}" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="${scoreC}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${areaPts}" fill="url(#dhg)"/>
+          <polyline points="${polyline}" fill="none" stroke="${scoreC}"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${dateLabels}
+          <!-- Point min -->
+          <circle cx="${minPt.x}" cy="${minPt.y}" r="5" fill="#00D084" stroke="#0f0f1a" stroke-width="2"/>
+          <text x="${Math.min(minPt.x + 8, svgW - 50)}" y="${Math.max(minPt.y - 8, 12)}"
+            fill="#00D084" font-size="10" font-weight="600" font-family="Inter,sans-serif">
+            ↓ ${minP.toFixed(2)}€
+          </text>
+          <!-- Point max -->
+          <circle cx="${maxPt.x}" cy="${maxPt.y}" r="5" fill="#FF5C2B" stroke="#0f0f1a" stroke-width="2"/>
+          <text x="${Math.max(maxPt.x - 55, 0)}" y="${Math.max(maxPt.y - 8, 12)}"
+            fill="#FF5C2B" font-size="10" font-weight="600" font-family="Inter,sans-serif">
+            ↑ ${maxP.toFixed(2)}€
+          </text>
+          <!-- Point actuel -->
+          <circle cx="${lastPt.x}" cy="${lastPt.y}" r="5" fill="${scoreC}" stroke="#0f0f1a" stroke-width="2"/>
+          <!-- Curseur -->
+          <line id="detailCursor" x1="0" y1="0" x2="0" y2="${svgH}"
+            stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="4 3" style="display:none"/>
+          <circle id="detailDot" cx="0" cy="0" r="5"
+            fill="${scoreC}" stroke="white" stroke-width="2" style="display:none"/>
+        </svg>
+        <div id="detailTooltip" style="
+          position:absolute;top:0;
+          background:rgba(15,15,26,0.95);border:1px solid rgba(255,255,255,.2);
+          border-radius:10px;padding:8px 12px;pointer-events:none;display:none;
+          white-space:nowrap;transform:translateX(-50%);z-index:10;min-width:100px;text-align:center">
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px;margin-bottom:20px">
+        <div style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.2);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:#00D084">${minP.toFixed(2)}€</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px">Prix min · ${labels[minIdx]}</div>
+        </div>
+        <div style="background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.2);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:${scoreC}">${current.toFixed(2)}€</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px">Prix actuel</div>
+        </div>
+        <div style="background:rgba(255,92,43,.08);border:1px solid rgba(255,92,43,.2);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:#FF5C2B">${maxP.toFixed(2)}€</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px">Prix max · ${labels[maxIdx]}</div>
+        </div>
+      </div>
+
+      <!-- Événements remarquables -->
+      ${events.length > 0 ? `
+        <div style="padding:0 16px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:10px">⚡ Événements détectés</div>
+          ${events.slice(0, 4).map(ev => `
+            <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);
+              border-radius:10px;padding:10px 12px;margin-bottom:8px;
+              border-left:3px solid ${ev.type === 'drop' ? '#00D084' : '#FF5C2B'}">
+              <span style="font-size:16px">${ev.type === 'drop' ? '📉' : '📈'}</span>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:${ev.type === 'drop' ? '#00D084' : '#FF5C2B'}">
+                  ${ev.type === 'drop' ? `Baisse de -${ev.pct}%` : `Hausse de +${ev.pct}%`}
+                  ${ev.pct >= 20 ? (ev.type === 'drop' ? ' — Probable promotion' : ' — Hausse suspecte') : ''}
+                </div>
+                <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">${ev.label}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <!-- Verdict -->
+      <div style="margin:0 16px;background:rgba(255,255,255,.04);border-radius:14px;padding:14px">
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:6px">Analyse NovaDeal™</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6">
+          ${current <= minP * 1.05
+            ? '✅ Le prix actuel est proche de son <strong style="color:#00D084">historique bas</strong>. C\'est probablement le bon moment pour acheter.'
+            : current >= maxP * 0.92
+            ? '⚠️ Le prix actuel est proche de son <strong style="color:#FF5C2B">historique haut</strong>. Attends une baisse.'
+            : `ℹ️ Le prix actuel est dans la <strong style="color:#FFB800">zone médiane</strong> de l'historique. Ni le meilleur, ni le pire moment.`}
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:8px">
+          Variation totale : ${Math.round((maxP - minP) / minP * 100)}% entre le min et le max
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  // Curseur sur la modale
+  setTimeout(() => {
+    const wrap    = document.getElementById('detailChartWrap');
+    const svg2    = document.getElementById('detailSvg');
+    const cursor2 = document.getElementById('detailCursor');
+    const dot2    = document.getElementById('detailDot');
+    const tip2    = document.getElementById('detailTooltip');
+    if (!wrap || !svg2) return;
+
+    function updateDetail(clientX) {
+      const rect  = svg2.getBoundingClientRect();
+      const relX  = Math.max(0, Math.min(clientX - rect.left, rect.width));
+      const ratio = relX / rect.width;
+      const idx   = Math.round(ratio * (pts.length - 1));
+      const pt    = pts[Math.max(0, Math.min(idx, pts.length - 1))];
+
+      cursor2.setAttribute('x1', pt.x); cursor2.setAttribute('x2', pt.x);
+      cursor2.style.display = '';
+      dot2.setAttribute('cx', pt.x); dot2.setAttribute('cy', pt.y);
+      dot2.style.display = '';
+
+      const tipLeft = relX / rect.width * 100;
+      tip2.style.display = '';
+      tip2.style.left    = `${relX}px`;
+      tip2.style.top     = `${Math.max(0, (pt.y / svgH) * (rect.height * svgH / (svgH+20)) - 55)}px`;
+      tip2.innerHTML = `
+        <div style="font-size:15px;font-weight:800;color:${scoreC}">${pt.p.toFixed(2)}€</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px">${labels[idx]}</div>
+        ${pt.p === minP ? '<div style="font-size:9px;color:#00D084;margin-top:2px">↓ Prix le plus bas</div>' : ''}
+        ${pt.p === maxP ? '<div style="font-size:9px;color:#FF5C2B;margin-top:2px">↑ Prix le plus haut</div>' : ''}
+      `;
+    }
+
+    svg2.addEventListener('mousemove', e => updateDetail(e.clientX));
+    svg2.addEventListener('mouseleave', () => {
+      cursor2.style.display = dot2.style.display = tip2.style.display = 'none';
+    });
+    wrap.addEventListener('touchmove', e => {
+      e.preventDefault();
+      updateDetail(e.touches[0].clientX);
+    }, { passive: false });
+    wrap.addEventListener('touchend', () => {
+      cursor2.style.display = dot2.style.display = tip2.style.display = 'none';
+    });
+  }, 150);
 };
 
 
