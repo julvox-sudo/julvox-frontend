@@ -1177,8 +1177,87 @@ a{text-decoration:none}
   <div class="page-head">
     <button class="page-back" onclick="closePage('promosPage')">← Retour</button>
     <div class="page-title">🏷️ Codes Promo</div>
+    <button onclick="openAddPromoModal()" style="margin-left:auto;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer">+ Ajouter</button>
   </div>
-  <div class="page-body"><div class="promo-grid" id="promoGrid"></div></div>
+  <div class="page-body">
+    <!-- Search bar -->
+    <div style="position:relative;margin-bottom:12px">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+      <input type="text" id="promoSearchInput" placeholder="Chercher un marchand, une catégorie…" oninput="filterPromos(this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 12px 10px 36px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+    </div>
+    <!-- Category filters -->
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px" id="promoCatFilter">
+      <button class="comm-tab active" onclick="filterPromosByCat('',this)">Tous</button>
+      <button class="comm-tab" onclick="filterPromosByCat('mode',this)">👗 Mode</button>
+      <button class="comm-tab" onclick="filterPromosByCat('high-tech',this)">💻 High-Tech</button>
+      <button class="comm-tab" onclick="filterPromosByCat('alimentation',this)">🛒 Alim.</button>
+      <button class="comm-tab" onclick="filterPromosByCat('maison',this)">🏠 Maison</button>
+      <button class="comm-tab" onclick="filterPromosByCat('sport',this)">⚽ Sport</button>
+      <button class="comm-tab" onclick="filterPromosByCat('beaute',this)">💄 Beauté</button>
+      <button class="comm-tab" onclick="filterPromosByCat('restaurants',this)">🍔 Resto</button>
+    </div>
+    <!-- Promo grid -->
+    <div id="promoGrid"></div>
+  </div>
+</div>
+
+<!-- Modal ajouter un code promo -->
+<div class="modal-overlay" id="addPromoOverlay" onclick="closeAddPromo(event)" style="z-index:700">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">🏷️ Ajouter un code promo</div>
+      <button class="modal-x" onclick="closeAddPromo()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Partage un code promo avec la communauté. La communauté votera pour indiquer s'il fonctionne encore.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Marchand *</label>
+          <input type="text" id="apStore" placeholder="Amazon, Fnac…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Code *</label>
+          <input type="text" id="apCode" placeholder="EX: DEAL20" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Réduction *</label>
+          <input type="text" id="apDiscount" placeholder="-10%, -5€, Livraison…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Catégorie</label>
+          <select id="apCat" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif">
+            <option value="">Toutes</option>
+            <option value="high-tech">💻 High-Tech</option>
+            <option value="mode">👗 Mode</option>
+            <option value="alimentation">🛒 Alimentation</option>
+            <option value="maison">🏠 Maison</option>
+            <option value="sport">⚽ Sport</option>
+            <option value="beaute">💄 Beauté</option>
+            <option value="restaurants">🍔 Restaurants</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Description (optionnel)</label>
+        <input type="text" id="apDesc" placeholder="Ex: 10% sur tous les articles, sans minimum d'achat" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Date d'expiration (optionnel)</label>
+        <input type="date" id="apExpiry" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+      </div>
+
+      <button onclick="submitPromoCode()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+        🏷️ Publier le code
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- TENDANCES PAGE -->
@@ -2663,6 +2742,20 @@ async function openDeal(id) {
       <button class="vote-btn down" id="voteDn_${deal.id}" onclick="voteDeal(${deal.id},'down')">👎 <span id="voteDnN_${deal.id}">—</span></button>
     </div>
     <div id="modalExtra" style="padding:0 0 8px 0"></div>
+
+    <!-- Section commentaires -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600">💬 Commentaires <span id="dealCommentCount_${deal.id}" style="font-size:11px;color:var(--txt3)"></span></div>
+        <button onclick="toggleDealComments(${deal.id})" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer" id="dealCommentToggle_${deal.id}">Voir tout ▾</button>
+      </div>
+      <div id="dealCommentsList_${deal.id}" style="display:none;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="dealCommentInput_${deal.id}" placeholder="Ajoute un commentaire…" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif" onkeydown="if(event.key==='Enter')postDealComment(${deal.id})"/>
+        <button onclick="postDealComment(${deal.id})" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px 13px;font-weight:700;cursor:pointer;font-size:15px">↑</button>
+      </div>
+    </div>
+
     <a class="cta-main" href="${deal.affiliate_url||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
@@ -2829,24 +2922,217 @@ function openFavPage() {
 }
 
 // ── PROMOS ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// CODES PROMO COLLABORATIFS
+// ══════════════════════════════════════════════════════════════
+
+// Codes statiques (toujours affichés en base)
+const _STATIC_PROMOS = [
+  {id:'s1', store:'Amazon',        emoji:'📦', desc:"5€ de réduction dès 25€",        code:'AMAZON5',  discount:'-5€',             cat:'',            expiry:'31/12/2026', votes_ok:145, votes_ko:3,  source:'verified'},
+  {id:'s2', store:'Fnac',          emoji:'📚', desc:'10% sur le High-Tech',            code:'FNAC10',   discount:'-10%',            cat:'high-tech',   expiry:'30/06/2026', votes_ok:98,  votes_ko:5,  source:'verified'},
+  {id:'s3', store:'Sephora',       emoji:'💄', desc:'15% sur la 1ère commande',        code:'SEPHA15',  discount:'-15%',            cat:'beaute',      expiry:'31/03/2026', votes_ok:76,  votes_ko:8,  source:'verified'},
+  {id:'s4', store:'Nike',          emoji:'👟', desc:'20% nouvelles collections',       code:'NIKE20',   discount:'-20%',            cat:'mode',        expiry:'30/04/2026', votes_ok:112, votes_ko:4,  source:'verified'},
+  {id:'s5', store:'Zalando',       emoji:'👗', desc:'Livraison gratuite dès 24,99€',   code:'ZALFREE',  discount:'Livraison offerte',cat:'mode',        expiry:'31/12/2026', votes_ok:201, votes_ko:7,  source:'verified'},
+  {id:'s6', store:'Cdiscount',     emoji:'🛒', desc:'8% sur l'électroménager',        code:'CDIS8',    discount:'-8%',             cat:'maison',      expiry:'30/06/2026', votes_ok:44,  votes_ko:6,  source:'verified'},
+  {id:'s7', store:'Uber Eats',     emoji:'🍔', desc:'50% sur la 1ère commande',        code:'UBERFR50', discount:'-50%',            cat:'restaurants', expiry:'30/04/2026', votes_ok:334, votes_ko:12, source:'verified'},
+  {id:'s8', store:'Decathlon',     emoji:'⚽', desc:'15% sur les articles de sport',   code:'DECA15',   discount:'-15%',            cat:'sport',       expiry:'30/06/2026', votes_ok:67,  votes_ko:9,  source:'verified'},
+];
+
+let _allPromos = [..._STATIC_PROMOS]; // merge static + community
+let _promoVotes = {}; // {promoId: 'ok'|'ko'}
+let _promoFilterCat = '';
+let _promoFilterText = '';
+
 function openPromosPage() {
-  document.getElementById('promoGrid').innerHTML = PROMO_CODES.map(p => `
-    <div class="promo-card">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:26px">${p.emoji}</span>
+  openPage('promosPage');
+  loadAndRenderPromos();
+}
+
+async function loadAndRenderPromos() {
+  // Try to load community codes from API
+  try {
+    const r = await fetch(`${API}/promos?limit=50`);
+    if (r.ok) {
+      const d = await r.json();
+      const community = (d.codes || []).map(p => ({...p, source:'community'}));
+      _allPromos = [..._STATIC_PROMOS, ...community];
+    }
+  } catch(e) { /* use static */ }
+  renderPromoGrid();
+}
+
+function renderPromoGrid() {
+  const grid = document.getElementById('promoGrid');
+  if (!grid) return;
+
+  let promos = _allPromos.filter(p => {
+    const matchCat  = !_promoFilterCat  || p.cat === _promoFilterCat;
+    const matchText = !_promoFilterText || (p.store + p.code + p.desc).toLowerCase().includes(_promoFilterText);
+    return matchCat && matchText;
+  });
+
+  // Sort: community first by vote ratio, then static
+  promos.sort((a, b) => {
+    const ratioA = a.votes_ok / Math.max(1, a.votes_ok + a.votes_ko);
+    const ratioB = b.votes_ok / Math.max(1, b.votes_ok + b.votes_ko);
+    return ratioB - ratioA;
+  });
+
+  if (!promos.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Aucun code trouvé.<br>Sois le premier à en ajouter un !</div>';
+    return;
+  }
+
+  grid.innerHTML = promos.map(p => {
+    const total   = (p.votes_ok||0) + (p.votes_ko||0);
+    const pct     = total > 0 ? Math.round((p.votes_ok||0) / total * 100) : null;
+    const voted   = _promoVotes[p.id];
+    const isComm  = p.source === 'community';
+    const trustColor = pct === null ? 'var(--txt3)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : '#FF3B30';
+    const storeEmoji = p.emoji || getStoreEmoji(p.store);
+
+    return `
+    <div class="promo-card" style="position:relative">
+      ${p.source === 'verified' ? '<div style="position:absolute;top:10px;right:10px;font-size:10px;background:rgba(0,214,143,.12);color:var(--green);border:1px solid rgba(0,214,143,.2);border-radius:6px;padding:2px 7px;font-weight:700">✓ Vérifié</div>' : '<div style="position:absolute;top:10px;right:10px;font-size:10px;background:rgba(255,92,43,.1);color:var(--accent);border:1px solid rgba(255,92,43,.15);border-radius:6px;padding:2px 7px;font-weight:700">🤝 Communauté</div>'}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:26px">${storeEmoji}</span>
         <div>
-          <div style="font-size:14px;font-weight:600">${p.store}</div>
-          <div style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:1px 7px;display:inline-block;margin-top:2px">${p.discount}</div>
+          <div style="font-size:14px;font-weight:600">${escHtml(p.store)}</div>
+          <span style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:1px 7px;display:inline-block;margin-top:2px;font-weight:600">${escHtml(p.discount)}</span>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--txt2)">${p.desc}</div>
-      <div class="promo-code-row">
-        <div class="promo-code">${p.code}</div>
-        <button class="promo-copy" onclick="copyPromo('${p.code}',this)">Copier</button>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">${escHtml(p.desc||'')}</div>
+      <div class="promo-code-row" style="margin-bottom:10px">
+        <div class="promo-code">${escHtml(p.code)}</div>
+        <button class="promo-copy" onclick="copyPromo('${escHtml(p.code)}',this)">Copier</button>
       </div>
-      <div style="font-size:11px;color:var(--txt3)">⏳ Jusqu'au ${p.expiry}</div>
-    </div>`).join('');
-  openPage('promosPage');
+      <!-- Taux de succès communauté -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;color:${trustColor};font-weight:600">
+          ${pct !== null ? `${pct}% de réussite (${total} votes)` : 'Pas encore voté'}
+        </div>
+        ${p.expiry ? `<div style="font-size:11px;color:var(--txt3)">⏳ ${escHtml(p.expiry)}</div>` : ''}
+      </div>
+      <!-- Boutons vote -->
+      <div style="display:flex;gap:6px">
+        <button onclick="votePromo('${p.id}','ok',this)" class="comm-vote-btn validate ${voted==='ok'?'voted':''}" style="flex:1;font-size:11px;padding:6px 0">
+          ✅ Fonctionne · ${p.votes_ok||0}
+        </button>
+        <button onclick="votePromo('${p.id}','ko',this)" class="comm-vote-btn expired ${voted==='ko'?'voted':''}" style="flex:1;font-size:11px;padding:6px 0">
+          ❌ Expiré · ${p.votes_ko||0}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterPromos(text) {
+  _promoFilterText = text.toLowerCase();
+  renderPromoGrid();
+}
+
+function filterPromosByCat(cat, btn) {
+  _promoFilterCat = cat;
+  document.querySelectorAll('#promoCatFilter .comm-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPromoGrid();
+}
+
+function votePromo(id, type, btn) {
+  const prev = _promoVotes[id];
+  const promo = _allPromos.find(p => p.id === id || p.id === String(id));
+  if (!promo) return;
+
+  if (prev === type) {
+    delete _promoVotes[id];
+    promo[type === 'ok' ? 'votes_ok' : 'votes_ko'] = Math.max(0, (promo[type === 'ok' ? 'votes_ok' : 'votes_ko']||0) - 1);
+  } else {
+    if (prev) {
+      promo[prev === 'ok' ? 'votes_ok' : 'votes_ko'] = Math.max(0, (promo[prev === 'ok' ? 'votes_ok' : 'votes_ko']||0) - 1);
+    }
+    _promoVotes[id] = type;
+    promo[type === 'ok' ? 'votes_ok' : 'votes_ko'] = (promo[type === 'ok' ? 'votes_ok' : 'votes_ko']||0) + 1;
+  }
+  renderPromoGrid();
+  showToast(type === 'ok' ? '✅ Merci pour ton vote !' : '❌ Code signalé comme expiré');
+
+  // Sync with API (best effort)
+  if (currentUser) {
+    fetch(`${API}/promos/${id}/vote`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ vote_type: type })
+    }).catch(() => {});
+  }
+}
+
+function openAddPromoModal() {
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour ajouter un code'); openAuth('login'); return; }
+  document.getElementById('addPromoOverlay').classList.add('open');
+}
+
+function closeAddPromo(e) {
+  if (!e || e.target === document.getElementById('addPromoOverlay') || !e.target) {
+    document.getElementById('addPromoOverlay').classList.remove('open');
+  }
+}
+
+async function submitPromoCode() {
+  const store    = document.getElementById('apStore')?.value?.trim();
+  const code     = document.getElementById('apCode')?.value?.trim().toUpperCase();
+  const discount = document.getElementById('apDiscount')?.value?.trim();
+  const cat      = document.getElementById('apCat')?.value;
+  const desc     = document.getElementById('apDesc')?.value?.trim();
+  const expiry   = document.getElementById('apExpiry')?.value;
+
+  if (!store) { showToast('⚠️ Indique le marchand'); return; }
+  if (!code)  { showToast('⚠️ Indique le code'); return; }
+  if (!discount) { showToast('⚠️ Indique la réduction'); return; }
+
+  // Check doublon
+  if (_allPromos.some(p => p.code === code)) {
+    showToast('⚠️ Ce code existe déjà !'); return;
+  }
+
+  const newPromo = {
+    id:       'c_' + Date.now(),
+    store, code, discount, cat,
+    desc:     desc || '',
+    emoji:    getStoreEmoji(store),
+    expiry:   expiry ? new Date(expiry).toLocaleDateString('fr-FR') : null,
+    votes_ok: 1,
+    votes_ko: 0,
+    source:   'community'
+  };
+  _allPromos.push(newPromo);
+  _promoVotes[newPromo.id] = 'ok'; // auto-vote du soumetteur
+  closeAddPromo();
+  renderPromoGrid();
+  showToast(`🏷️ Code "${code}" ajouté ! +10 pts`);
+  ['apStore','apCode','apDiscount','apDesc','apExpiry'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+
+  // Sync API
+  try {
+    await fetch(`${API}/promos`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ store, code, discount, category: cat, description: desc, expiry_date: expiry })
+    });
+  } catch(e) {}
+}
+
+function getStoreEmoji(store) {
+  const s = (store||'').toLowerCase();
+  if (s.includes('amazon')) return '📦';
+  if (s.includes('fnac')) return '📚';
+  if (s.includes('sephora') || s.includes('nocibé') || s.includes('yves')) return '💄';
+  if (s.includes('nike') || s.includes('adidas') || s.includes('decathlon')) return '👟';
+  if (s.includes('zara') || s.includes('h&m') || s.includes('asos') || s.includes('zalando')) return '👗';
+  if (s.includes('uber') || s.includes('deliveroo') || s.includes('just')) return '🍔';
+  if (s.includes('ikea') || s.includes('maison') || s.includes('boulanger')) return '🏠';
+  if (s.includes('booking') || s.includes('airbnb')) return '🏨';
+  if (s.includes('apple') || s.includes('samsung') || s.includes('sony')) return '💻';
+  return '🏷️';
 }
 
 function copyPromo(code, btn) {
@@ -2854,6 +3140,8 @@ function copyPromo(code, btn) {
     btn.textContent = '✅'; btn.style.background = 'var(--green)';
     setTimeout(() => { btn.textContent = 'Copier'; btn.style.background = ''; }, 2000);
     showToast(`✅ Code "${code}" copié !`);
+  }).catch(() => {
+    showToast(`Code : ${code}`);
   });
 }
 
@@ -3405,6 +3693,109 @@ function loginWithGoogle() {
 // loginWithGoogle via popup (Google Identity Services) — défini plus haut
 
 // Google callback handled by GIS popup
+
+
+// ══════════════════════════════════════════════════════════════
+// COMMENTAIRES SUR LES DEALS PRINCIPAUX
+// ══════════════════════════════════════════════════════════════
+const _dealComments = {}; // cache local {dealId: [comments]}
+
+async function toggleDealComments(dealId) {
+  const list = document.getElementById('dealCommentsList_' + dealId);
+  const toggle = document.getElementById('dealCommentToggle_' + dealId);
+  if (!list) return;
+  if (list.style.display === 'none') {
+    list.style.display = 'block';
+    toggle.textContent = 'Réduire ▴';
+    await loadDealComments(dealId);
+  } else {
+    list.style.display = 'none';
+    toggle.textContent = 'Voir tout ▾';
+  }
+}
+
+async function loadDealComments(dealId) {
+  const list = document.getElementById('dealCommentsList_' + dealId);
+  const countEl = document.getElementById('dealCommentCount_' + dealId);
+  if (!list) return;
+
+  // Utiliser cache local si dispo
+  if (_dealComments[dealId]) {
+    renderDealComments(dealId, _dealComments[dealId]);
+    return;
+  }
+
+  list.innerHTML = '<div style="text-align:center;padding:8px;color:var(--txt3);font-size:12px">⏳ Chargement…</div>';
+  try {
+    const r = await fetch(`${API}/deals/${dealId}/comments`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    _dealComments[dealId] = d.comments || [];
+    renderDealComments(dealId, _dealComments[dealId]);
+    if (countEl && _dealComments[dealId].length > 0) {
+      countEl.textContent = `(${_dealComments[dealId].length})`;
+    }
+  } catch(e) {
+    _dealComments[dealId] = [];
+    list.innerHTML = '<div style="text-align:center;padding:8px;color:var(--txt3);font-size:12px">Sois le premier à commenter !</div>';
+  }
+}
+
+function renderDealComments(dealId, comments) {
+  const list = document.getElementById('dealCommentsList_' + dealId);
+  const countEl = document.getElementById('dealCommentCount_' + dealId);
+  if (!list) return;
+  if (countEl && comments.length > 0) countEl.textContent = `(${comments.length})`;
+  if (!comments.length) {
+    list.innerHTML = '<div style="text-align:center;padding:8px;color:var(--txt3);font-size:12px">Sois le premier à commenter !</div>';
+    return;
+  }
+  list.innerHTML = comments.slice(-10).map(c => `
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--a2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">
+        ${escHtml((c.author_name||'?').charAt(0).toUpperCase())}
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:8px 11px;flex:1">
+        <div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:3px">${escHtml(c.author_name||'Anonyme')}</div>
+        <div style="font-size:13px;line-height:1.4">${escHtml(c.content||c.text||'')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function postDealComment(dealId) {
+  const input = document.getElementById('dealCommentInput_' + dealId);
+  const text = input?.value?.trim();
+  if (!text) return;
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour commenter'); openAuth('login'); return; }
+
+  // Modération côté client
+  const _BANNED_COMM = ['porn','xxx','sex','arme','weapon','drogue','drug','hack'];
+  if (_BANNED_COMM.some(w => text.toLowerCase().includes(w))) {
+    showToast('🚫 Commentaire non autorisé');
+    return;
+  }
+
+  input.value = '';
+  // Ajouter optimistiquement
+  if (!_dealComments[dealId]) _dealComments[dealId] = [];
+  _dealComments[dealId].push({ author_name: currentUser.name, content: text });
+  const list = document.getElementById('dealCommentsList_' + dealId);
+  if (list && list.style.display === 'none') {
+    list.style.display = 'block';
+    document.getElementById('dealCommentToggle_' + dealId).textContent = 'Réduire ▴';
+  }
+  renderDealComments(dealId, _dealComments[dealId]);
+  showToast('💬 Commentaire publié !');
+
+  try {
+    await fetch(`${API}/deals/${dealId}/comments`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ content: text })
+    });
+  } catch(e) { /* déjà affiché */ }
+}
 
 // ── VOTES ─────────────────────────────────────────────────────
 async function loadDealVotes(id) {
@@ -4915,7 +5306,8 @@ function getBadgeName(badge) {
 let _commVotes = {}; // cache votes locaux {dealId: 'validate'|'doubt'|'expired'}
 
 function openCommunityPage() {
-  openCommunityPage();
+  openPage('communityPage');
+  bnClick(document.getElementById('bn-community'), 'community');
   switchCommTab('deals');
 }
 
