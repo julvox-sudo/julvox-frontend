@@ -936,17 +936,33 @@ a{text-decoration:none}
 .newsletter-btn:hover{opacity:.88}
 .newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
 </style>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  const firebaseConfig = {apiKey:"AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ",authDomain:"julvox-dealscan.firebaseapp.com",projectId:"julvox-dealscan",messagingSenderId:"192020498483",appId:"1:192020498483:web:d5f69537490ca305883b46"};
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  window._firebaseAuth = auth;
-  window._fbSignIn = (e,p) => signInWithEmailAndPassword(auth,e,p);
-  window._fbSignUp = (e,p) => createUserWithEmailAndPassword(auth,e,p);
-  window._fbSignOut = () => signOut(auth);
-  window._fbReset = (e) => sendPasswordResetEmail(auth,e);
+<script>
+const FB_API_KEY = "AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ";
+async function fbSignIn(email, pwd) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FB_API_KEY}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pwd, returnSecureToken:true})
+  });
+  const d = await r.json();
+  if (!r.ok) throw {code: d.error?.message};
+  return d;
+}
+async function fbSignUp(email, pwd) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pwd, returnSecureToken:true})
+  });
+  const d = await r.json();
+  if (!r.ok) throw {code: d.error?.message};
+  return d;
+}
+async function fbReset(email) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FB_API_KEY}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({requestType:'PASSWORD_RESET', email})
+  });
+  if (!r.ok) throw new Error();
+}
 </script>
 </head>
 <body>
@@ -2893,13 +2909,11 @@ async function submitLogin() {
   if (!email||!pwd){showAuthErr('Remplis tous les champs');return;}
   const btn=document.querySelector('#authBody .auth-btn');btn.disabled=true;btn.textContent='Connexion…';
   try {
-    const cred = await window._fbSignIn(email, pwd);
-    const token = await cred.user.getIdToken();
-    loginSuccess({token, is_premium:false, name:cred.user.displayName||email.split('@')[0]}, email);
+    const d = await fbSignIn(email, pwd);
+    loginSuccess({token:d.idToken, is_premium:false, name:d.displayName||email.split('@')[0]}, email);
   } catch(e) {
     let msg='Email ou mot de passe incorrect';
-    if(e.code==='auth/user-not-found') msg='Aucun compte avec cet email';
-    if(e.code==='auth/too-many-requests') msg='Trop de tentatives, réessaie plus tard';
+    if(e.code==='TOO_MANY_ATTEMPTS_TRY_LATER') msg='Trop de tentatives, réessaie plus tard';
     showAuthErr(msg); btn.disabled=false; btn.textContent='Se connecter →';
   }
 }
@@ -2910,15 +2924,14 @@ async function submitSignup() {
   if (plan==='premium'){closeAuth();openPremiumPage();return;}
   const btn=document.getElementById('signupBtn');btn.disabled=true;btn.textContent='Création…';
   try {
-    const cred = await window._fbSignUp(email, pwd);
-    const token = await cred.user.getIdToken();
-    loginSuccess({token, is_premium:false, name}, email);
+    const d = await fbSignUp(email, pwd);
+    loginSuccess({token:d.idToken, is_premium:false, name}, email);
     showAuthOk('Compte créé ! Bienvenue 🎉');
     setTimeout(closeAuth,1500);
   } catch(e) {
     let msg='Erreur lors de la création';
-    if(e.code==='auth/email-already-in-use') msg='Email déjà utilisé';
-    if(e.code==='auth/weak-password') msg='Mot de passe trop faible';
+    if(e.code==='EMAIL_EXISTS') msg='Email déjà utilisé';
+    if(e.code==='WEAK_PASSWORD') msg='Mot de passe trop faible';
     showAuthErr(msg); btn.disabled=false; btn.textContent='Créer mon compte gratuit →';
   }
 }
@@ -2928,7 +2941,6 @@ function loginSuccess(data,email) {
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
 async function logout() {
-  if(window._fbSignOut) await window._fbSignOut();
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
 }
@@ -2936,7 +2948,7 @@ async function forgotPassword() {
   const email=document.getElementById('authEmail')?.value.trim();
   if(!email){showAuthErr('Entre ton email d\'abord');return;}
   try {
-    await window._fbReset(email);
+    await fbReset(email);
     showAuthOk('✅ Email envoyé ! Vérifie ta boîte mail.');
   } catch(e) { showAuthErr('Erreur — vérifie que l\'email est correct'); }
 }
