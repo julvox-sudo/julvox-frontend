@@ -2885,9 +2885,19 @@ async function submitLogin() {
   const email=document.getElementById('authEmail').value.trim(), pwd=document.getElementById('authPwd').value;
   if (!email||!pwd){showAuthErr('Remplis tous les champs');return;}
   const btn=document.querySelector('#authBody .auth-btn');btn.disabled=true;btn.textContent='Connexion…';
-  const users=getLocalUsers(), user=users.find(u=>u.email===email&&u.pwd===btoa(pwd));
-  if (user) { loginSuccess({token:'local_'+btoa(email),is_premium:user.is_premium,name:user.name},email); }
-  else { showAuthErr('Email ou mot de passe incorrect'); btn.disabled=false; btn.textContent='Se connecter →'; }
+  try {
+    const r = await fetch(`${API}/auth/login-email`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pwd})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Email ou mot de passe incorrect');
+    loginSuccess({token:d.token, is_premium:d.is_premium, name:d.user.name}, d.user.email);
+  } catch(e) {
+    showAuthErr(e.message || 'Erreur de connexion');
+    btn.disabled=false; btn.textContent='Se connecter →';
+  }
 }
 async function submitSignup() {
   const name=document.getElementById('authName')?.value.trim()||'', email=document.getElementById('authEmail').value.trim(), pwd=document.getElementById('authPwd').value, plan=window._plan||'free';
@@ -2895,13 +2905,21 @@ async function submitSignup() {
   if (pwd.length<8){showAuthErr('Mot de passe trop court (8 car. min)');return;}
   if (plan==='premium'){closeAuth();openPremiumPage();return;}
   const btn=document.getElementById('signupBtn');btn.disabled=true;btn.textContent='Création…';
-  const users=getLocalUsers();
-  if (users.find(u=>u.email===email)){showAuthErr('Email déjà utilisé');btn.disabled=false;btn.textContent='Créer mon compte gratuit →';return;}
-  users.push({email,name,pwd:btoa(pwd),is_premium:false});
-  try{localStorage.setItem('ds_users',JSON.stringify(users));}catch(e){}
-  loginSuccess({token:'local_'+btoa(email),is_premium:false,name},email);
-  showAuthOk('Compte créé ! Bienvenue 🎉');
-  setTimeout(closeAuth,1500);
+  try {
+    const r = await fetch(`${API}/auth/register`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pwd, name})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Erreur lors de la création du compte');
+    loginSuccess({token:d.token, is_premium:d.is_premium, name:d.user.name}, d.user.email);
+    showAuthOk('Compte créé ! Bienvenue 🎉');
+    setTimeout(closeAuth,1500);
+  } catch(e) {
+    showAuthErr(e.message || 'Erreur de connexion');
+    btn.disabled=false; btn.textContent='Créer mon compte gratuit →';
+  }
 }
 function loginSuccess(data,email) {
   currentUser={email,name:data.name||email.split('@')[0],token:data.token,is_premium:data.is_premium||false};
