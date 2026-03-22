@@ -1040,7 +1040,7 @@ a{text-decoration:none}
   <button class="sort-btn" onclick="setSort(this,'discount')">% Remise</button>
   <button class="sort-btn" onclick="setSort(this,'recent')">🕐 Récents</button>
   <button class="sort-btn" onclick="setMinSc(this,90)">🏆 Top</button>
-  <button class="sort-btn" onclick="openPage('analyzePage')">⚡ Analyser</button>
+  <button class="sort-btn" onclick="openPage('analyzePage')">🔬 Analyser</button>
   <button class="sort-btn" onclick="openPage('comparePageV2')">🔍 Comparer</button>
   <button class="sort-btn" onclick="openPage('calendarPage');loadCalendar('high-tech')">📅 Calendrier</button>
   <button class="sort-btn" onclick="openAIChat()">🤖 IA</button>
@@ -1634,7 +1634,7 @@ a{text-decoration:none}
           <option value="alimentaire">🛒 Alimentation</option>
         </select>
       </div>
-      <button class="analyze-btn" onclick="runDealAnalysis()">⚡ Analyser ce deal</button>
+      <button class="analyze-btn" onclick="runDealAnalysis()">🔬 Analyser ce deal</button>
     </div>
     <div id="analyzeResults"></div>
   </div>
@@ -6437,7 +6437,7 @@ function renderScanResult(product, barcode, el) {
       </div>
       <div class="scanner-btn-row">
         <button class="scanner-btn primary" onclick="loadProductComparison(${product.product_id}, '${product.name.replace(/'/g,"\'")}');openPage('comparePageV2')">⚖️ Comparer les prix</button>
-        <button class="scanner-btn secondary" onclick="openPage('analyzePage')">⚡ Analyser</button>
+        <button class="scanner-btn secondary" onclick="openPage('analyzePage')">🔬 Analyser</button>
       </div>
     </div>`;
 }
@@ -7561,7 +7561,7 @@ function getLocalAIResponse(msg) {
     return "⭐ DealScan Premium à 4,99€/mois :\n✅ Alertes prix illimitées\n✅ Wishlist illimitée\n✅ Deals en avant-première\n✅ Score NovaDeal™ détaillé\n✅ Sans publicité\n\nActivable depuis l'onglet ⭐ Premium.";
   if (m.includes('black friday') || m.includes('quand acheter') || m.includes('soldes'))
     return "📅 Meilleures périodes d'achat :\n🖥️ High-Tech : Black Friday (nov), Prime Day (juil)\n👗 Mode : Soldes d'été (juin), Soldes d'hiver (janv)\n🎮 Gaming : Black Friday, Noël\n\nConsultez le 📅 Calendrier Promos pour les dates exactes !";
-  return "🤔 Je n'ai pas tout compris. Essayez d'utiliser :\n• ⚡ Analyser pour un deal spécifique\n• 🔍 Comparer pour trouver le meilleur prix\n• 📅 Calendrier pour savoir quand acheter\n\nOu reformulez votre question !";
+  return "🤔 Je n'ai pas tout compris. Essayez d'utiliser :\n• 🔬 Analyser pour un deal spécifique\n• 🔍 Comparer pour trouver le meilleur prix\n• 📅 Calendrier pour savoir quand acheter\n\nOu reformulez votre question !";
 }
 
 // ── ML RECOMMANDATIONS ────────────────────────────────────────
