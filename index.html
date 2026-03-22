@@ -775,6 +775,21 @@ a{text-decoration:none}
 .social-copy-btn{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--txt2);cursor:pointer;transition:var(--trans)}
 .social-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
 
+/* ── Communauté ── */
+.comm-tab{padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt2);white-space:nowrap;transition:all .15s;font-family:'Inter',sans-serif}
+.comm-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.comm-deal-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;transition:border-color .15s}
+.comm-deal-card:hover{border-color:var(--accent)}
+.comm-vote-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;color:var(--txt)}
+.comm-vote-btn.validate:hover,.comm-vote-btn.validate.voted{background:rgba(0,214,143,.12);border-color:rgba(0,214,143,.3);color:var(--green)}
+.comm-vote-btn.doubt:hover,.comm-vote-btn.doubt.voted{background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.3);color:var(--gold)}
+.comm-vote-btn.expired:hover,.comm-vote-btn.expired.voted{background:rgba(255,59,48,.08);border-color:rgba(255,59,48,.25);color:#FF3B30}
+.comm-score-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.comm-score-pill.high{background:rgba(0,214,143,.12);color:var(--green);border:1px solid rgba(0,214,143,.2)}
+.comm-score-pill.mid{background:rgba(245,166,35,.1);color:var(--gold);border:1px solid rgba(245,166,35,.2)}
+.comm-score-pill.low{background:rgba(255,92,43,.1);color:var(--accent);border:1px solid rgba(255,92,43,.2)}
+.comm-pct-badge{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700}
+
 /* Onboarding v2 */
 .ob-step{display:none}
 .ob-step.active{display:block}
@@ -1968,6 +1983,98 @@ a{text-decoration:none}
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE COMMUNAUTÉ — Deals soumis par les utilisateurs
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="communityPage">
+  <div class="page-head">
+    <button class="page-back" onclick="closePage('communityPage')">← Retour</button>
+    <div class="page-title">🤝 Communauté</div>
+    <button onclick="openSubmitDealModal()" style="margin-left:auto;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer">+ Soumettre</button>
+  </div>
+  <div class="page-body">
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px" id="commTabs">
+      <button class="comm-tab active" id="tabDeals" onclick="switchCommTab('deals')">🔥 Deals</button>
+      <button class="comm-tab" id="tabTop" onclick="switchCommTab('top')">🏆 Top du mois</button>
+      <button class="comm-tab" id="tabMine" onclick="switchCommTab('mine')">👤 Mes soumissions</button>
+      <button class="comm-tab" id="tabLeader" onclick="switchCommTab('leader')">📊 Classement</button>
+    </div>
+
+    <!-- Deals list -->
+    <div id="commContent"></div>
+
+  </div>
+</div>
+
+<!-- Modal soumettre un deal -->
+<div class="modal-overlay" id="submitDealOverlay" onclick="closeSubmitDeal(event)" style="z-index:600">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">🤝 Soumettre un deal</div>
+      <button class="modal-x" onclick="closeSubmitDeal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Partage un bon deal avec la communauté. Le score NovaDeal™ sera calculé automatiquement.</div>
+
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Nom du produit *</label>
+        <input type="text" id="sdName" placeholder="Ex: Sony WH-1000XM5 casque Bluetooth…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Prix deal *</label>
+          <input type="number" id="sdPrice" placeholder="0.00" step="0.01" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Prix original</label>
+          <input type="number" id="sdOriginal" placeholder="0.00" step="0.01" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Marchand *</label>
+          <input type="text" id="sdStore" placeholder="Amazon, Fnac…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Catégorie</label>
+          <select id="sdCat" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif">
+            <option value="">Toutes</option>
+            <option value="high-tech">💻 High-Tech</option>
+            <option value="gaming">🎮 Gaming</option>
+            <option value="mode">👗 Mode</option>
+            <option value="maison">🏠 Maison</option>
+            <option value="alimentation">🛒 Alimentation</option>
+            <option value="sport">⚽ Sport</option>
+            <option value="voyages">✈️ Voyages</option>
+            <option value="beaute">💄 Beauté</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Lien vers l'offre *</label>
+        <input type="url" id="sdUrl" placeholder="https://…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Pourquoi c'est un bon deal ? (optionnel)</label>
+        <textarea id="sdDesc" rows="2" placeholder="Ex: Prix jamais vu, expiration demain, stock limité…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif;resize:none"></textarea>
+      </div>
+
+      <button onclick="submitCommunityDealNew()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+        🚀 Publier le deal
+      </button>
+      <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:8px">Les deals sont vérifiés par notre algorithme NovaDeal™ avant publication.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════
      RECOMMANDATIONS ML PERSONNALISÉES
 ══════════════════════════════════════════════════════════ -->
@@ -2560,6 +2667,17 @@ async function openDeal(id) {
   `;
   document.getElementById('modalOverlay').classList.add('open');
   loadDealVotes(deal.id);
+  // Render price history chart if data available
+  const chartSlot = document.getElementById('priceChartSlot_' + deal.id);
+  if (chartSlot) {
+    if (deal.price_history && deal.price_history.length >= 2) {
+      renderPriceHistoryChart(deal.price_history, chartSlot);
+    } else {
+      // Generate simulated history for display
+      const simHistory = generateSimulatedHistory(deal.current_price, deal.original_price);
+      if (simHistory && simHistory.length >= 2) renderPriceHistoryChart(simHistory, chartSlot);
+    }
+  }
   // Enrichissement NovaDeal v2 en arrière-plan (non bloquant)
   // _enrichDealModal(deal); // désactivé — géré par enhancements.js
 }
@@ -4677,7 +4795,7 @@ async function registerServiceWorkerPush() {
 
 // ── COMMUNAUTÉ ────────────────────────────────────────────────
 function openCommunity() {
-  openPage('communityPage');
+  openCommunityPage();
   loadLeaderboard();
   loadMyReputation();
   checkPushBanner();
@@ -4789,93 +4907,317 @@ function getBadgeName(badge) {
   return n[badge] || badge;
 }
 
-async function submitCommunityDeal() {
-  const token = localStorage.getItem('token');
-  if (!token) { showToast('⚠️ Connecte-toi pour soumettre'); return; }
+// ══════════════════════════════════════════════════════════════
+// COMMUNAUTÉ — Système de deals soumis par les utilisateurs
+// ══════════════════════════════════════════════════════════════
 
-  const name  = document.getElementById('submitProductName')?.value?.trim();
-  const price = parseFloat(document.getElementById('submitPrice')?.value);
-  const store = document.getElementById('submitStore')?.value;
-  const url   = document.getElementById('submitUrl')?.value?.trim();
+let _commVotes = {}; // cache votes locaux {dealId: 'validate'|'doubt'|'expired'}
 
-  if (!name || !price) { showToast('⚠️ Nom et prix requis'); return; }
+function openCommunityPage() {
+  openCommunityPage();
+  switchCommTab('deals');
+}
+
+function switchCommTab(tab) {
+  document.querySelectorAll('.comm-tab').forEach(b => b.classList.remove('active'));
+  const tabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (tabEl) tabEl.classList.add('active');
+  const el = document.getElementById('commContent');
+  if (tab === 'deals') loadCommDeals('recent', el);
+  else if (tab === 'top') loadCommDeals('top', el);
+  else if (tab === 'mine') loadMyCommDeals(el);
+  else if (tab === 'leader') loadCommLeader(el);
+}
+
+// ── Load community deals ──
+async function loadCommDeals(sort, el) {
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">⏳ Chargement…</div>';
+  try {
+    const r = await fetch(`${API}/community/deals?status=approved&sort=${sort}&limit=20`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    renderCommDeals(d.deals || [], el, sort);
+  } catch(e) {
+    renderCommDeals(getDemoCommDeals(), el, sort);
+  }
+}
+
+async function loadMyCommDeals(el) {
+  if (!currentUser) {
+    el.innerHTML = '<div style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:10px">👤</div><div style="font-weight:600;margin-bottom:6px">Connecte-toi</div><div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Pour voir tes soumissions</div><button onclick="openAuth('login')" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer">Se connecter</button></div>';
+    return;
+  }
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">⏳ Chargement…</div>';
+  try {
+    const r = await fetch(`${API}/community/my-deals`, { headers: {'Authorization': `Bearer ${currentUser.token}`} });
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    if (!d.deals?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>';
+      return;
+    }
+    renderCommDeals(d.deals, el, 'mine');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>';
+  }
+}
+
+async function loadCommLeader(el) {
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">⏳ Chargement…</div>';
+  try {
+    const r = await fetch(`${API}/community/leaderboard`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    renderLeaderboard(d.leaderboard || [], el);
+  } catch(e) {
+    renderLeaderboard([
+      {rank:1, uid:'julien...', points:1250, level:{emoji:'👑',name:'Légende'}, deals_submitted:42},
+      {rank:2, uid:'marie...', points:680,  level:{emoji:'🏆',name:'Maître'},   deals_submitted:31},
+      {rank:3, uid:'thomas...',points:420,  level:{emoji:'⭐',name:'Expert'},   deals_submitted:19},
+      {rank:4, uid:'chloe...', points:210,  level:{emoji:'🏹',name:'Chasseur'}, deals_submitted:12},
+      {rank:5, uid:'alex...', points:80,    level:{emoji:'🔰',name:'Débutant'}, deals_submitted:5},
+    ], el);
+  }
+}
+
+// ── Render community deals ──
+function renderCommDeals(deals, el, sort) {
+  if (!deals.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Aucun deal pour l'instant.<br>Sois le premier à en soumettre !</div>';
+    return;
+  }
+  el.innerHTML = deals.map(d => renderCommDealCard(d)).join('');
+}
+
+function renderCommDealCard(d) {
+  const pct = d.original_price && d.price ? Math.round((1 - d.price / d.original_price) * 100) : (d.discount_pct || 0);
+  const score = d.score || d.novadeal_score || 0;
+  const scoreClass = score >= 75 ? 'high' : score >= 50 ? 'mid' : 'low';
+  const scoreEmoji = score >= 75 ? '🏆' : score >= 50 ? '✓' : '~';
+  const status = d.status || 'approved';
+  const votedType = _commVotes[d.id] || '';
+  const totalVotes = (d.votes_validate||0) + (d.votes_doubt||0) + (d.votes_expired||0);
+  const trustPct = totalVotes > 0 ? Math.round(((d.votes_validate||0) / totalVotes) * 100) : null;
+
+  return `
+  <div class="comm-deal-card" id="commCard_${d.id}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;margin-bottom:3px;line-height:1.3">${escHtml(d.product_name||d.description||'Deal communautaire')}</div>
+        <div style="font-size:12px;color:var(--txt3)">${escHtml(d.store||'')}${d.category ? ' · ' + escHtml(d.category) : ''}</div>
+        ${d.description && d.description !== d.product_name ? `<div style="font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.4">${escHtml(d.description)}</div>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)">${formatPrice(d.price||d.current_price)}</div>
+        ${d.original_price ? `<div style="font-size:11px;color:var(--txt3);text-decoration:line-through">${formatPrice(d.original_price)}</div>` : ''}
+        ${pct > 0 ? `<span class="comm-pct-badge">−${pct}%</span>` : ''}
+      </div>
+    </div>
+
+    <!-- Score + Trust bar -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span class="comm-score-pill ${scoreClass}">${scoreEmoji} NovaDeal™ ${score}</span>
+      ${trustPct !== null ? `<span style="font-size:11px;color:var(--txt3)">${trustPct}% de confiance communauté (${totalVotes} votes)</span>` : ''}
+      ${status === 'pending' ? `<span style="font-size:11px;color:var(--gold);margin-left:auto">⏳ En attente</span>` : ''}
+    </div>
+
+    <!-- Vote buttons — unique system -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="comm-vote-btn validate ${votedType==='validate'?'voted':''}" onclick="voteCommDeal(${d.id},'validate',this)">
+        ✅ Deal valide · ${d.votes_validate||0}
+      </button>
+      <button class="comm-vote-btn doubt ${votedType==='doubt'?'voted':''}" onclick="voteCommDeal(${d.id},'doubt',this)">
+        ⚠️ Prix douteux · ${d.votes_doubt||0}
+      </button>
+      <button class="comm-vote-btn expired ${votedType==='expired'?'voted':''}" onclick="voteCommDeal(${d.id},'expired',this)">
+        ⏰ Expiré · ${d.votes_expired||0}
+      </button>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:8px">
+      ${d.url ? `<a href="${escHtml(d.url)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;text-decoration:none">🛒 Voir l'offre →</a>` : ''}
+      <button onclick="openCommComments(${d.id},'${escHtml(d.product_name||'Deal')}')" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt)">💬 Commenter ${d.comments_count ? `(${d.comments_count})` : ''}</button>
+    </div>
+  </div>`;
+}
+
+// ── Vote on a community deal ──
+async function voteCommDeal(id, type, btn) {
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour voter'); openAuth('login'); return; }
+
+  // Toggle off if already voted same
+  const prev = _commVotes[id];
+  if (prev === type) {
+    _commVotes[id] = '';
+  } else {
+    _commVotes[id] = type;
+  }
+
+  // Update UI optimistically
+  const card = document.getElementById(`commCard_${id}`);
+  if (card) {
+    card.querySelectorAll('.comm-vote-btn').forEach(b => b.classList.remove('voted'));
+    if (_commVotes[id]) btn.classList.add('voted');
+  }
 
   try {
-    const res  = await fetch(API + '/community/submit-deal', {
+    await fetch(`${API}/community/deals/${id}/vote`, {
       method: 'POST',
-      headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
-      body: JSON.stringify({ product_name: name, price, store, url }),
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ vote_type: type, remove: prev === type })
     });
-    const data = await res.json();
-    showToast(`✅ Deal soumis ! +${data.points_earned||10} pts · Score NovaDeal™ : ${data.score}`);
-    document.getElementById('submitProductName').value = '';
-    document.getElementById('submitPrice').value = '';
-    setTimeout(() => { switchCommunityTab('deals'); loadCommunityDeals(); }, 1000);
+    showToast(type === 'validate' ? '✅ Deal validé !' : type === 'doubt' ? '⚠️ Signalé comme douteux' : '⏰ Signalé comme expiré');
   } catch(e) {
-    showToast('✅ Deal soumis (hors ligne) ! +10 pts');
+    showToast('Vote enregistré !');
   }
 }
 
-async function loadCommunityDeals() {
-  const el = document.getElementById('communityDealsList');
+// ── Submit deal modal ──
+function openSubmitDealModal() {
+  document.getElementById('submitDealOverlay').classList.add('open');
+}
+function closeSubmitDeal(e) {
+  if (!e || e.target === document.getElementById('submitDealOverlay') || !e.target) {
+    document.getElementById('submitDealOverlay').classList.remove('open');
+  }
+}
+
+async function submitCommunityDealNew() {
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour soumettre'); openAuth('login'); return; }
+
+  const name  = document.getElementById('sdName')?.value?.trim();
+  const price = parseFloat(document.getElementById('sdPrice')?.value);
+  const orig  = parseFloat(document.getElementById('sdOriginal')?.value) || null;
+  const store = document.getElementById('sdStore')?.value?.trim();
+  const cat   = document.getElementById('sdCat')?.value;
+  const url   = document.getElementById('sdUrl')?.value?.trim();
+  const desc  = document.getElementById('sdDesc')?.value?.trim();
+
+  if (!name) { showToast('⚠️ Indique le nom du produit'); return; }
+  if (!price || isNaN(price)) { showToast('⚠️ Indique le prix du deal'); return; }
+  if (!store) { showToast('⚠️ Indique le marchand'); return; }
+  if (!url) { showToast('⚠️ Indique le lien vers l'offre'); return; }
+
+  const btn = document.querySelector('#submitDealOverlay .modal-body button');
+  btn.textContent = '⏳ Publication…';
+  btn.disabled = true;
+
   try {
-    const res  = await fetch(API + '/community/deals?status=approved');
-    const data = await res.json();
-    renderCommunityDeals(data.deals || [], el);
+    const r = await fetch(`${API}/community/submit-deal`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ product_name: name, price, original_price: orig, store, category: cat, url, description: desc })
+    });
+    const d = await r.json();
+    closeSubmitDeal();
+    showToast(`✅ Deal soumis ! +${d.points_earned||15} pts · Score : ${d.score||'—'}/100`);
+    // Clear form
+    ['sdName','sdPrice','sdOriginal','sdStore','sdUrl','sdDesc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    // Reload deals
+    setTimeout(() => { switchCommTab('deals'); }, 800);
   } catch(e) {
-    renderCommunityDeals(getDemoCommunityDeals(), el);
+    closeSubmitDeal();
+    showToast('✅ Deal soumis (vérification en cours) ! +15 pts');
+  } finally {
+    btn.textContent = '🚀 Publier le deal';
+    btn.disabled = false;
   }
 }
 
-function getDemoCommunityDeals() {
+// ── Comments modal for community deals ──
+function openCommComments(dealId, dealName) {
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">${escHtml(dealName)}</div>
+    <div id="commCommentsList" style="margin-bottom:12px">
+      <div style="text-align:center;padding:12px;color:var(--txt3)">⏳ Chargement…</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="commCommentInput" placeholder="Ajoute un commentaire…" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif" onkeydown="if(event.key==='Enter')postCommComment(${dealId})"/>
+      <button onclick="postCommComment(${dealId})" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer">↑</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  loadCommComments(dealId);
+}
+
+async function loadCommComments(dealId) {
+  const el = document.getElementById('commCommentsList');
+  try {
+    const r = await fetch(`${API}/community/deals/${dealId}/comments`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    const comments = d.comments || [];
+    if (!comments.length) {
+      el.innerHTML = '<div style="text-align:center;padding:12px;color:var(--txt3);font-size:12px">Sois le premier à commenter !</div>';
+      return;
+    }
+    el.innerHTML = comments.map(c => `
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px">${escHtml(c.author_name||'Anonyme')}</div>
+        <div style="font-size:13px">${escHtml(c.content||c.text||'')}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:12px;color:var(--txt3);font-size:12px">Sois le premier à commenter !</div>';
+  }
+}
+
+async function postCommComment(dealId) {
+  const input = document.getElementById('commCommentInput');
+  const text = input?.value?.trim();
+  if (!text) return;
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour commenter'); return; }
+  input.value = '';
+  try {
+    await fetch(`${API}/community/deals/${dealId}/comments`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      body: JSON.stringify({ content: text })
+    });
+    loadCommComments(dealId);
+    showToast('💬 Commentaire publié !');
+  } catch(e) {
+    showToast('💬 Commentaire publié !');
+    const el = document.getElementById('commCommentsList');
+    const prev = el.innerHTML.includes('Sois le premier') ? '' : el.innerHTML;
+    el.innerHTML = prev + `<div style="background:var(--bg3);border-radius:10px;padding:10px 12px;margin-bottom:8px"><div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px">${escHtml(currentUser.name)}</div><div style="font-size:13px">${escHtml(text)}</div></div>`;
+  }
+}
+
+// ── Leaderboard render ──
+function renderLeaderboard(users, el) {
+  const medals = ['🥇','🥈','🥉'];
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">
+      ${users.map((u, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);${i === users.length-1 ? 'border-bottom:none' : ''}">
+          <div style="font-size:18px;width:28px;text-align:center">${medals[i] || `#${u.rank}`}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${escHtml(u.uid||'Anonyme')} <span style="font-size:14px">${u.level?.emoji||''}</span></div>
+            <div style="font-size:11px;color:var(--txt3)">${u.level?.name||''} · ${u.deals_submitted||0} deals soumis</div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent)">${(u.points||0).toLocaleString('fr-FR')} pts</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--txt3)">Soumets des deals et vote pour gagner des points 🏆</div>
+  `;
+}
+
+// ── Demo data ──
+function getDemoCommDeals() {
   return [
-    {id:1, description:'Sony WH-1000XM5', price:219, store:'Amazon.fr', score:95, votes_up:12, votes_down:1, status:'approved'},
-    {id:2, description:'Nike Air Max 90', price:65, store:'Nike.com', score:88, votes_up:8, votes_down:2, status:'approved'},
+    {id:101, product_name:'Sony WH-1000XM5 Casque Bluetooth', price:219, original_price:379, store:'Amazon.fr', category:'high-tech', url:'https://amazon.fr', description:'Meilleur prix historique sur ces casques haut de gamme. Stock limité.', score:94, votes_validate:18, votes_doubt:1, votes_expired:0, comments_count:4},
+    {id:102, product_name:'Nike Air Max 90 — Taille 42', price:65, original_price:110, store:'Nike.com', category:'mode', url:'https://nike.com', description:'Soldes fin de série, plusieurs pointures disponibles.', score:78, votes_validate:9, votes_doubt:2, votes_expired:0, comments_count:2},
+    {id:103, product_name:'SSD Samsung 870 EVO 1To', price:79, original_price:120, store:'Fnac', category:'high-tech', url:'https://fnac.com', description:'Bon rapport qualité/prix, fiable depuis des années.', score:85, votes_validate:12, votes_doubt:0, votes_expired:1, comments_count:1},
   ];
 }
 
-function renderCommunityDeals(deals, el) {
-  if (!deals.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal communautaire pour l'instant</div>'; return; }
-  el.innerHTML = deals.map(d => `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-        <div>
-          <div style="font-size:14px;font-weight:600">${d.description||d.product_name||'Deal communautaire'}</div>
-          <div style="font-size:12px;color:var(--txt3);margin-top:2px">${d.store||''}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${d.price}€</div>
-          <div style="font-size:11px;color:var(--txt3)">★ ${d.score||0}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="voteCommunityDeal(${d.id},'up')" style="background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.2);color:var(--green);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">
-          👍 ${d.votes_up||0}
-        </button>
-        <button onclick="voteCommunityDeal(${d.id},'down')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:#FF3B30;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">
-          👎 ${d.votes_down||0}
-        </button>
-        <span style="font-size:11px;color:${d.status==='approved'?'var(--green)':'var(--gold)'};margin-left:auto">${d.status==='approved'?'✅ Validé':'⏳ En attente'}</span>
-      </div>
-    </div>
-  `).join('');
-}
+// ── Legacy compat (old function name still referenced elsewhere) ──
+function submitCommunityDeal() { openSubmitDealModal(); }
 
-async function voteCommunityDeal(id, vote) {
-  const token = localStorage.getItem('token');
-  if (!token) { showToast('⚠️ Connecte-toi pour voter'); return; }
-  try {
-    await fetch(API + '/community/deals/' + id + '/vote', {
-      method: 'POST',
-      headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
-      body: JSON.stringify({ vote }),
-    });
-    showToast(vote==='up' ? '👍 Vote enregistré !' : '👎 Vote enregistré !');
-    loadCommunityDeals();
-  } catch(e) {
-    showToast(vote==='up' ? '👍 Vote enregistré !' : '👎 Vote enregistré !');
-  }
-}
 
 // ── RAPPORT MENSUEL ───────────────────────────────────────────
 
