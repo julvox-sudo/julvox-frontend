@@ -11,7 +11,6 @@
 <meta name="google-site-verification" content="3a92a4041aeeec5e"/>
 <meta name="author" content="Julvox — DealScan"/>
 <meta name="robots" content="index, follow, max-image-preview:large"/>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta name="theme-color" content="#FF5C2B"/>
 <link rel="canonical" href="https://julvox.com/"/>
 <meta name="keywords" content="deals, promos, bons plans, code promo, reduction, comparateur prix, alertes prix, Black Friday, soldes, Amazon, Fnac, Darty"/>
@@ -3663,41 +3662,43 @@ const GOOGLE_CLIENT_ID = '541770126176-gq0e58g2gbkeh7qg5iqpeci1jbvdsrer.apps.goo
 // Emails admin - toujours premium côté frontend
 const ADMIN_EMAILS = ['contact@julvox.com', 'julvox@gmail.com']; // ← Ajoute ton email Google ici si différent
 
-// ── Google Identity Services (popup, sans redirect) ──
+// ── Google Login ──────────────────────────────────────────────
 function loginWithGoogle() {
-  if (typeof google === 'undefined') {
-    showToast('⚠️ Google non disponible, réessaie dans un instant.');
-    return;
-  }
-  const client = google.accounts.oauth2.initCodeClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: 'openid email profile',
-    ux_mode: 'popup',
-    callback: async (response) => {
-      if (response.error) { showToast('❌ ' + (response.error_description || 'Erreur Google')); return; }
-      showToast('⏳ Connexion avec Google…');
-      try {
-        const r = await fetch(`${API}/auth/google`, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({code: response.code, redirect_uri: window.location.origin})
-        });
-        const d = await r.json();
-        if (!r.ok) throw new Error(d.detail || 'Erreur serveur');
-        const userEmail = d.user?.email || '';
-        const userName = d.user?.name || (userEmail ? userEmail.split('@')[0] : 'Utilisateur');
-        loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: userName}, userEmail);
-      } catch(e) {
-        showToast('❌ Connexion Google échouée : ' + e.message);
-      }
-    }
-  });
-  client.requestCode();
+  // Connexion Google via redirect OAuth
+  const redirectUri = 'https://julvox.com';
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    + '?client_id=' + GOOGLE_CLIENT_ID
+    + '&redirect_uri=' + encodeURIComponent(redirectUri)
+    + '&response_type=code'
+    + '&scope=' + encodeURIComponent('openid email profile')
+    + '&access_type=offline'
+    + '&prompt=select_account';
+  window.location.href = url;
 }
 
-// loginWithGoogle via popup (Google Identity Services) — défini plus haut
-
-// Google callback handled by GIS popup
+// Handle Google OAuth callback (code dans l'URL)
+(async function handleGoogleCallback() {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  if (!code) return;
+  // Nettoyer l'URL
+  window.history.replaceState({}, '', window.location.pathname);
+  showToast('⏳ Connexion avec Google…');
+  try {
+    var r = await fetch(API + '/auth/google', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code: code, redirect_uri: 'https://julvox.com'})
+    });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Erreur serveur');
+    var userEmail = (d.user && d.user.email) ? d.user.email : '';
+    var userName = (d.user && d.user.name) ? d.user.name : (userEmail ? userEmail.split('@')[0] : 'Utilisateur');
+    loginSuccess({token: d.access_token, is_premium: (d.user && d.user.is_premium) || false, name: userName}, userEmail);
+  } catch(e) {
+    showToast('❌ Connexion Google échouée : ' + e.message);
+  }
+})();
 
 
 // ══════════════════════════════════════════════════════════════
