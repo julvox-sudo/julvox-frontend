@@ -2537,7 +2537,7 @@ const FLASH_DEALS = [
 const PROMO_CODES = [
   {store:'Amazon', emoji:'📦', desc:"5€ de réduction dès 25€", code:'AMAZON5', discount:'-5€', expiry:'31/12/2026'},
   {store:'Fnac', emoji:'📚', desc:'10% sur le High-Tech', code:'FNAC10', discount:'-10%', expiry:'30/06/2026'},
-  {store:'Sephora', emoji:'💄', desc:'15% sur la 1ère commande', code:'SEPHA15', discount:'-15%', expiry:'31/03/2026'},
+  {store:'Sephora', emoji:'💄', desc:"15% sur la 1ère commande", code:'SEPHA15', discount:'-15%', expiry:'31/03/2026'},
   {store:'Nike', emoji:'👟', desc:'20% nouvelles collections', code:'NIKE20', discount:'-20%', expiry:'30/04/2026'},
   {store:'Zalando', emoji:'👗', desc:'Livraison gratuite', code:'ZALFREE', discount:'Livraison offerte', expiry:'31/12/2026'},
   {store:'Cdiscount', emoji:'🛒', desc:'8% électroménager', code:'CDIS8', discount:'-8%', expiry:'30/06/2026'},
@@ -2930,12 +2930,12 @@ function openFavPage() {
 const _STATIC_PROMOS = [
   {id:'s1', store:'Amazon',        emoji:'📦', desc:"5€ de réduction dès 25€",        code:'AMAZON5',  discount:'-5€',             cat:'',            expiry:'31/12/2026', votes_ok:145, votes_ko:3,  source:'verified'},
   {id:'s2', store:'Fnac',          emoji:'📚', desc:'10% sur le High-Tech',            code:'FNAC10',   discount:'-10%',            cat:'high-tech',   expiry:'30/06/2026', votes_ok:98,  votes_ko:5,  source:'verified'},
-  {id:'s3', store:'Sephora',       emoji:'💄', desc:'15% sur la 1ère commande',        code:'SEPHA15',  discount:'-15%',            cat:'beaute',      expiry:'31/03/2026', votes_ok:76,  votes_ko:8,  source:'verified'},
+  {id:'s3', store:'Sephora',       emoji:'💄', desc:"15% sur la 1ère commande",        code:'SEPHA15',  discount:'-15%',            cat:'beaute',      expiry:'31/03/2026', votes_ok:76,  votes_ko:8,  source:'verified'},
   {id:'s4', store:'Nike',          emoji:'👟', desc:'20% nouvelles collections',       code:'NIKE20',   discount:'-20%',            cat:'mode',        expiry:'30/04/2026', votes_ok:112, votes_ko:4,  source:'verified'},
-  {id:'s5', store:'Zalando',       emoji:'👗', desc:'Livraison gratuite dès 24,99€',   code:'ZALFREE',  discount:'Livraison offerte',cat:'mode',        expiry:'31/12/2026', votes_ok:201, votes_ko:7,  source:'verified'},
-  {id:'s6', store:'Cdiscount',     emoji:'🛒', desc:'8% sur l'électroménager',        code:'CDIS8',    discount:'-8%',             cat:'maison',      expiry:'30/06/2026', votes_ok:44,  votes_ko:6,  source:'verified'},
-  {id:'s7', store:'Uber Eats',     emoji:'🍔', desc:'50% sur la 1ère commande',        code:'UBERFR50', discount:'-50%',            cat:'restaurants', expiry:'30/04/2026', votes_ok:334, votes_ko:12, source:'verified'},
-  {id:'s8', store:'Decathlon',     emoji:'⚽', desc:'15% sur les articles de sport',   code:'DECA15',   discount:'-15%',            cat:'sport',       expiry:'30/06/2026', votes_ok:67,  votes_ko:9,  source:'verified'},
+  {id:'s5', store:'Zalando',       emoji:'👗', desc:"Livraison gratuite dès 24,99€",   code:'ZALFREE',  discount:'Livraison offerte',cat:'mode',        expiry:'31/12/2026', votes_ok:201, votes_ko:7,  source:'verified'},
+  {id:'s6', store:'Cdiscount',     emoji:'🛒', desc:"8% sur l'électroménager",        code:'CDIS8',    discount:'-8%',             cat:'maison',      expiry:'30/06/2026', votes_ok:44,  votes_ko:6,  source:'verified'},
+  {id:'s7', store:'Uber Eats',     emoji:'🍔', desc:"50% sur la 1ère commande",        code:'UBERFR50', discount:'-50%',            cat:'restaurants', expiry:'30/04/2026', votes_ok:334, votes_ko:12, source:'verified'},
+  {id:'s8', store:'Decathlon',     emoji:'⚽', desc:"15% sur les articles de sport",   code:'DECA15',   discount:'-15%',            cat:'sport',       expiry:'30/06/2026', votes_ok:67,  votes_ko:9,  source:'verified'},
 ];
 
 let _allPromos = [..._STATIC_PROMOS]; // merge static + community
