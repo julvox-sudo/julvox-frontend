@@ -1221,27 +1221,50 @@ a{text-decoration:none}
   <div class="page-body">
     <div class="legal-block">
       <div class="legal-block-title">🏢 Article 1 — Présentation</div>
-      <div class="legal-block-text">DealScan est un service d'agrégation de promotions exploité par Julvox (contact@julvox.com). En utilisant le service, vous acceptez les présentes CGU. Le service est réservé aux personnes majeures (18 ans et plus).</div>
+      <div class="legal-block-text">DealScan est un service d'agrégation de promotions exploité par <strong>Julvox</strong>, auto-entrepreneur immatriculé en France.<br><br>
+        <strong>Responsable de publication :</strong> Julien Martinez<br>
+        <strong>Email :</strong> contact@julvox.com<br>
+        <strong>Site :</strong> julvox.com<br>
+        <strong>Hébergeur frontend :</strong> Vercel Inc., 340 Pine Street, San Francisco, CA<br>
+        <strong>Hébergeur backend :</strong> Railway Corp., San Francisco, CA<br><br>
+        En utilisant le service, vous acceptez les présentes CGU. Le service est réservé aux personnes majeures (18 ans et plus).</div>
     </div>
     <div class="legal-block">
       <div class="legal-block-title">💳 Article 2 — Abonnement Premium</div>
-      <div class="legal-block-text">DealScan propose un abonnement Premium à <strong>4,99€/mois</strong> ou <strong>39,99€/an</strong>. Les paiements sont traités par Stripe et/ou PayPal (certifiés PCI-DSS). Vos données bancaires ne transitent jamais par nos serveurs. Droit de rétractation : 14 jours à compter de la souscription (Art. L221-18 Code de la consommation).</div>
+      <div class="legal-block-text">DealScan propose un abonnement Premium à <strong>4,99€/mois</strong> ou <strong>39,99€/an</strong> (TTC).<br><br>
+        Les paiements sont traités exclusivement par <strong>Stripe</strong> et/ou <strong>PayPal</strong>, tous deux certifiés <strong>PCI-DSS niveau 1</strong>.<br><br>
+        <strong>⚠️ Vos données bancaires ne transitent jamais par nos serveurs.</strong> Nous n'avons accès à aucun numéro de carte, code CVV ou coordonnées bancaires. Seul un identifiant de transaction anonymisé est conservé.<br><br>
+        <strong>Droit de rétractation :</strong> conformément à l'article L221-18 du Code de la consommation, vous disposez d'un délai de <strong>14 jours</strong> à compter de la souscription pour vous rétracter, sans avoir à justifier de motif. Pour exercer ce droit : contact@julvox.com<br><br>
+        <strong>Résiliation :</strong> vous pouvez annuler votre abonnement à tout moment depuis votre espace PayPal ou Stripe. L'accès Premium reste actif jusqu'à la fin de la période payée.</div>
     </div>
     <div class="legal-block">
       <div class="legal-block-title">🔗 Article 3 — Liens affiliés et partenariats commerciaux</div>
-      <div class="legal-block-text">Les liens présents sur DealScan sont des <strong>liens affiliés</strong> au sens de l'article L.121-1 du Code de la consommation. DealScan peut percevoir une commission sur les achats réalisés via ces liens, sans surcoût pour l'utilisateur. Cette commission ne constitue pas une recommandation commerciale biaisée. Partenaires actifs : Amazon Associates (tag : julvox-21), Awin, Rakuten Marketing. Cette mention est affichée conformément aux obligations légales françaises et aux directives européennes sur les pratiques commerciales.</div>
+      <div class="legal-block-text">Les liens présents sur DealScan sont des <strong>liens affiliés</strong> au sens de l'article L.121-1 du Code de la consommation. DealScan peut percevoir une commission sur les achats réalisés via ces liens, sans surcoût pour l'utilisateur. Cette commission ne constitue pas une recommandation commerciale biaisée.<br><br>
+        Partenaires actifs : Amazon Associates (tag : julvox-21), Rakuten Marketing, CJ Affiliate. Cette mention est affichée conformément aux obligations légales françaises et aux directives européennes sur les pratiques commerciales.</div>
     </div>
     <div class="legal-block">
       <div class="legal-block-title">💰 Article 4 — Prix indicatifs et responsabilité</div>
-      <div class="legal-block-text">Les prix affichés sur DealScan sont <strong>fournis à titre indicatif</strong> et peuvent différer du prix réel pratiqué par le marchand au moment de l'achat. DealScan est un agrégateur de promotions et ne saurait être tenu responsable d'un écart de prix entre celui affiché sur le site et celui facturé par le marchand. La date et l'heure de dernière vérification du prix sont affichées sur chaque fiche deal. Nous vous recommandons de vérifier le prix final sur le site du marchand avant tout achat. Les marques et logos des marchands appartiennent à leurs propriétaires respectifs.</div>
+      <div class="legal-block-text">Les prix affichés sur DealScan sont <strong>fournis à titre indicatif</strong> et peuvent différer du prix réel pratiqué par le marchand au moment de l'achat. DealScan est un agrégateur de promotions et ne saurait être tenu responsable d'un écart de prix. Nous vous recommandons de vérifier le prix final sur le site du marchand avant tout achat.</div>
     </div>
     <div class="legal-block">
-      <div class="legal-block-title">⚖️ Article 5 — Droit applicable</div>
-      <div class="legal-block-text">Les présentes CGU sont soumises au droit français. En cas de litige, les tribunaux français sont compétents. Règlement européen des litiges : ec.europa.eu/consumers/odr</div>
+      <div class="legal-block-title">🔒 Article 5 — Sécurité des données</div>
+      <div class="legal-block-text">
+        Julvox met en œuvre les mesures techniques suivantes pour protéger vos données :<br><br>
+        • Mots de passe hachés avec <strong>bcrypt</strong> (jamais stockés en clair)<br>
+        • Communications chiffrées <strong>TLS 1.3</strong><br>
+        • Données bancaires gérées exclusivement par Stripe/PayPal (PCI-DSS) — nous n'y avons aucun accès<br>
+        • Tokens d'authentification JWT signés et à durée limitée<br>
+        • Headers de sécurité HTTP (HSTS, CSP, X-Frame-Options)<br>
+        • Journaux d'accès conservés 12 mois maximum
+      </div>
     </div>
     <div class="legal-block">
-      <div class="legal-block-title">📬 Article 6 — Contact</div>
-      <div class="legal-block-text">Pour toute question : contact@julvox.com — julvox.com</div>
+      <div class="legal-block-title">⚖️ Article 6 — Droit applicable</div>
+      <div class="legal-block-text">Les présentes CGU sont soumises au droit français. En cas de litige, et à défaut de résolution amiable, les tribunaux français sont compétents. Règlement européen des litiges en ligne : <a href="https://ec.europa.eu/consumers/odr" style="color:var(--accent)">ec.europa.eu/consumers/odr</a></div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">📬 Article 7 — Contact</div>
+      <div class="legal-block-text">Pour toute question relative aux CGU : <a href="mailto:contact@julvox.com" style="color:var(--accent)">contact@julvox.com</a><br>Délai de réponse : 72h ouvrées maximum.</div>
     </div>
   </div>
 </div>
@@ -1286,7 +1309,8 @@ a{text-decoration:none}
         <li><strong>Vercel</strong> (hébergement frontend) — Serveurs EU/US — <a href="https://vercel.com/legal/privacy-policy" style="color:var(--accent)">Politique Vercel</a></li>
         <li><strong>Brevo</strong> (envoi d'emails) — Serveurs EU — <a href="https://www.brevo.com/fr/politique-de-confidentialite/" style="color:var(--accent)">Politique Brevo</a></li>
         <li><strong>Stripe</strong> (paiements) — Certifié PCI-DSS — <a href="https://stripe.com/fr/privacy" style="color:var(--accent)">Politique Stripe</a></li>
-        <li><strong>Firebase</strong> (authentification) — Google LLC — <a href="https://firebase.google.com/support/privacy" style="color:var(--accent)">Politique Firebase</a></li>
+        <li><strong>PayPal</strong> (paiements) — Certifié PCI-DSS — <a href="https://www.paypal.com/fr/webapps/mpp/ua/privacy-full" style="color:var(--accent)">Politique PayPal</a></li>
+        <li><strong>Google</strong> (connexion OAuth) — Google LLC — <a href="https://policies.google.com/privacy" style="color:var(--accent)">Politique Google</a></li>
       </ul>
     </div>
     <div class="legal-block">
