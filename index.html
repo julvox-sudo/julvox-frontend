@@ -1131,9 +1131,9 @@ a{text-decoration:none}
     <div class="bn-icon">📈</div>
     <span>Tendances</span>
   </button>
-  <button class="bn-item" id="bn-swipe" onclick="openSwipePage()">
-    <div class="bn-icon">🔥</div>
-    <span>Swipe</span>
+  <button class="bn-item" id="bn-community" onclick="openCommunityPage()">
+    <div class="bn-icon">🤝</div>
+    <span>Communauté</span>
   </button>
   <button class="bn-item" id="bn-favs" onclick="openFavPage()">
     <div class="bn-icon">❤️</div>
@@ -2070,7 +2070,8 @@ a{text-decoration:none}
       <button onclick="submitCommunityDealNew()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
         🚀 Publier le deal
       </button>
-      <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:8px">Les deals sont vérifiés par notre algorithme NovaDeal™ avant publication.</div>
+      <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:8px">Les deals sont vérifiés par NovaDeal™ avant publication.</div>
+      <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:4px">🚫 Contenus interdits : pornographie, armes, drogues, contenu illégal.</div>
     </div>
   </div>
 </div>
@@ -5098,6 +5099,17 @@ async function submitCommunityDealNew() {
   if (!price || isNaN(price)) { showToast('⚠️ Indique le prix du deal'); return; }
   if (!store) { showToast('⚠️ Indique le marchand'); return; }
   if (!url) { showToast('⚠️ Indique le lien vers l'offre'); return; }
+
+  // ── Modération contenu illégal ──
+  const _BANNED = ['porn','xxx','sex','nude','naked','escort','cam','onlyfans',
+    'arme','weapon','gun','pistolet','fusil','couteau','knife','explosif','bombe',
+    'drogue','drug','cocaine','heroin','cannabis','weed','stup','stupefiant',
+    'hack','crack','pirate','keygen','serial key','nulled','warez'];
+  const _checkText = (name + ' ' + (desc||'') + ' ' + url).toLowerCase();
+  if (_BANNED.some(w => _checkText.includes(w))) {
+    showToast('🚫 Ce contenu n'est pas autorisé sur DealScan');
+    return;
+  }
 
   const btn = document.querySelector('#submitDealOverlay .modal-body button');
   btn.textContent = '⏳ Publication…';
