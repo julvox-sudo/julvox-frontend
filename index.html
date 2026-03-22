@@ -11,6 +11,7 @@
 <meta name="google-site-verification" content="3a92a4041aeeec5e"/>
 <meta name="author" content="Julvox — DealScan"/>
 <meta name="robots" content="index, follow, max-image-preview:large"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta name="theme-color" content="#FF5C2B"/>
 <link rel="canonical" href="https://julvox.com/"/>
 <meta name="keywords" content="deals, promos, bons plans, code promo, reduction, comparateur prix, alertes prix, Black Friday, soldes, Amazon, Fnac, Darty"/>
@@ -777,12 +778,12 @@ a{text-decoration:none}
 /* Onboarding v2 */
 .ob-step{display:none}
 .ob-step.active{display:block}
-.ob-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1.2;margin-bottom:8px}
-.ob-subtitle{font-size:14px;color:var(--txt2);line-height:1.5;margin-bottom:20px}
-.ob-cat-btn{display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:var(--trans);width:100%}
+.ob-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1.2;margin-bottom:8px;color:#fff}
+.ob-subtitle{font-size:14px;color:rgba(255,255,255,0.7);line-height:1.5;margin-bottom:20px}
+.ob-cat-btn{display:flex;align-items:center;gap:10px;padding:14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:var(--trans);width:100%}
 .ob-cat-btn.selected{border-color:var(--accent);background:rgba(255,92,43,.08)}
 .ob-cat-emoji{font-size:24px;flex-shrink:0}
-.ob-cat-label{font-size:14px;font-weight:500;text-align:left}
+.ob-cat-label{font-size:14px;font-weight:500;text-align:left;color:#fff}
 .ob-budget-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
 .ob-budget-item{background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:var(--trans)}
 .ob-budget-item.selected{border-color:var(--accent);background:rgba(255,92,43,.08)}
@@ -1790,7 +1791,7 @@ a{text-decoration:none}
 <!-- ══════════════════════════════════════════════════════════
      ONBOARDING v2 — Personnalisation au premier lancement
 ══════════════════════════════════════════════════════════ -->
-<div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;overflow-y:auto;padding:24px 20px">
+<div id="onboardingOverlay" style="display:none;position:fixed;inset:0;background:#0f0f0f;z-index:9999;overflow-y:auto;padding:24px 20px;color:#fff">
   <div style="max-width:440px;margin:0 auto">
     <div class="ob-progress" id="obProgress"></div>
 
@@ -1799,11 +1800,11 @@ a{text-decoration:none}
       <div style="font-size:64px;text-align:center;margin-bottom:16px">🔥</div>
       <div class="ob-title" style="text-align:center">Bienvenue sur DealScan</div>
       <div class="ob-subtitle" style="text-align:center">L'app qui détecte les vraies bonnes affaires grâce à l'algorithme NovaDeal™</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>✅ Détection fausses promos automatique</span></div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🏆 Score de confiance NovaDeal™ sur chaque deal</span></div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🔔 Alertes prix intelligentes et prédictives</span></div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px"><span>🔍 Comparateur multi-marchands en temps réel</span></div>
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:16px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px;color:#fff"><span>✅ Détection fausses promos automatique</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px;color:#fff"><span>🏆 Score de confiance NovaDeal™ sur chaque deal</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px;color:#fff"><span>🔔 Alertes prix intelligentes et prédictives</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:#fff"><span>🔍 Comparateur multi-marchands en temps réel</span></div>
       </div>
       <button class="ob-next-btn" onclick="obNext(2)">Commencer →</button>
     </div>
@@ -2288,7 +2289,23 @@ function renderDealOfDay(deal, el) {
 let favorites = new Set();
 try { favorites = new Set(JSON.parse(localStorage.getItem('ds_favs') || '[]')); } catch(e) {}
 let currentUser = null;
-try { const s = localStorage.getItem('ds_user'); if (s) currentUser = JSON.parse(s); } catch(e) {}
+try {
+  const s = localStorage.getItem('ds_user');
+  if (s) {
+    const _u = JSON.parse(s);
+    // Rejeter les comptes corrompus (email manquant/undefined/null)
+    if (_u && _u.email && _u.email !== 'undefined' && _u.email !== 'null' && _u.token) {
+      // Force admin premium on reload
+      if (_u.email && ['contact@julvox.com','julvox@gmail.com'].includes(_u.email.toLowerCase())) {
+        _u.is_premium = true;
+        _u.is_owner = true;
+      }
+      currentUser = _u;
+    } else {
+      localStorage.removeItem('ds_user'); // nettoyer le compte fantôme
+    }
+  }
+} catch(e) { localStorage.removeItem('ds_user'); }
 let toastTimer;
 
 // ── THEME ─────────────────────────────────────────────────────
@@ -2371,18 +2388,22 @@ async function loadStats() {
   const el = document.getElementById('statDeals');
   try {
     const r = await fetch(API + '/stats');
-    if (!r.ok) return;
+    if (!r.ok) throw new Error('stats_error');
     const d = await r.json();
     if (el && d.total_deals !== undefined) {
-      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '—';
+      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '0';
+      try { localStorage.setItem('ds_cached_deals', d.total_deals); } catch(e) {}
     }
-    // Mettre à jour la remise moyenne si disponible
     const remiseEls = document.querySelectorAll('.hstat-v');
     if (d.avg_discount && remiseEls[1]) {
       remiseEls[1].textContent = Math.round(d.avg_discount) + '%';
     }
   } catch(e) {
-    if (el) el.textContent = '69'; // fallback si API indisponible
+    // Afficher le dernier chiffre connu si API indisponible
+    if (el) {
+      const cached = localStorage.getItem('ds_cached_deals');
+      el.textContent = cached ? parseInt(cached).toLocaleString('fr-FR') : '—';
+    }
   }
 }
 
@@ -3021,10 +3042,16 @@ async function submitSignup() {
   }
 }
 function loginSuccess(data,email) {
-  const safeEmail = email || '';
-  const safeName = data.name || (safeEmail ? safeEmail.split('@')[0] : 'Utilisateur');
+  const safeEmail = (email && email !== 'undefined' && email !== 'null') ? email.trim() : '';
+  const safeName = data.name || (safeEmail ? safeEmail.split('@')[0] : '');
+  // Rejeter les logins sans token ou sans email ET sans nom
+  if (!data.token || (!safeEmail && !safeName)) {
+    showToast('❌ Données de connexion invalides, réessaie.');
+    return;
+  }
   const forceAdmin = safeEmail && ADMIN_EMAILS.includes(safeEmail.toLowerCase());
-  currentUser={email:safeEmail,name:safeName,token:data.token,is_premium:data.is_premium||forceAdmin||false,is_owner:forceAdmin||false};
+  const finalName = safeName || 'Utilisateur';
+  currentUser={email:safeEmail,name:finalName,token:data.token,is_premium:data.is_premium||forceAdmin||false,is_owner:forceAdmin||false};
   try{localStorage.setItem('ds_user',JSON.stringify(currentUser));}catch(e){}
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
@@ -3222,35 +3249,43 @@ async function submitNewPassword() {
 // ── GOOGLE OAUTH ──────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '541770126176-gq0e58g2gbkeh7qg5iqpeci1jbvdsrer.apps.googleusercontent.com';
 // Emails admin - toujours premium côté frontend
-const ADMIN_EMAILS = ['contact@julvox.com', 'julvox@gmail.com'];
+const ADMIN_EMAILS = ['contact@julvox.com', 'julvox@gmail.com']; // ← Ajoute ton email Google ici si différent
 
+// ── Google Identity Services (popup, sans redirect) ──
 function loginWithGoogle() {
-  const redirectUri = window.location.origin;
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&access_type=offline&prompt=select_account`;
-  window.location.href = url;
+  if (typeof google === 'undefined') {
+    showToast('⚠️ Google non disponible, réessaie dans un instant.');
+    return;
+  }
+  const client = google.accounts.oauth2.initCodeClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile',
+    ux_mode: 'popup',
+    callback: async (response) => {
+      if (response.error) { showToast('❌ ' + (response.error_description || 'Erreur Google')); return; }
+      showToast('⏳ Connexion avec Google…');
+      try {
+        const r = await fetch(`${API}/auth/google`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({code: response.code, redirect_uri: window.location.origin})
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.detail || 'Erreur serveur');
+        const userEmail = d.user?.email || '';
+        const userName = d.user?.name || (userEmail ? userEmail.split('@')[0] : 'Utilisateur');
+        loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: userName}, userEmail);
+      } catch(e) {
+        showToast('❌ Connexion Google échouée : ' + e.message);
+      }
+    }
+  });
+  client.requestCode();
 }
 
-(async function handleGoogleCallback() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  if (!code) return;
-  window.history.replaceState({}, '', window.location.pathname);
-  showToast('⏳ Connexion avec Google…');
-  try {
-    const r = await fetch(`${API}/auth/google`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({code, redirect_uri: window.location.origin})
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || 'Erreur Google');
-    const userEmail = d.user?.email || '';
-    const userName = d.user?.name || (userEmail ? userEmail.split('@')[0] : 'Utilisateur');
-    loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: userName}, userEmail);
-  } catch(e) {
-    showToast('❌ Connexion Google échouée : ' + e.message);
-  }
-})();
+// loginWithGoogle via popup (Google Identity Services) — défini plus haut
+
+// Google callback handled by GIS popup
 
 // ── VOTES ─────────────────────────────────────────────────────
 async function loadDealVotes(id) {
