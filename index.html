@@ -1800,7 +1800,10 @@ a{text-decoration:none}
       <div class="ob-title" style="text-align:center">Bienvenue sur DealScan</div>
       <div class="ob-subtitle" style="text-align:center">L'app qui détecte les vraies bonnes affaires grâce à l'algorithme NovaDeal™</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px">
-        ${['✅ Détection fausses promos automatique','🏆 Score de confiance NovaDeal™ sur chaque deal','🔔 Alertes prix intelligentes et prédictives','🔍 Comparateur multi-marchands en temps réel'].map(f=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${f}</span></div>`).join('')}
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>✅ Détection fausses promos automatique</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🏆 Score de confiance NovaDeal™ sur chaque deal</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🔔 Alertes prix intelligentes et prédictives</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px"><span>🔍 Comparateur multi-marchands en temps réel</span></div>
       </div>
       <button class="ob-next-btn" onclick="obNext(2)">Commencer →</button>
     </div>
@@ -2003,17 +2006,7 @@ a{text-decoration:none}
 <!-- OFFLINE BAR -->
 <div class="offline-bar" id="offlineBar">📡 Hors ligne — deals affichés depuis le cache</div>
 
-<!-- ONBOARDING -->
-<div class="onboard-overlay" id="onboardOverlay">
-  <div class="onboard-box">
-    <div class="onboard-dots" id="onboardDots"></div>
-    <span class="onboard-emoji" id="onboardEmoji">🔥</span>
-    <div class="onboard-title" id="onboardTitle">Bienvenue sur DealScan !</div>
-    <div class="onboard-text" id="onboardText">Les meilleures promos détectées automatiquement — tech, mode, restaurants et bien plus.</div>
-    <button class="onboard-btn" onclick="nextOnboard()">Continuer →</button>
-    <button class="onboard-skip" onclick="skipOnboard()">Passer l'introduction</button>
-  </div>
-</div>
+<!-- ONBOARDING v2 only -->
 
 <!-- REPORT DEAL MODAL -->
 <div class="modal-overlay" id="reportOverlay" onclick="closeReport(event)" style="z-index:500">
@@ -2362,7 +2355,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateNavForUser();
   initCookieBanner();
   initOfflineDetection();
-  initOnboarding();
   initA11y();
   // Vérifier URL params
   const params = new URLSearchParams(window.location.search);
@@ -2382,7 +2374,7 @@ async function loadStats() {
     if (!r.ok) return;
     const d = await r.json();
     if (el && d.total_deals !== undefined) {
-      el.textContent = d.total_deals.toLocaleString('fr-FR');
+      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '—';
     }
     // Mettre à jour la remise moyenne si disponible
     const remiseEls = document.querySelectorAll('.hstat-v');
@@ -3029,7 +3021,10 @@ async function submitSignup() {
   }
 }
 function loginSuccess(data,email) {
-  currentUser={email,name:data.name||email.split('@')[0],token:data.token,is_premium:data.is_premium||false};
+  const safeEmail = email || '';
+  const safeName = data.name || (safeEmail ? safeEmail.split('@')[0] : 'Utilisateur');
+  const forceAdmin = safeEmail && ADMIN_EMAILS.includes(safeEmail.toLowerCase());
+  currentUser={email:safeEmail,name:safeName,token:data.token,is_premium:data.is_premium||forceAdmin||false,is_owner:forceAdmin||false};
   try{localStorage.setItem('ds_user',JSON.stringify(currentUser));}catch(e){}
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
@@ -3044,7 +3039,7 @@ function updateNavForUser() {
     area.innerHTML=`<button class="user-btn" onclick="toggleDropdown()"><div class="avatar">${currentUser.name.charAt(0).toUpperCase()}</div><span>${currentUser.name}${currentUser.is_premium?' 👑':''}</span></button>`;
     document.getElementById('ddName').textContent=currentUser.name+(currentUser.is_premium?' 👑':'');
     document.getElementById('ddEmail').textContent=currentUser.email;
-    document.getElementById('ddBadge').innerHTML=currentUser.is_premium?'<span style="background:linear-gradient(135deg,var(--gold),#ff9800);color:#000;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">⭐ Premium</span>':'<span style="font-size:11px;color:var(--txt3)">Plan Gratuit</span>';
+    document.getElementById('ddBadge').innerHTML=currentUser.is_owner?'<span style="background:linear-gradient(135deg,#ff6b35,#ff9800);color:#000;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">👑 Admin</span>':currentUser.is_premium?'<span style="background:linear-gradient(135deg,var(--gold),#ff9800);color:#000;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">⭐ Premium</span>':'<span style="font-size:11px;color:var(--txt3)">Plan Gratuit</span>';
     document.getElementById('ddUpgrade').style.display=currentUser.is_premium?'none':'flex';
   } else {
     area.innerHTML=`<button class="user-btn" onclick="openAuth('login')">Connexion</button>`;
@@ -3226,6 +3221,8 @@ async function submitNewPassword() {
 
 // ── GOOGLE OAUTH ──────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '541770126176-gq0e58g2gbkeh7qg5iqpeci1jbvdsrer.apps.googleusercontent.com';
+// Emails admin - toujours premium côté frontend
+const ADMIN_EMAILS = ['contact@julvox.com', 'julvox@gmail.com'];
 
 function loginWithGoogle() {
   const redirectUri = window.location.origin;
@@ -3247,7 +3244,9 @@ function loginWithGoogle() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'Erreur Google');
-    loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: d.user?.name}, d.user?.email);
+    const userEmail = d.user?.email || '';
+    const userName = d.user?.name || (userEmail ? userEmail.split('@')[0] : 'Utilisateur');
+    loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: userName}, userEmail);
   } catch(e) {
     showToast('❌ Connexion Google échouée : ' + e.message);
   }
