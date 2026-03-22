@@ -936,36 +936,6 @@ a{text-decoration:none}
 .newsletter-btn:hover{opacity:.88}
 .newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
 </style>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ",
-    authDomain: "julvox-dealscan.firebaseapp.com",
-    projectId: "julvox-dealscan",
-    storageBucket: "julvox-dealscan.firebasestorage.app",
-    messagingSenderId: "192020498483",
-    appId: "1:192020498483:web:d5f69537490ca305883b46"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  window._firebaseAuth = auth;
-  window._fbSignIn = (email, pwd) => signInWithEmailAndPassword(auth, email, pwd);
-  window._fbSignUp = (email, pwd) => createUserWithEmailAndPassword(auth, email, pwd);
-  window._fbSignOut = () => signOut(auth);
-  window._fbGetToken = () => auth.currentUser ? auth.currentUser.getIdToken(true) : Promise.resolve(null);
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const token = await user.getIdToken();
-      window.currentUser = { email: user.email, name: user.displayName || user.email.split('@')[0], token, is_premium: false };
-      try { updateNavForUser(); } catch(e) {}
-    }
-  });
-</style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -2881,6 +2851,7 @@ function renderLoginForm() {
     <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com"/></div>
     <div class="auth-field"><label>Mot de passe</label><input type="password" id="authPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"/></div>
     <button class="auth-btn" onclick="submitLogin()">Se connecter →</button>
+    <div style="text-align:center;margin-top:8px"><span onclick="forgotPassword()" style="color:var(--accent);cursor:pointer;font-size:13px">🔑 Mot de passe oublié ?</span></div>
     <div class="auth-link">Pas de compte ? <span onclick="switchTab('signup')">S'inscrire gratuitement</span></div>`;
 }
 function renderSignupForm() {
@@ -2924,12 +2895,11 @@ async function submitLogin() {
   try {
     const cred = await window._fbSignIn(email, pwd);
     const token = await cred.user.getIdToken();
-    loginSuccess({token, is_premium:false, name: cred.user.displayName||email.split('@')[0]}, email);
+    loginSuccess({token, is_premium:false, name:cred.user.displayName||email.split('@')[0]}, email);
   } catch(e) {
-    let msg = 'Email ou mot de passe incorrect';
-    if (e.code === 'auth/user-not-found') msg = 'Aucun compte avec cet email';
-    if (e.code === 'auth/wrong-password') msg = 'Mot de passe incorrect';
-    if (e.code === 'auth/too-many-requests') msg = 'Trop de tentatives, réessaie plus tard';
+    let msg='Email ou mot de passe incorrect';
+    if(e.code==='auth/user-not-found') msg='Aucun compte avec cet email';
+    if(e.code==='auth/too-many-requests') msg='Trop de tentatives, réessaie plus tard';
     showAuthErr(msg); btn.disabled=false; btn.textContent='Se connecter →';
   }
 }
@@ -2946,9 +2916,9 @@ async function submitSignup() {
     showAuthOk('Compte créé ! Bienvenue 🎉');
     setTimeout(closeAuth,1500);
   } catch(e) {
-    let msg = 'Erreur lors de la création';
-    if (e.code === 'auth/email-already-in-use') msg = 'Email déjà utilisé';
-    if (e.code === 'auth/weak-password') msg = 'Mot de passe trop faible';
+    let msg='Erreur lors de la création';
+    if(e.code==='auth/email-already-in-use') msg='Email déjà utilisé';
+    if(e.code==='auth/weak-password') msg='Mot de passe trop faible';
     showAuthErr(msg); btn.disabled=false; btn.textContent='Créer mon compte gratuit →';
   }
 }
@@ -2958,9 +2928,17 @@ function loginSuccess(data,email) {
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
 async function logout() {
-  if (window._fbSignOut) await window._fbSignOut();
+  if(window._fbSignOut) await window._fbSignOut();
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
+}
+async function forgotPassword() {
+  const email=document.getElementById('authEmail')?.value.trim();
+  if(!email){showAuthErr('Entre ton email d\'abord');return;}
+  try {
+    await window._fbReset(email);
+    showAuthOk('✅ Email envoyé ! Vérifie ta boîte mail.');
+  } catch(e) { showAuthErr('Erreur — vérifie que l\'email est correct'); }
 }
 function updateNavForUser() {
   const area=document.getElementById('authNavArea');
