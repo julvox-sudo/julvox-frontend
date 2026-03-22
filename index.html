@@ -936,38 +936,6 @@ a{text-decoration:none}
 .newsletter-btn:hover{opacity:.88}
 .newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
 </style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey: "AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ",
-  authDomain: "julvox-dealscan.firebaseapp.com",
-  projectId: "julvox-dealscan",
-  messagingSenderId: "192020498483",
-  appId: "1:192020498483:web:d5f69537490ca305883b46"
-});
-const fbAuth = firebase.auth();
-
-async function fbSignIn(email, pwd) {
-  const cred = await fbAuth.signInWithEmailAndPassword(email, pwd);
-  const token = await cred.user.getIdToken();
-  return { idToken: token, displayName: cred.user.displayName };
-}
-async function fbSignUp(email, pwd) {
-  const cred = await fbAuth.createUserWithEmailAndPassword(email, pwd);
-  const token = await cred.user.getIdToken();
-  return { idToken: token };
-}
-async function fbReset(email) {
-  await fbAuth.sendPasswordResetEmail(email);
-}
-async function fbGoogleSignIn() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  const cred = await fbAuth.signInWithPopup(provider);
-  const token = await cred.user.getIdToken();
-  return { idToken: token, displayName: cred.user.displayName, email: cred.user.email };
-}
-</script>
 </head>
 <body>
 
@@ -2871,8 +2839,6 @@ function renderLoginForm() {
     <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com"/></div>
     <div class="auth-field"><label>Mot de passe</label><input type="password" id="authPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"/></div>
     <button class="auth-btn" onclick="submitLogin()">Se connecter →</button>
-    <button onclick="signInWithGoogle()" style="width:100%;background:#fff;color:#333;border:1px solid #ddd;border-radius:14px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><img src="https://www.google.com/favicon.ico" style="width:18px"> Continuer avec Google</button>
-    <div style="text-align:center;margin-top:8px"><span onclick="forgotPassword()" style="color:var(--accent);cursor:pointer;font-size:13px">🔑 Mot de passe oublié ?</span></div>
     <div class="auth-link">Pas de compte ? <span onclick="switchTab('signup')">S'inscrire gratuitement</span></div>`;
 }
 function renderSignupForm() {
@@ -2913,14 +2879,9 @@ async function submitLogin() {
   const email=document.getElementById('authEmail').value.trim(), pwd=document.getElementById('authPwd').value;
   if (!email||!pwd){showAuthErr('Remplis tous les champs');return;}
   const btn=document.querySelector('#authBody .auth-btn');btn.disabled=true;btn.textContent='Connexion…';
-  try {
-    const d = await fbSignIn(email, pwd);
-    loginSuccess({token:d.idToken, is_premium:false, name:d.displayName||email.split('@')[0]}, email);
-  } catch(e) {
-    let msg='Email ou mot de passe incorrect';
-    if(e.code==='TOO_MANY_ATTEMPTS_TRY_LATER') msg='Trop de tentatives, réessaie plus tard';
-    showAuthErr(msg); btn.disabled=false; btn.textContent='Se connecter →';
-  }
+  const users=getLocalUsers(), user=users.find(u=>u.email===email&&u.pwd===btoa(pwd));
+  if (user) { loginSuccess({token:'local_'+btoa(email),is_premium:user.is_premium,name:user.name},email); }
+  else { showAuthErr('Email ou mot de passe incorrect'); btn.disabled=false; btn.textContent='Se connecter →'; }
 }
 async function submitSignup() {
   const name=document.getElementById('authName')?.value.trim()||'', email=document.getElementById('authEmail').value.trim(), pwd=document.getElementById('authPwd').value, plan=window._plan||'free';
@@ -2928,42 +2889,22 @@ async function submitSignup() {
   if (pwd.length<8){showAuthErr('Mot de passe trop court (8 car. min)');return;}
   if (plan==='premium'){closeAuth();openPremiumPage();return;}
   const btn=document.getElementById('signupBtn');btn.disabled=true;btn.textContent='Création…';
-  try {
-    const d = await fbSignUp(email, pwd);
-    loginSuccess({token:d.idToken, is_premium:false, name}, email);
-    showAuthOk('Compte créé ! Bienvenue 🎉');
-    setTimeout(closeAuth,1500);
-  } catch(e) {
-    let msg='Erreur lors de la création';
-    if(e.code==='EMAIL_EXISTS') msg='Email déjà utilisé';
-    if(e.code==='WEAK_PASSWORD') msg='Mot de passe trop faible';
-    showAuthErr(msg); btn.disabled=false; btn.textContent='Créer mon compte gratuit →';
-  }
+  const users=getLocalUsers();
+  if (users.find(u=>u.email===email)){showAuthErr('Email déjà utilisé');btn.disabled=false;btn.textContent='Créer mon compte gratuit →';return;}
+  users.push({email,name,pwd:btoa(pwd),is_premium:false});
+  try{localStorage.setItem('ds_users',JSON.stringify(users));}catch(e){}
+  loginSuccess({token:'local_'+btoa(email),is_premium:false,name},email);
+  showAuthOk('Compte créé ! Bienvenue 🎉');
+  setTimeout(closeAuth,1500);
 }
 function loginSuccess(data,email) {
   currentUser={email,name:data.name||email.split('@')[0],token:data.token,is_premium:data.is_premium||false};
   try{localStorage.setItem('ds_user',JSON.stringify(currentUser));}catch(e){}
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
-async function logout() {
+function logout() {
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
-}
-async function signInWithGoogle() {
-  try {
-    const d = await fbGoogleSignIn();
-    loginSuccess({token: d.idToken, is_premium: false, name: d.displayName || d.email.split('@')[0]}, d.email);
-  } catch(e) {
-    showAuthErr('Erreur Google — réessaie');
-  }
-}
-async function forgotPassword() {
-  const email=document.getElementById('authEmail')?.value.trim();
-  if(!email){showAuthErr('Entre ton email d\'abord');return;}
-  try {
-    await fbReset(email);
-    showAuthOk('✅ Email envoyé ! Vérifie ta boîte mail.');
-  } catch(e) { showAuthErr('Erreur — vérifie que l\'email est correct'); }
 }
 function updateNavForUser() {
   const area=document.getElementById('authNavArea');
