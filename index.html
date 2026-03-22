@@ -2869,6 +2869,7 @@ function renderLoginForm() {
     <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com"/></div>
     <div class="auth-field"><label>Mot de passe</label><input type="password" id="authPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"/></div>
     <button class="auth-btn" onclick="submitLogin()">Se connecter →</button>
+    <div class="auth-link" style="margin-top:8px"><span onclick="forgotPassword()" style="color:var(--accent);cursor:pointer;font-size:13px">🔑 Mot de passe oublié ?</span></div>
     <div class="auth-link">Pas de compte ? <span onclick="switchTab('signup')">S'inscrire gratuitement</span></div>`;
 }
 function renderSignupForm() {
@@ -2905,7 +2906,18 @@ function selectPlan(p) {
   document.getElementById('planPrem').classList.toggle('selected', p==='premium');
   document.getElementById('signupBtn').textContent = p==='premium' ? 'Continuer vers le paiement →' : 'Créer mon compte gratuit →';
 }
-async function submitLogin() {
+async function forgotPassword() {
+  const email = document.getElementById('authEmail')?.value.trim();
+  if (!email) { showAuthErr('Entre ton email d\'abord'); return; }
+  try {
+    const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js");
+    await sendPasswordResetEmail(window._firebaseAuth, email);
+    showAuthOk('✅ Email envoyé ! Vérifie ta boîte mail.');
+  } catch(e) {
+    showAuthErr('Erreur — vérifie que l\'email est correct');
+  }
+}
+
   const email=document.getElementById('authEmail').value.trim(), pwd=document.getElementById('authPwd').value;
   if (!email||!pwd){showAuthErr('Remplis tous les champs');return;}
   const btn=document.querySelector('#authBody .auth-btn');btn.disabled=true;btn.textContent='Connexion…';
