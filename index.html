@@ -2836,8 +2836,14 @@ function renderLoginForm() {
     <div class="auth-title">Bon retour ! 👋</div>
     <div class="auth-sub">Retrouve tes favoris sur tous tes appareils</div>
     <div class="auth-err" id="authErr"></div><div class="auth-ok" id="authOk"></div>
+    <button onclick="loginWithGoogle()" style="width:100%;padding:12px;background:white;border:1.5px solid #ddd;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;font-family:'Inter',sans-serif;color:#333">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="height:18px"> Continuer avec Google
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--txt3);font-size:12px"><div style="flex:1;height:1px;background:var(--border)"></div>ou<div style="flex:1;height:1px;background:var(--border)"></div></div>
     <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com"/></div>
-    <div class="auth-field"><label>Mot de passe</label><input type="password" id="authPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"/></div>
+    <div class="auth-field"><label>Mot de passe</label><input type="password" id="authPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"/>
+      <div style="text-align:right;margin-top:4px"><span onclick="openForgotPassword()" style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline">Mot de passe oublié ?</span></div>
+    </div>
     <button class="auth-btn" onclick="submitLogin()">Se connecter →</button>
     <div class="auth-link">Pas de compte ? <span onclick="switchTab('signup')">S'inscrire gratuitement</span></div>`;
 }
@@ -2984,37 +2990,142 @@ function handlePayment(plan) {
 
 async function payWithPayPal(plan) {
   if (!currentUser) { openAuth('login'); return; }
-  showToast('⏳ Connexion à PayPal…');
+  const btn = document.querySelector('.paypal-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Connexion à PayPal…'; }
   try {
-    const r = await fetch(`${API}/paypal/create-order`, {
+    const r = await fetch(`${API}/payments/paypal/create-subscription`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${currentUser.token}`},
-      body: JSON.stringify({plan})
+      body: JSON.stringify({plan, user_email: currentUser.email})
     });
-    if (!r.ok) throw new Error();
     const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Erreur PayPal');
     window.location.href = d.approve_url;
   } catch(e) {
-    showToast('ℹ️ PayPal bientôt disponible — contactez contact@julvox.com');
+    showToast('❌ ' + (e.message || 'Erreur PayPal. Réessaie.'));
+    if (btn) { btn.disabled = false; btn.textContent = 'Payer avec PayPal'; }
   }
 }
 
 async function payWithStripe(plan) {
   if (!currentUser) { openAuth('login'); return; }
-  showToast('⏳ Connexion à Stripe…');
+  const btn = document.querySelector('.stripe-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Connexion à Stripe…'; }
   try {
-    const r = await fetch(`${API}/stripe/create-checkout`, {
+    const r = await fetch(`${API}/payments/stripe/create-checkout`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${currentUser.token}`},
-      body: JSON.stringify({plan})
+      body: JSON.stringify({plan, user_email: currentUser.email})
     });
-    if (!r.ok) throw new Error();
     const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Erreur Stripe');
     window.location.href = d.checkout_url;
   } catch(e) {
-    showToast('ℹ️ Stripe bientôt disponible — contactez contact@julvox.com');
+    showToast('❌ ' + (e.message || 'Erreur Stripe. Réessaie.'));
+    if (btn) { btn.disabled = false; btn.textContent = '💳 Payer par carte bancaire'; }
   }
 }
+
+// ── MOT DE PASSE OUBLIÉ ───────────────────────────────────────
+function openForgotPassword() {
+  document.getElementById('authBody').innerHTML = `
+    <div class="auth-title">🔑 Mot de passe oublié</div>
+    <div class="auth-sub">Un lien de réinitialisation sera envoyé à ton email</div>
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-ok" id="authOk"></div>
+    <div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="ton@email.com" onkeydown="if(event.key==='Enter')submitForgotPassword()"/></div>
+    <button class="auth-btn" onclick="submitForgotPassword()">Envoyer le lien →</button>
+    <div class="auth-link"><span onclick="renderLoginForm()" style="cursor:pointer">← Retour à la connexion</span></div>`;
+}
+
+async function submitForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { showAuthErr('Entre ton email'); return; }
+  const btn = document.querySelector('#authBody .auth-btn');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  try {
+    await fetch(`${API}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email})
+    });
+    showAuthOk('✅ Si cet email existe, un lien t\'a été envoyé. Vérifie tes spams !');
+    btn.textContent = 'Email envoyé ✓';
+  } catch(e) {
+    showAuthErr('Erreur. Réessaie.');
+    btn.disabled = false; btn.textContent = 'Envoyer le lien →';
+  }
+}
+
+// Gérer ?reset_token= dans l'URL
+(function handleResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('reset_token');
+  if (!token) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  window._resetToken = token;
+  document.addEventListener('DOMContentLoaded', () => {
+    openAuth('login');
+    document.getElementById('authBody').innerHTML = `
+      <div class="auth-title">🔒 Nouveau mot de passe</div>
+      <div class="auth-err" id="authErr"></div>
+      <div class="auth-ok" id="authOk"></div>
+      <div class="auth-field"><label>Nouveau mot de passe</label><input type="password" id="newPwd" placeholder="8 caractères minimum"/></div>
+      <div class="auth-field"><label>Confirmer</label><input type="password" id="newPwd2" placeholder="Même mot de passe"/></div>
+      <button class="auth-btn" onclick="submitNewPassword()">Enregistrer →</button>`;
+  });
+})();
+
+async function submitNewPassword() {
+  const pwd = document.getElementById('newPwd').value;
+  const pwd2 = document.getElementById('newPwd2').value;
+  if (pwd.length < 8) { showAuthErr('8 caractères minimum'); return; }
+  if (pwd !== pwd2) { showAuthErr('Les mots de passe ne correspondent pas'); return; }
+  const btn = document.querySelector('#authBody .auth-btn');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    const r = await fetch(`${API}/auth/reset-password`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({token: window._resetToken, new_password: pwd})
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'Erreur');
+    showAuthOk('✅ Mot de passe mis à jour ! Tu peux te connecter.');
+    setTimeout(renderLoginForm, 2000);
+  } catch(e) {
+    showAuthErr(e.message || 'Token expiré. Refais la demande.');
+    btn.disabled = false; btn.textContent = 'Enregistrer →';
+  }
+}
+
+// ── GOOGLE OAUTH ──────────────────────────────────────────────
+const GOOGLE_CLIENT_ID = 'REMPLACE_PAR_TON_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+function loginWithGoogle() {
+  const redirectUri = window.location.origin;
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&access_type=offline&prompt=select_account`;
+  window.location.href = url;
+}
+
+(async function handleGoogleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  showToast('⏳ Connexion avec Google…');
+  try {
+    const r = await fetch(`${API}/auth/google`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({code, redirect_uri: window.location.origin})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Erreur Google');
+    loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: d.user?.name}, d.user?.email);
+  } catch(e) {
+    showToast('❌ Connexion Google échouée : ' + e.message);
+  }
+})();
 
 // ── VOTES ─────────────────────────────────────────────────────
 async function loadDealVotes(id) {
