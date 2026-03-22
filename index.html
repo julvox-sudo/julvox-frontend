@@ -5338,7 +5338,7 @@ async function loadCommDeals(sort, el) {
 
 async function loadMyCommDeals(el) {
   if (!currentUser) {
-    el.innerHTML = '<div style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:10px">👤</div><div style="font-weight:600;margin-bottom:6px">Connecte-toi</div><div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Pour voir tes soumissions</div><button onclick="openAuth('login')" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer">Se connecter</button></div>';
+    el.innerHTML = `<div style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:10px">👤</div><div style="font-weight:600;margin-bottom:6px">Connecte-toi</div><div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Pour voir tes soumissions</div><button onclick="openAuth('login')" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer">Se connecter</button></div>`;
     return;
   }
   el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">⏳ Chargement…</div>';
@@ -5347,12 +5347,12 @@ async function loadMyCommDeals(el) {
     if (!r.ok) throw new Error();
     const d = await r.json();
     if (!d.deals?.length) {
-      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>';
+      el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>`;
       return;
     }
     renderCommDeals(d.deals, el, 'mine');
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>';
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--txt3)">Tu n'as pas encore soumis de deals.<br><br><button onclick="openSubmitDealModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">+ Soumettre mon premier deal</button></div>`;
   }
 }
 
@@ -5377,7 +5377,7 @@ async function loadCommLeader(el) {
 // ── Render community deals ──
 function renderCommDeals(deals, el, sort) {
   if (!deals.length) {
-    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Aucun deal pour l'instant.<br>Sois le premier à en soumettre !</div>';
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--txt3)">Aucun deal pour l'instant.<br>Sois le premier à en soumettre !</div>`;
     return;
   }
   el.innerHTML = deals.map(d => renderCommDealCard(d)).join('');
@@ -5491,7 +5491,7 @@ async function submitCommunityDealNew() {
   if (!name) { showToast('⚠️ Indique le nom du produit'); return; }
   if (!price || isNaN(price)) { showToast('⚠️ Indique le prix du deal'); return; }
   if (!store) { showToast('⚠️ Indique le marchand'); return; }
-  if (!url) { showToast('⚠️ Indique le lien vers l'offre'); return; }
+  if (!url) { showToast(`⚠️ Indique le lien vers l'offre`); return; }
 
   // ── Modération contenu illégal ──
   const _BANNED = ['porn','xxx','sex','nude','naked','escort','cam','onlyfans',
@@ -5500,7 +5500,7 @@ async function submitCommunityDealNew() {
     'hack','crack','pirate','keygen','serial key','nulled','warez'];
   const _checkText = (name + ' ' + (desc||'') + ' ' + url).toLowerCase();
   if (_BANNED.some(w => _checkText.includes(w))) {
-    showToast('🚫 Ce contenu n'est pas autorisé sur DealScan');
+    showToast(`🚫 Ce contenu n'est pas autorisé sur DealScan`);
     return;
   }
 
@@ -5738,7 +5738,6 @@ function contactProPlan(plan, price) {
 
 // ══════════════════════════════════════════════════════════════
 // ══ FIN ATTENTE ══
-
 
 /* ══ ATTENTE 📷 SCAN & SQUAD — ATTENTE 1000 users ══
 // BLOC 3 — Scan, Deal Squad, Deal du Jour, Share, API Docs
