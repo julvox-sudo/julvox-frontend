@@ -2893,7 +2893,9 @@ async function submitLogin() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'Email ou mot de passe incorrect');
-    loginSuccess({token:d.token, is_premium:d.is_premium, name:d.user.name}, d.user.email);
+    const userName = d.user?.name || email.split('@')[0];
+    const userEmail = d.user?.email || email;
+    loginSuccess({token:d.token, is_premium:d.is_premium, name:userName}, userEmail);
   } catch(e) {
     showAuthErr(e.message || 'Erreur de connexion');
     btn.disabled=false; btn.textContent='Se connecter →';
@@ -2913,7 +2915,9 @@ async function submitSignup() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'Erreur lors de la création du compte');
-    loginSuccess({token:d.token, is_premium:d.is_premium, name:d.user.name}, d.user.email);
+    const userName = d.user?.name || name || email.split('@')[0];
+    const userEmail = d.user?.email || email;
+    loginSuccess({token:d.token, is_premium:d.is_premium, name:userName}, userEmail);
     showAuthOk('Compte créé ! Bienvenue 🎉');
     setTimeout(closeAuth,1500);
   } catch(e) {
