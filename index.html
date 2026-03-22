@@ -7525,9 +7525,13 @@ function appendChatBubble(role, text) {
 
   const bubble = document.createElement('div');
   bubble.className = `bubble ${role === 'user' ? 'user' : ''}`;
+  const renderMd = t => t
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>');
   bubble.innerHTML = role === 'user'
-    ? `<div class="bubble-content user">${text.replace(/\n/g,'<br>')}</div>`
-    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${text.replace(/\n/g,'<br>')}</div>`;
+    ? `<div class="bubble-content user">${renderMd(text)}</div>`
+    : `<div class="bubble-avatar">🤖</div><div class="bubble-content ai">${renderMd(text)}</div>`;
   container.appendChild(bubble);
   container.scrollTop = container.scrollHeight;
 }
