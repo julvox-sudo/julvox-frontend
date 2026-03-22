@@ -2382,15 +2382,15 @@ async function loadStats() {
     if (!r.ok) return;
     const d = await r.json();
     if (el && d.total_deals !== undefined) {
-      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '—';
+      el.textContent = d.total_deals.toLocaleString('fr-FR');
     }
     // Mettre à jour la remise moyenne si disponible
     const remiseEls = document.querySelectorAll('.hstat-v');
     if (d.avg_discount && remiseEls[1]) {
-      remiseEls[1].textContent = d.avg_discount + '%';
+      remiseEls[1].textContent = Math.round(d.avg_discount) + '%';
     }
   } catch(e) {
-    if (el && el.textContent === '—') el.textContent = '69';
+    if (el) el.textContent = '69'; // fallback si API indisponible
   }
 }
 
@@ -3034,6 +3034,7 @@ function loginSuccess(data,email) {
   updateNavForUser();closeAuth();showToast(`👋 Bonjour ${currentUser.name} !`);
 }
 function logout() {
+  closeDropdown();
   currentUser=null;try{localStorage.removeItem('ds_user');}catch(e){}
   updateNavForUser();showToast('👋 À bientôt !');
 }
