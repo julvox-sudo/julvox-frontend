@@ -964,6 +964,12 @@ async function fbReset(email) {
   if (!r.ok) throw new Error();
 }
 </script>
+<script>
+const FB_KEY="AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ";
+async function fbSignIn(e,p){const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FB_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p,returnSecureToken:true})});const d=await r.json();if(!r.ok)throw{code:d.error?.message};return d;}
+async function fbSignUp(e,p){const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p,returnSecureToken:true})});const d=await r.json();if(!r.ok)throw{code:d.error?.message};return d;}
+async function fbReset(e){await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FB_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestType:'PASSWORD_RESET',email:e})});}
+</script>
 </head>
 <body>
 
