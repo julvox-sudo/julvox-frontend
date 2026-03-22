@@ -1064,6 +1064,9 @@ a{text-decoration:none}
 
 <footer class="legal-footer" id="mainFooter">
   <div>© 2026 DealScan by Julvox · julvox.com</div>
+  <div style="margin-top:4px;font-size:11px;color:var(--txt3)">
+    Julvox — Entrepreneur individuel · SIRET : 102 542 818 00012 · APE : 63.12Z
+  </div>
   <div style="margin-top:6px;font-size:11px;color:var(--txt3);line-height:1.5">
     🔗 Ce site contient des <strong>liens affiliés</strong>. Nous percevons une commission sur les achats effectués via ces liens, sans coût supplémentaire pour vous.
   </div>
@@ -1073,6 +1076,7 @@ a{text-decoration:none}
   <div style="margin-top:8px">
     <a onclick="openPage('cguPage')">CGU</a> ·
     <a onclick="openPage('privacyPage')">Confidentialité</a> ·
+    <a onclick="openPage('mentionsPage')">Mentions légales</a> ·
     <a onclick="resetCookieConsent()">Cookies</a> ·
     <a href="mailto:contact@julvox.com">Contact</a>
   </div>
@@ -1212,6 +1216,58 @@ a{text-decoration:none}
   <div class="page-body" id="referralBody"></div>
 </div>
 
+<!-- MENTIONS LÉGALES PAGE -->
+<div class="page" id="mentionsPage">
+  <div class="page-head">
+    <button class="page-back" onclick="closePage('mentionsPage')">← Retour</button>
+    <div class="page-title">📋 Mentions Légales</div>
+  </div>
+  <div class="page-body">
+    <div class="legal-block">
+      <div class="legal-block-title">🏢 Éditeur du site</div>
+      <div class="legal-block-text">
+        <strong>Nom commercial :</strong> Julvox<br>
+        <strong>Responsable :</strong> Julien Martinez<br>
+        <strong>Forme juridique :</strong> Entrepreneur individuel<br>
+        <strong>SIREN :</strong> 102 542 818<br>
+        <strong>SIRET :</strong> 102 542 818 00012<br>
+        <strong>Code APE :</strong> 63.12Z — Portails internet<br>
+        <strong>Immatriculation RNE :</strong> 17/03/2026<br>
+        <strong>Adresse :</strong> 20 Rue des Vignerons, 28100 Dreux, France<br>
+        <strong>Email :</strong> contact@julvox.com<br>
+        <strong>Site web :</strong> julvox.com
+      </div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">🖥️ Hébergement</div>
+      <div class="legal-block-text">
+        <strong>Frontend :</strong> Vercel Inc., 340 Pine Street Suite 701, San Francisco CA 94104, USA<br><br>
+        <strong>Backend :</strong> Railway Corp., San Francisco, CA, USA
+      </div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">💳 Paiements</div>
+      <div class="legal-block-text">
+        <strong>Stripe Payments Europe Ltd</strong> — 1 Grand Canal Street Lower, Dublin 2, Irlande — PCI-DSS niveau 1<br><br>
+        <strong>PayPal (Europe) S.à.r.l.</strong> — 22-24 Boulevard Royal, L-2449 Luxembourg — PCI-DSS niveau 1<br><br>
+        ⚠️ Julvox ne stocke et n'a accès à aucune donnée bancaire.
+      </div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">🔗 Liens affiliés</div>
+      <div class="legal-block-text">Conformément à l'art. L.121-1 du Code de la consommation, ce site contient des liens affiliés. Programmes actifs : Amazon Associates (julvox-21), Rakuten Marketing, CJ Affiliate.</div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">⚖️ Droit applicable</div>
+      <div class="legal-block-text">Droit français applicable. Tribunal compétent : ressort de Dreux (28). Médiation : <a href="https://ec.europa.eu/consumers/odr" style="color:var(--accent)">ec.europa.eu/consumers/odr</a></div>
+    </div>
+    <div class="legal-block">
+      <div class="legal-block-title">📬 Contact</div>
+      <div class="legal-block-text"><a href="mailto:contact@julvox.com" style="color:var(--accent);font-weight:600">contact@julvox.com</a> — Réponse sous 72h ouvrées.</div>
+    </div>
+  </div>
+</div>
+
 <!-- CGU PAGE -->
 <div class="page" id="cguPage">
   <div class="page-head">
@@ -1223,10 +1279,17 @@ a{text-decoration:none}
       <div class="legal-block-title">🏢 Article 1 — Présentation</div>
       <div class="legal-block-text">DealScan est un service d'agrégation de promotions exploité par <strong>Julvox</strong>, auto-entrepreneur immatriculé en France.<br><br>
         <strong>Responsable de publication :</strong> Julien Martinez<br>
+        <strong>Nom commercial :</strong> Julvox<br>
+        <strong>Forme juridique :</strong> Entrepreneur individuel<br>
+        <strong>SIREN :</strong> 102 542 818<br>
+        <strong>SIRET :</strong> 102 542 818 00012<br>
+        <strong>Code APE :</strong> 63.12Z — Portails internet<br>
+        <strong>Immatriculation RNE :</strong> 17/03/2026<br>
+        <strong>Adresse :</strong> 20 Rue des Vignerons, 28100 Dreux, France<br>
         <strong>Email :</strong> contact@julvox.com<br>
         <strong>Site :</strong> julvox.com<br>
-        <strong>Hébergeur frontend :</strong> Vercel Inc., 340 Pine Street, San Francisco, CA<br>
-        <strong>Hébergeur backend :</strong> Railway Corp., San Francisco, CA<br><br>
+        <strong>Hébergeur frontend :</strong> Vercel Inc., 340 Pine Street, San Francisco, CA 94104, USA<br>
+        <strong>Hébergeur backend :</strong> Railway Corp., San Francisco, CA, USA<br><br>
         En utilisant le service, vous acceptez les présentes CGU. Le service est réservé aux personnes majeures (18 ans et plus).</div>
     </div>
     <div class="legal-block">
@@ -1276,14 +1339,24 @@ a{text-decoration:none}
     <div class="page-title">🔒 Politique de Confidentialité</div>
   </div>
   <div class="page-body">
+    <div class="legal-block">
+      <div class="legal-block-title">🏢 Responsable de traitement</div>
+      <div class="legal-block-text">
+        <strong>Julien Martinez — Julvox</strong><br>
+        Entrepreneur individuel · SIRET 102 542 818 00012<br>
+        20 Rue des Vignerons, 28100 Dreux, France<br>
+        contact@julvox.com · julvox.com<br><br>
+        Conformément au Règlement Général sur la Protection des Données (RGPD — UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
+      </div>
+    </div>
     <div class="legal-block" style="background:rgba(0,208,132,.05);border-color:rgba(0,208,132,.2)">
       <div class="legal-block-title" style="color:var(--green)">✅ Nos engagements</div>
       <ul class="legal-block-list">
         <li>Vos données ne sont jamais vendues à des tiers</li>
         <li>Mots de passe hachés (bcrypt) — jamais stockés en clair</li>
-        <li>Données bancaires gérées par Stripe/PayPal (PCI-DSS)</li>
+        <li>Données bancaires gérées par Stripe/PayPal (PCI-DSS) — nous n'y avons aucun accès</li>
         <li>Chiffrement TLS 1.3 sur toutes les communications</li>
-        <li>Notification CNIL sous 72h en cas de violation de données</li>
+        <li>Notification CNIL sous 72h en cas de violation de données (Art. 33 RGPD)</li>
       </ul>
     </div>
     <div class="legal-block">
@@ -2303,16 +2376,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── STATS ─────────────────────────────────────────────────────
 async function loadStats() {
-  // Afficher une valeur immédiatement
   const el = document.getElementById('statDeals');
-  if (el) el.textContent = '12 841';
-  // Mettre à jour depuis l'API en arrière-plan
   try {
     const r = await fetch(API + '/stats');
     if (!r.ok) return;
     const d = await r.json();
-    if (el && d.total_deals) el.textContent = d.total_deals.toLocaleString('fr-FR');
-  } catch(e) {} // Silencieux
+    if (el && d.total_deals !== undefined) {
+      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '—';
+    }
+    // Mettre à jour la remise moyenne si disponible
+    const remiseEls = document.querySelectorAll('.hstat-v');
+    if (d.avg_discount && remiseEls[1]) {
+      remiseEls[1].textContent = d.avg_discount + '%';
+    }
+  } catch(e) {
+    if (el && el.textContent === '—') el.textContent = '69';
+  }
 }
 
 // ── DEALS ─────────────────────────────────────────────────────
