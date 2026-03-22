@@ -5667,7 +5667,7 @@ function renderLeaderboard(users, el) {
         <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);${i === users.length-1 ? 'border-bottom:none' : ''}">
           <div style="font-size:18px;width:28px;text-align:center">${medals[i] || `#${u.rank}`}</div>
           <div style="flex:1">
-            <div style="font-weight:600;font-size:13px">${escHtml(u.uid||'Anonyme')} <span style="font-size:14px">${u.level?.emoji||''}</span></div>
+            <div style="font-weight:600;font-size:13px">${escHtml(u.name||u.uid||'Anonyme')} <span style="font-size:14px">${u.level?.emoji||''}</span></div>
             <div style="font-size:11px;color:var(--txt3)">${u.level?.name||''} · ${u.deals_submitted||0} deals soumis</div>
           </div>
           <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent)">${(u.points||0).toLocaleString('fr-FR')} pts</div>
