@@ -1,0 +1,342 @@
+<!-- 
+  DealScan — frontend_snippets.html
+  Ces snippets remplacent les sections existantes de ton index.html
+  ─────────────────────────────────────────────────────────────────
+  SECTION 1 : Boutons de paiement (remplace les boutons "bientôt disponible")
+  SECTION 2 : Modal mot de passe oublié (à ajouter après la modale de login)
+  SECTION 3 : Bouton Google dans la modale de login
+  SECTION 4 : JavaScript (à ajouter dans <script> ou enhancements.js)
+-->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 — Boutons de paiement FONCTIONNELS
+     Remplacer les deux boutons PayPal et Stripe existants
+     ═══════════════════════════════════════════════════════ -->
+<div class="payment-buttons">
+  <!-- Texte dynamique selon le plan sélectionné -->
+  <p style="text-align:center;color:#555;font-size:14px;margin-bottom:12px">
+    Choisir votre mode de paiement — 
+    <span id="payment-plan-label">4,99€/mois</span>
+  </p>
+
+  <!-- PayPal -->
+  <button id="btn-paypal" onclick="startPayPalPayment()" style="
+    width:100%;padding:14px;background:#FFC439;border:none;border-radius:10px;
+    font-size:16px;font-weight:bold;cursor:pointer;display:flex;
+    align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+    <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" 
+         style="height:20px"> Payer avec PayPal
+  </button>
+
+  <div style="text-align:center;color:#aaa;font-size:13px;margin:8px 0">— ou —</div>
+
+  <!-- Stripe -->
+  <button id="btn-stripe" onclick="startStripePayment()" style="
+    width:100%;padding:14px;background:#635BFF;border:none;border-radius:10px;
+    font-size:16px;font-weight:bold;color:white;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px">
+    💳 Payer par carte bancaire
+  </button>
+
+  <p style="text-align:center;color:#aaa;font-size:12px;margin-top:10px">
+    🔒 Paiement 100% sécurisé · Vos données bancaires ne nous sont jamais transmises
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 — Modal mot de passe oublié
+     À ajouter juste après ta modale de login existante
+     ═══════════════════════════════════════════════════════ -->
+<div id="modal-forgot-password" style="
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:9999;align-items:center;justify-content:center">
+  <div style="
+    background:white;border-radius:16px;padding:32px;max-width:400px;
+    width:90%;margin:auto;position:relative">
+    <button onclick="closeForgotModal()" style="
+      position:absolute;top:12px;right:16px;background:none;border:none;
+      font-size:22px;cursor:pointer;color:#999">✕</button>
+    
+    <h2 style="margin:0 0 8px;color:#FF4500">🔑 Mot de passe oublié</h2>
+    <p style="color:#666;font-size:14px;margin-bottom:20px">
+      Entrez votre email et nous vous enverrons un lien de réinitialisation.
+    </p>
+
+    <div id="forgot-success" style="display:none;background:#e8f5e9;border-radius:8px;
+      padding:12px;color:#2e7d32;font-size:14px;margin-bottom:16px">
+      ✅ Email envoyé ! Vérifiez votre boîte mail (et les spams).
+    </div>
+
+    <input id="forgot-email" type="email" placeholder="Votre email" style="
+      width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;
+      font-size:15px;box-sizing:border-box;margin-bottom:12px">
+    
+    <button onclick="sendForgotPassword()" style="
+      width:100%;padding:13px;background:#FF4500;color:white;border:none;
+      border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer">
+      Envoyer le lien
+    </button>
+
+    <p style="text-align:center;margin-top:16px;font-size:13px">
+      <a href="#" onclick="closeForgotModal();openLoginModal();" 
+         style="color:#FF4500;text-decoration:none">← Retour à la connexion</a>
+    </p>
+  </div>
+</div>
+
+<!-- Modal reset password (affichée si ?reset_token= dans l'URL) -->
+<div id="modal-reset-password" style="
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:9999;align-items:center;justify-content:center">
+  <div style="
+    background:white;border-radius:16px;padding:32px;max-width:400px;
+    width:90%;margin:auto;position:relative">
+    <h2 style="margin:0 0 20px;color:#FF4500">🔒 Nouveau mot de passe</h2>
+
+    <input id="new-password" type="password" placeholder="Nouveau mot de passe (8 car. min)" 
+      style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;
+             font-size:15px;box-sizing:border-box;margin-bottom:10px">
+    <input id="new-password-confirm" type="password" placeholder="Confirmer le mot de passe" 
+      style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;
+             font-size:15px;box-sizing:border-box;margin-bottom:16px">
+    
+    <div id="reset-error" style="display:none;color:#e53935;font-size:13px;margin-bottom:10px"></div>
+
+    <button onclick="submitNewPassword()" style="
+      width:100%;padding:13px;background:#FF4500;color:white;border:none;
+      border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer">
+      Enregistrer le mot de passe
+    </button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — Bouton Google à ajouter dans ta modale login
+     Coller AVANT ou APRÈS les champs email/mot de passe
+     ═══════════════════════════════════════════════════════ -->
+<div style="margin-bottom:16px">
+  <button onclick="loginWithGoogle()" style="
+    width:100%;padding:12px;background:white;border:1px solid #ddd;
+    border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:10px">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+         style="height:20px">
+    Continuer avec Google
+  </button>
+  <div style="text-align:center;color:#aaa;font-size:13px;margin:12px 0">— ou —</div>
+</div>
+
+<!-- Lien "Mot de passe oublié" à ajouter sous le champ mot de passe -->
+<p style="text-align:right;margin:-4px 0 12px">
+  <a href="#" onclick="openForgotModal()" 
+     style="color:#FF4500;font-size:13px;text-decoration:none">
+    Mot de passe oublié ?
+  </a>
+</p>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — JavaScript
+     À coller dans ton <script> ou enhancements.js
+     ═══════════════════════════════════════════════════════ -->
+<script>
+const API_URL = "https://ton-backend.railway.app"; // ← Remplace par ton URL Railway
+const GOOGLE_CLIENT_ID = "TON_GOOGLE_CLIENT_ID.apps.googleusercontent.com"; // ← Remplace
+
+// Plan sélectionné (monthly | yearly)
+let selectedPlan = "monthly";
+
+// Mettre à jour quand l'utilisateur choisit un plan
+function selectPlan(plan) {
+  selectedPlan = plan;
+  const label = document.getElementById("payment-plan-label");
+  if (label) {
+    label.textContent = plan === "yearly" ? "39,99€/an" : "4,99€/mois";
+  }
+}
+
+// ─── Stripe ───────────────────────────────────────────────────────
+async function startStripePayment() {
+  const btn = document.getElementById("btn-stripe");
+  btn.disabled = true;
+  btn.textContent = "Chargement...";
+
+  const userEmail = localStorage.getItem("user_email") || prompt("Votre email :");
+  if (!userEmail) { btn.disabled = false; btn.textContent = "💳 Payer par carte bancaire"; return; }
+
+  try {
+    const resp = await fetch(`${API_URL}/payments/stripe/create-checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: selectedPlan, user_email: userEmail }),
+    });
+    const data = await resp.json();
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url; // Redirige vers Stripe Checkout
+    } else {
+      alert("Erreur : " + (data.detail || "Impossible de créer la session"));
+    }
+  } catch (e) {
+    alert("Erreur de connexion. Veuillez réessayer.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "💳 Payer par carte bancaire";
+  }
+}
+
+// ─── PayPal ───────────────────────────────────────────────────────
+async function startPayPalPayment() {
+  const btn = document.getElementById("btn-paypal");
+  btn.disabled = true;
+  btn.textContent = "Chargement...";
+
+  const userEmail = localStorage.getItem("user_email") || prompt("Votre email :");
+  if (!userEmail) { btn.disabled = false; return; }
+
+  try {
+    const resp = await fetch(`${API_URL}/payments/paypal/create-subscription`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: selectedPlan, user_email: userEmail }),
+    });
+    const data = await resp.json();
+    if (data.approve_url) {
+      window.location.href = data.approve_url; // Redirige vers PayPal
+    } else {
+      alert("Erreur PayPal : " + (data.detail || "Impossible de créer l'abonnement"));
+    }
+  } catch (e) {
+    alert("Erreur de connexion. Veuillez réessayer.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" style="height:20px"> Payer avec PayPal';
+  }
+}
+
+// Gérer le retour après paiement
+(function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("premium") === "success") {
+    alert("🎉 Merci ! Votre abonnement Premium est activé.");
+    // Optionnel : mettre à jour le UI, recharger l'utilisateur
+    window.history.replaceState({}, "", window.location.pathname);
+  } else if (params.get("premium") === "cancel") {
+    // Silencieux ou petit message
+    window.history.replaceState({}, "", window.location.pathname);
+  }
+})();
+
+// ─── Mot de passe oublié ──────────────────────────────────────────
+function openForgotModal() {
+  document.getElementById("modal-forgot-password").style.display = "flex";
+}
+function closeForgotModal() {
+  document.getElementById("modal-forgot-password").style.display = "none";
+  document.getElementById("forgot-success").style.display = "none";
+  document.getElementById("forgot-email").value = "";
+}
+
+async function sendForgotPassword() {
+  const email = document.getElementById("forgot-email").value.trim();
+  if (!email) return alert("Entrez votre email");
+
+  try {
+    const resp = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (resp.ok) {
+      document.getElementById("forgot-success").style.display = "block";
+    } else {
+      alert("Erreur. Réessayez.");
+    }
+  } catch {
+    alert("Erreur de connexion.");
+  }
+}
+
+// Gérer le lien de reset dans l'URL (?reset_token=...)
+(function handleResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("reset_token");
+  if (token) {
+    document.getElementById("modal-reset-password").style.display = "flex";
+    window.history.replaceState({}, "", window.location.pathname);
+    window.currentResetToken = token;
+  }
+})();
+
+async function submitNewPassword() {
+  const pwd = document.getElementById("new-password").value;
+  const confirm = document.getElementById("new-password-confirm").value;
+  const errEl = document.getElementById("reset-error");
+
+  if (pwd.length < 8) { errEl.textContent = "8 caractères minimum"; errEl.style.display = "block"; return; }
+  if (pwd !== confirm) { errEl.textContent = "Les mots de passe ne correspondent pas"; errEl.style.display = "block"; return; }
+
+  try {
+    const resp = await fetch(`${API_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: window.currentResetToken, new_password: pwd }),
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      alert("✅ Mot de passe mis à jour ! Vous pouvez vous connecter.");
+      document.getElementById("modal-reset-password").style.display = "none";
+    } else {
+      errEl.textContent = data.detail || "Erreur";
+      errEl.style.display = "block";
+    }
+  } catch {
+    alert("Erreur de connexion.");
+  }
+}
+
+// ─── Google OAuth ─────────────────────────────────────────────────
+function loginWithGoogle() {
+  const redirectUri = window.location.origin; // julvox.com
+  const scope = "openid email profile";
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent(scope)}` +
+    `&access_type=offline`;
+  window.location.href = authUrl;
+}
+
+// Gérer le callback Google (?code=...)
+(async function handleGoogleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  if (!code) return;
+
+  window.history.replaceState({}, "", window.location.pathname);
+
+  try {
+    const resp = await fetch(`${API_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, redirect_uri: window.location.origin }),
+    });
+    const data = await resp.json();
+    if (resp.ok && data.access_token) {
+      // Stocker le token comme tu le fais déjà pour les logins normaux
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user_email", data.user.email);
+      localStorage.setItem("user_name", data.user.name);
+      // Recharger la page ou mettre à jour l'UI
+      window.location.reload();
+    } else {
+      alert("Erreur Google : " + (data.detail || "Connexion échouée"));
+    }
+  } catch {
+    alert("Erreur de connexion avec Google.");
+  }
+})();
+</script>
