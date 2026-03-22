@@ -2526,29 +2526,7 @@ function renderDealOfDay(deal, el) {
       </div>
     </div>
 
-    <!-- Widget preview iOS -->
-    <div style="font-size:13px;font-weight:600;margin:16px 0 12px">📱 Widget iOS/Android</div>
-    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
-      <!-- Grand widget -->
-      <div class="widget-preview" style="min-width:160px">
-        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">🔥 DealScan</div>
-        <div style="font-size:13px;font-weight:600;line-height:1.2;margin-bottom:6px">${deal.name.slice(0,30)}…</div>
-        <div style="font-size:22px;font-weight:800;color:#FF5C2B;margin-bottom:4px">${deal.current_price}€</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4)">${discount?'-'+discount+'% · ':''}★ ${score}</div>
-      </div>
-      <!-- Petit widget -->
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div class="widget-preview-sm">
-          <div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:700">🔥 DEAL</div>
-          <div style="font-size:14px;font-weight:800;color:#fff">${deal.current_price}€</div>
-        </div>
-        <div style="width:80px;height:80px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;justify-content:space-between">
-          <div style="font-size:9px;color:var(--txt3)">NovaDeal™</div>
-          <div style="font-size:22px;font-weight:800;color:${scoreColor}">${score}</div>
-        </div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--txt3);margin-top:8px;line-height:1.5">Les widgets seront disponibles après la publication sur l'App Store et Google Play. Ajoutez DealScan à votre écran d'accueil pour un accès rapide.</div>
+
   `;
 }
 
