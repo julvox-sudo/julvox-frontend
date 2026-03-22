@@ -5307,7 +5307,10 @@ let _commVotes = {}; // cache votes locaux {dealId: 'validate'|'doubt'|'expired'
 
 function openCommunityPage() {
   openPage('communityPage');
-  bnClick(document.getElementById('bn-community'), 'community');
+  // Mettre le bouton communauté actif (null-safe)
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('bn-community');
+  if (btn) btn.classList.add('active');
   switchCommTab('deals');
 }
 
@@ -5316,6 +5319,7 @@ function switchCommTab(tab) {
   const tabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
   if (tabEl) tabEl.classList.add('active');
   const el = document.getElementById('commContent');
+  if (!el) return; // page pas encore dans le DOM
   if (tab === 'deals') loadCommDeals('recent', el);
   else if (tab === 'top') loadCommDeals('top', el);
   else if (tab === 'mine') loadMyCommDeals(el);
