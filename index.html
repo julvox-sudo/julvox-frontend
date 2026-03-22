@@ -1331,7 +1331,7 @@ a{text-decoration:none}
 <!-- NEWSLETTER PRÉFÉRENCES PAGE -->
 <div class="page" id="newsletterPrefsPage">
   <div class="page-head">
-    <button class="page-back" onclick="closePage('newsletterPrefsPage')">← Retour</button>
+    <button class="page-back" onclick="closePage('newsletterPrefsPage');setTimeout(()=>openAccountPage(),50)">← Retour</button>
     <div class="page-title">📬 Newsletter</div>
   </div>
   <div class="page-body" id="newsletterPrefsBody">
@@ -8068,7 +8068,8 @@ async function subscribeNewsletter() {
 
 // ── Newsletter prefs page (Mon Compte) ──────────────────────
 async function openNewsletterPrefs() {
-  openPage('newsletterPrefsPage');
+  closePage('accountPage');
+  setTimeout(() => openPage('newsletterPrefsPage'), 50);
   const body = document.getElementById('newsletterPrefsBody');
   body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)">⏳ Chargement…</div>';
 
