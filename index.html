@@ -2478,6 +2478,7 @@ async function openDealOfDay() {
 
 function renderDealOfDay(deal, el) {
   if (!deal) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Aucun deal disponible</div>'; return; }
+  window._currentDealOfDay = deal;  // stocké pour les boutons de partage
   const score    = deal.novadeal_score || 0;
   const discount = deal.discount_pct ? Math.round(deal.discount_pct) : 0;
   const scoreColor = score >= 85 ? 'var(--green)' : score >= 65 ? 'var(--gold)' : '#FF5C2B';
@@ -2508,19 +2509,19 @@ function renderDealOfDay(deal, el) {
     <!-- Partager -->
     <div style="font-size:13px;font-weight:600;margin-bottom:12px">📤 Partager ce deal</div>
     <div class="share-grid">
-      <div class="share-item" onclick="shareDeal('twitter', ${JSON.stringify(deal).replace(/'/g,'')})">
+      <div class="share-item" onclick="shareDealById('twitter')">
         <div class="share-item-icon">🐦</div>
         <div class="share-item-lbl">Twitter/X</div>
       </div>
-      <div class="share-item" onclick="shareDeal('whatsapp', ${JSON.stringify(deal).replace(/'/g,'')})">
+      <div class="share-item" onclick="shareDealById('whatsapp')">
         <div class="share-item-icon">💬</div>
         <div class="share-item-lbl">WhatsApp</div>
       </div>
-      <div class="share-item" onclick="shareDeal('telegram', ${JSON.stringify(deal).replace(/'/g,'')})">
+      <div class="share-item" onclick="shareDealById('telegram')">
         <div class="share-item-icon">✈️</div>
         <div class="share-item-lbl">Telegram</div>
       </div>
-      <div class="share-item" onclick="copyDealLink(${deal.id})">
+      <div class="share-item" onclick="shareDealById('copy')">
         <div class="share-item-icon">🔗</div>
         <div class="share-item-lbl">Copier</div>
       </div>
@@ -5963,6 +5964,29 @@ function contactProPlan(plan, price) {
 function shareDeal(platform, deal) {
   const text = `🔥 ${deal.name} à seulement ${deal.current_price}€ (-${Math.round(deal.discount_pct||0)}%) — Score NovaDeal™ : ${deal.novadeal_score}/100`;
   const url  = `https://julvox.com/?deal=${deal.id}`;
+  const urls = {
+    twitter:  `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+  };
+  if (urls[platform]) window.open(urls[platform], '_blank');
+}
+
+function shareDealById(platform) {
+  const deal = window._currentDealOfDay;
+  if (!deal) { showToast('⚠️ Deal introuvable'); return; }
+  const text = `🔥 ${deal.name} à seulement ${deal.current_price}€ (-${Math.round(deal.discount_pct||0)}%) — Score NovaDeal™ : ${deal.novadeal_score}/100`;
+  const url  = `https://julvox.com/?deal=${deal.id}`;
+  if (platform === 'copy') {
+    navigator.clipboard?.writeText(url)
+      .then(() => showToast('🔗 Lien copié !'))
+      .catch(() => showToast('🔗 ' + url));
+    return;
+  }
+  if (platform === 'native' && navigator.share) {
+    navigator.share({ title: deal.name, text, url }).catch(() => {});
+    return;
+  }
   const urls = {
     twitter:  `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
