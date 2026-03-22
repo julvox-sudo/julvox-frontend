@@ -950,6 +950,9 @@ a{text-decoration:none}
 .newsletter-btn{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
 .newsletter-btn:hover{opacity:.88}
 .newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
+.nl-freq-btn{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:10px 8px;cursor:pointer;color:var(--txt);font-family:'Inter',sans-serif;line-height:1.4;text-align:center;transition:all .15s;width:100%}
+.nl-freq-btn.active{border-color:var(--accent);background:rgba(255,92,43,.08)}
+.nl-freq-btn:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1069,12 +1072,68 @@ a{text-decoration:none}
 <!-- NEWSLETTER -->
 <div class="newsletter-box" id="newsletterBox">
   <div class="newsletter-title">📬 Deals en avant-première</div>
-  <div class="newsletter-sub">Reçois les meilleures offres chaque matin à 8h00.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
-  <div class="newsletter-row">
-    <input class="newsletter-input" type="email" id="newsletterEmail" placeholder="ton@email.com" onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
-    <button class="newsletter-btn" onclick="subscribeNewsletter()">M'inscrire →</button>
+  <div class="newsletter-sub">Reçois les meilleures offres selon ta fréquence.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
+
+  <!-- Step 1: email -->
+  <div id="nlStep1">
+    <div class="newsletter-row" style="margin-bottom:10px">
+      <input class="newsletter-input" type="email" id="newsletterEmail" placeholder="ton@email.com" onkeydown="if(event.key==='Enter')nlNextStep()"/>
+      <button class="newsletter-btn" onclick="nlNextStep()">Suivant →</button>
+    </div>
   </div>
-  <div class="newsletter-ok" id="newsletterOk">✅ Inscription confirmée ! À demain matin 🔥</div>
+
+  <!-- Step 2: fréquence (caché par défaut) -->
+  <div id="nlStep2" style="display:none">
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px;text-align:left">📅 Fréquence de réception</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      <button class="nl-freq-btn active" id="nlFreqDaily"   onclick="selectNlFreq('daily',this)">
+        <span style="font-size:16px">☀️</span><br>
+        <span style="font-size:12px;font-weight:700">Tous les jours</span><br>
+        <span style="font-size:10px;color:var(--txt3)">Chaque matin</span>
+      </button>
+      <button class="nl-freq-btn" id="nlFreqWeekly" onclick="selectNlFreq('weekly',this)">
+        <span style="font-size:16px">📅</span><br>
+        <span style="font-size:12px;font-weight:700">1x par semaine</span><br>
+        <span style="font-size:10px;color:var(--txt3)">Le jour de ton choix</span>
+      </button>
+      <button class="nl-freq-btn" id="nlFreqTwice" onclick="selectNlFreq('twice',this)">
+        <span style="font-size:16px">⚡</span><br>
+        <span style="font-size:12px;font-weight:700">2x par semaine</span><br>
+        <span style="font-size:10px;color:var(--txt3)">Lun + Jeu</span>
+      </button>
+      <button class="nl-freq-btn" id="nlFreqFlash" onclick="selectNlFreq('flash',this)">
+        <span style="font-size:16px">🔥</span><br>
+        <span style="font-size:12px;font-weight:700">Ventes flash only</span><br>
+        <span style="font-size:10px;color:var(--txt3)">En temps réel</span>
+      </button>
+    </div>
+
+    <!-- Options contextuelles -->
+    <div id="nlFreqOptions" style="margin-bottom:10px"></div>
+
+    <!-- Heure d'envoi -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--txt2);font-weight:600;white-space:nowrap">🕐 Heure d'envoi</span>
+      <select id="nlHour" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:12px;font-family:'Inter',sans-serif">
+        <option value="7">7h00</option>
+        <option value="8" selected>8h00</option>
+        <option value="9">9h00</option>
+        <option value="12">12h00</option>
+        <option value="18">18h00</option>
+        <option value="20">20h00</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="nlBack()" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--txt)">← Retour</button>
+      <button class="newsletter-btn" onclick="subscribeNewsletter()" style="flex:1">✅ M'inscrire</button>
+    </div>
+  </div>
+
+  <div class="newsletter-ok" id="newsletterOk" style="display:none">
+    ✅ Inscription confirmée ! On se retrouve bientôt 🔥<br>
+    <span style="font-size:11px;opacity:.8" id="nlConfirmLabel"></span>
+  </div>
 </div>
 
 <footer class="legal-footer" id="mainFooter">
@@ -1266,6 +1325,17 @@ a{text-decoration:none}
         🏷️ Publier le code
       </button>
     </div>
+  </div>
+</div>
+
+<!-- NEWSLETTER PRÉFÉRENCES PAGE -->
+<div class="page" id="newsletterPrefsPage">
+  <div class="page-head">
+    <button class="page-back" onclick="closePage('newsletterPrefsPage')">← Retour</button>
+    <div class="page-title">📬 Newsletter</div>
+  </div>
+  <div class="page-body" id="newsletterPrefsBody">
+    <div style="text-align:center;padding:30px;color:var(--txt3)">⏳ Chargement…</div>
   </div>
 </div>
 
@@ -4060,6 +4130,10 @@ async function openAccountPage() {
         <div class="account-item" style="cursor:pointer" onclick="openReferralPage()">
           <span class="account-item-label">🎁 Parrainage</span>
           <span style="color:var(--accent);font-size:13px">Gagner du Premium →</span>
+        </div>
+        <div class="account-item" style="cursor:pointer" onclick="openNewsletterPrefs()">
+          <span class="account-item-label">📬 Préférences newsletter</span>
+          <span style="font-size:13px;color:var(--txt3)">→</span>
         </div>
         <div class="account-item" style="cursor:pointer" onclick="openPage('privacyPage')">
           <span class="account-item-label">🔒 Mes données (RGPD)</span>
@@ -7895,38 +7969,311 @@ document.addEventListener('keydown', (e) => {
 
 
 // ── NEWSLETTER ────────────────────────────────────────────────
+// ── NEWSLETTER ───────────────────────────────────────────────
+let _nlFreq = 'daily';      // fréquence sélectionnée
+let _nlWeekday = null;      // jour sélectionné (weekly)
+
+const NL_FREQ_LABELS = {
+  daily:  (h) => `Tous les jours à ${h}h00`,
+  weekly: (h, wd) => `Chaque ${['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'][wd||0]} à ${h}h00`,
+  twice:  (h) => `Lundi et jeudi à ${h}h00`,
+  flash:  ()  => `Ventes flash en temps réel`,
+};
+
+function nlNextStep() {
+  const email = document.getElementById('newsletterEmail')?.value?.trim();
+  if (!email || !email.includes('@')) { showToast('⚠️ Email invalide'); return; }
+  document.getElementById('nlStep1').style.display = 'none';
+  document.getElementById('nlStep2').style.display = 'block';
+  renderNlFreqOptions();
+}
+
+function nlBack() {
+  document.getElementById('nlStep2').style.display = 'none';
+  document.getElementById('nlStep1').style.display = 'block';
+}
+
+function selectNlFreq(freq, btn) {
+  _nlFreq = freq;
+  document.querySelectorAll('.nl-freq-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNlFreqOptions();
+}
+
+function renderNlFreqOptions() {
+  const el = document.getElementById('nlFreqOptions');
+  if (!el) return;
+  if (_nlFreq === 'weekly') {
+    const days = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+    el.innerHTML = `
+      <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:6px">📆 Jour de la semaine</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+        ${days.map((d,i) => `<button onclick="selectNlWeekday(${i},this)" class="nl-freq-btn ${_nlWeekday===i?'active':''}" style="flex:0 0 calc(25% - 4px);padding:6px 2px;font-size:11px">${d.slice(0,3)}</button>`).join('')}
+      </div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function selectNlWeekday(day, btn) {
+  _nlWeekday = day;
+  document.querySelectorAll('#nlFreqOptions .nl-freq-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function _buildFrequencyPayload() {
+  const hour = parseInt(document.getElementById('nlHour')?.value || '8');
+  if (_nlFreq === 'daily')  return { type: 'daily',  hour };
+  if (_nlFreq === 'weekly') return { type: 'weekly', weekday: _nlWeekday ?? 0, hour };
+  if (_nlFreq === 'twice')  return { type: 'custom', weekdays: [0, 3], hour };  // lundi + jeudi
+  if (_nlFreq === 'flash')  return { type: 'daily',  hour: 8, flash_only: true };
+  return { type: 'daily', hour };
+}
+
+function _buildFrequencyLabel() {
+  const hour = parseInt(document.getElementById('nlHour')?.value || '8');
+  const fn = NL_FREQ_LABELS[_nlFreq];
+  return fn ? fn(hour, _nlWeekday ?? 0) : '';
+}
+
 async function subscribeNewsletter() {
   const email = document.getElementById('newsletterEmail')?.value?.trim();
-  const btn   = document.querySelector('.newsletter-btn');
-  const ok    = document.getElementById('newsletterOk');
+  if (!email || !email.includes('@')) { showToast('⚠️ Email invalide'); return; }
 
-  if (!email || !email.includes('@')) {
-    showToast('⚠️ Adresse email invalide');
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const frequency = _buildFrequencyPayload();
+  const label     = _buildFrequencyLabel();
+  const btn       = document.querySelector('#nlStep2 .newsletter-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ …'; }
 
   try {
-    const res = await fetch(API + '/newsletter/subscribe', {
+    await fetch(`${API}/newsletter/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'homepage_footer' }),
+      body: JSON.stringify({ email, frequency, source: 'homepage_footer' }),
     });
-    const data = await res.json();
-    if (ok) { ok.style.display = 'block'; }
-    document.getElementById('newsletterEmail').value = '';
-    showToast('📬 ' + (data.message || 'Inscription réussie !'));
-    // Sauvegarder localement
-    try { localStorage.setItem('ds_newsletter', email); } catch(e) {}
-  } catch(e) {
-    // Fallback local si API indisponible
-    if (ok) { ok.style.display = 'block'; }
-    showToast('📬 Inscription enregistrée !');
-    try { localStorage.setItem('ds_newsletter', email); } catch(e2) {}
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "M'inscrire →"; }
+  } catch(e) { /* fallback silencieux */ }
+
+  // Confirmation UX
+  document.getElementById('nlStep2').style.display = 'none';
+  const ok = document.getElementById('newsletterOk');
+  if (ok) {
+    ok.style.display = 'block';
+    const lbl = document.getElementById('nlConfirmLabel');
+    if (lbl) lbl.textContent = label;
   }
+  showToast('📬 Inscription confirmée !');
+  try { localStorage.setItem('ds_newsletter', email); localStorage.setItem('ds_nl_freq', JSON.stringify(frequency)); } catch(e) {}
+  if (btn) { btn.disabled = false; btn.textContent = "✅ M'inscrire"; }
+}
+
+// ── Newsletter prefs page (Mon Compte) ──────────────────────
+async function openNewsletterPrefs() {
+  openPage('newsletterPrefsPage');
+  const body = document.getElementById('newsletterPrefsBody');
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)">⏳ Chargement…</div>';
+
+  let prefs = null;
+  if (currentUser) {
+    try {
+      const r = await fetch(`${API}/newsletter/preferences`, {
+        headers: { 'Authorization': `Bearer ${currentUser.token}` }
+      });
+      if (r.ok) prefs = await r.json();
+    } catch(e) {}
+  }
+
+  const isSubscribed = prefs?.subscribed;
+  const freq = prefs?.frequency || { type: 'daily', hour: 8 };
+  const cats = prefs?.categories || ['all'];
+  const minScore = prefs?.min_score || 75;
+
+  const freqTypeLabel = {
+    daily: 'Tous les jours', weekly: '1x par semaine',
+    custom: '2x par semaine', flash: 'Flash only'
+  }[freq.type] || freq.type;
+
+  const catOptions = [
+    { val: 'all', lbl: '🌐 Toutes les catégories' },
+    { val: 'high-tech', lbl: '💻 High-Tech' },
+    { val: 'gaming', lbl: '🎮 Gaming' },
+    { val: 'mode', lbl: '👗 Mode' },
+    { val: 'alimentation', lbl: '🛒 Alimentation' },
+    { val: 'maison', lbl: '🏠 Maison' },
+    { val: 'sport', lbl: '⚽ Sport' },
+    { val: 'beaute', lbl: '💄 Beauté' },
+    { val: 'restaurants', lbl: '🍔 Restaurants' },
+  ];
+
+  body.innerHTML = `
+  <div style="padding:20px">
+
+    <!-- Statut -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-weight:700;font-size:14px">${isSubscribed ? '✅ Abonné·e' : '❌ Non abonné·e'}</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:2px">${prefs?.email || currentUser?.email || ''}</div>
+      </div>
+      ${isSubscribed
+        ? `<button onclick="unsubscribeNewsletter()" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);color:#e74c3c;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">Se désabonner</button>`
+        : `<button onclick="closePage('newsletterPrefsPage')" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">S'abonner</button>`
+      }
+    </div>
+
+    ${isSubscribed ? `
+    <!-- Fréquence -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:12px">📅 Fréquence d'envoi</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+        ${[
+          {v:'daily',  e:'☀️', t:'Tous les jours',   s:'Chaque matin'},
+          {v:'weekly', e:'📅', t:'1x par semaine',   s:'Le jour de ton choix'},
+          {v:'twice',  e:'⚡', t:'2x par semaine',   s:'Lun + Jeu'},
+          {v:'flash',  e:'🔥', t:'Flash only',       s:'En temps réel'},
+        ].map(o => `
+          <button onclick="selectPrefsFreq('${o.v}',this)"
+            class="nl-freq-btn ${freq.type === o.v || (freq.type==='custom' && o.v==='twice') ? 'active' : ''}"
+            id="pfreq_${o.v}">
+            <span style="font-size:16px">${o.e}</span><br>
+            <span style="font-size:11px;font-weight:700">${o.t}</span><br>
+            <span style="font-size:10px;color:var(--txt3)">${o.s}</span>
+          </button>`).join('')}
+      </div>
+      <div id="prefsWeekdayPicker" style="display:${freq.type==='weekly'?'block':'none'};margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:6px">Jour :</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((d,i)=>`
+            <button onclick="selectPrefsWeekday(${i},this)"
+              class="nl-freq-btn ${(freq.weekday??0)===i?'active':''}"
+              style="flex:0 0 calc(25% - 4px);padding:5px 2px;font-size:11px">${d}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--txt2);font-weight:600">🕐 Heure</span>
+        <select id="prefsHour" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:12px;font-family:'Inter',sans-serif">
+          ${[7,8,9,12,18,20].map(h=>`<option value="${h}" ${(freq.hour||8)===h?'selected':''}>${h}h00</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <!-- Catégories -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:12px">🏷️ Catégories</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${catOptions.map(c => `
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+            <input type="checkbox" value="${c.val}" ${cats.includes(c.val)||cats.includes('all')?'checked':''}
+              onchange="updateCatSelection(this)"
+              style="width:16px;height:16px;accent-color:var(--accent)"/>
+            ${c.lbl}
+          </label>`).join('')}
+      </div>
+    </div>
+
+    <!-- Score minimum -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:4px">⭐ Score NovaDeal™ minimum</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:12px">N'envoyer que les deals avec un score supérieur à :</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="prefsMinScore" min="50" max="95" step="5" value="${minScore}"
+          oninput="document.getElementById('prefsScoreVal').textContent=this.value"
+          style="flex:1;accent-color:var(--accent)"/>
+        <span id="prefsScoreVal" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);min-width:32px">${minScore}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-top:4px">
+        <span>Tous les deals</span><span>Top deals seulement</span>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button id="prefsSaveBtn" onclick="saveNewsletterPrefs()" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+      💾 Enregistrer mes préférences
+    </button>
+    ` : `<div style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">
+      Abonne-toi depuis l'accueil pour configurer tes préférences newsletter.
+    </div>`}
+  </div>`;
+
+  // Init prefs state
+  window._prefsFreq = freq.type === 'custom' ? 'twice' : freq.type;
+  window._prefsWeekday = freq.weekday ?? 0;
+}
+
+let _prefsFreq = 'daily';
+let _prefsWeekday = 0;
+
+function selectPrefsFreq(type, btn) {
+  _prefsFreq = type;
+  document.querySelectorAll('[id^="pfreq_"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const wd = document.getElementById('prefsWeekdayPicker');
+  if (wd) wd.style.display = type === 'weekly' ? 'block' : 'none';
+}
+
+function selectPrefsWeekday(day, btn) {
+  _prefsWeekday = day;
+  document.querySelectorAll('#prefsWeekdayPicker .nl-freq-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function updateCatSelection(checkbox) {
+  if (checkbox.value === 'all' && checkbox.checked) {
+    document.querySelectorAll('#newsletterPrefsBody input[type=checkbox]').forEach(cb => {
+      if (cb.value !== 'all') cb.checked = false;
+    });
+  } else if (checkbox.checked) {
+    const allCb = document.querySelector('#newsletterPrefsBody input[value="all"]');
+    if (allCb) allCb.checked = false;
+  }
+}
+
+async function saveNewsletterPrefs() {
+  if (!currentUser) { showToast(`⚠️ Connecte-toi d'abord`); return; }
+  const btn = document.getElementById('prefsSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Enregistrement…'; }
+
+  const hour = parseInt(document.getElementById('prefsHour')?.value || '8');
+  let frequency;
+  if (_prefsFreq === 'daily')  frequency = { type: 'daily', hour };
+  else if (_prefsFreq === 'weekly') frequency = { type: 'weekly', weekday: _prefsWeekday, hour };
+  else if (_prefsFreq === 'twice')  frequency = { type: 'custom', weekdays: [0, 3], hour };
+  else frequency = { type: 'daily', hour: 8 };
+
+  const checked = [...document.querySelectorAll('#newsletterPrefsBody input[type=checkbox]:checked')].map(cb => cb.value);
+  const categories = checked.length ? checked : ['all'];
+  const minScore = parseInt(document.getElementById('prefsMinScore')?.value || '75');
+
+  try {
+    const r = await fetch(`${API}/newsletter/preferences`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.token}` },
+      body: JSON.stringify({ frequency, categories, min_score: minScore })
+    });
+    if (r.ok) {
+      showToast('✅ Préférences enregistrées !');
+      closePage('newsletterPrefsPage');
+    } else {
+      const d = await r.json();
+      showToast(`❌ ${d.detail || 'Erreur'}`);
+    }
+  } catch(e) {
+    showToast('❌ Erreur réseau');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Enregistrer mes préférences'; }
+  }
+}
+
+async function unsubscribeNewsletter() {
+  if (!confirm('Se désabonner de la newsletter ?')) return;
+  try {
+    await fetch(`${API}/newsletter/preferences`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.token}` },
+      body: JSON.stringify({ frequency: { type: 'daily', hour: 8 }, categories: ['all'], active: false })
+    });
+    showToast('👋 Désabonnement confirmé');
+    try { localStorage.removeItem('ds_newsletter'); } catch(e) {}
+    closePage('newsletterPrefsPage');
+  } catch(e) { showToast('❌ Erreur réseau'); }
 }
 
 // Masquer le bloc newsletter si déjà inscrit
