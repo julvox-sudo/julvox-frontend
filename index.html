@@ -1179,12 +1179,21 @@ a{text-decoration:none}
     <button onclick="openAddPromoModal()" style="margin-left:auto;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer">+ Ajouter</button>
   </div>
   <div class="page-body">
+
+    <!-- Stats banner -->
+    <div id="promoStatsBanner" style="display:flex;gap:8px;margin-bottom:14px"></div>
+
     <!-- Search bar -->
-    <div style="position:relative;margin-bottom:12px">
+    <div style="position:relative;margin-bottom:10px">
       <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
-      <input type="text" id="promoSearchInput" placeholder="Chercher un marchand, une catégorie…" oninput="filterPromos(this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 12px 10px 36px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
+      <input type="text" id="promoSearchInput" placeholder="Chercher un marchand, un code…" oninput="filterPromos(this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 12px 10px 36px;color:var(--txt);font-size:13px;font-family:'Inter',sans-serif"/>
     </div>
-    <!-- Category filters -->
+
+    <!-- Sort + Category filters -->
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px" id="promoSortFilter">
+      <button class="comm-tab active" id="promoSortVotes"  onclick="setPromoSort('votes',this)">🔥 Les + votés</button>
+      <button class="comm-tab"        id="promoSortRecent" onclick="setPromoSort('recent',this)">🕐 Récents</button>
+    </div>
     <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px" id="promoCatFilter">
       <button class="comm-tab active" onclick="filterPromosByCat('',this)">Tous</button>
       <button class="comm-tab" onclick="filterPromosByCat('mode',this)">👗 Mode</button>
@@ -1195,6 +1204,7 @@ a{text-decoration:none}
       <button class="comm-tab" onclick="filterPromosByCat('beaute',this)">💄 Beauté</button>
       <button class="comm-tab" onclick="filterPromosByCat('restaurants',this)">🍔 Resto</button>
     </div>
+
     <!-- Promo grid -->
     <div id="promoGrid"></div>
   </div>
@@ -2937,10 +2947,11 @@ const _STATIC_PROMOS = [
   {id:'s8', store:'Decathlon',     emoji:'⚽', desc:"15% sur les articles de sport",   code:'DECA15',   discount:'-15%',            cat:'sport',       expiry:'30/06/2026', votes_ok:67,  votes_ko:9,  source:'verified'},
 ];
 
-let _allPromos = [..._STATIC_PROMOS]; // merge static + community
-let _promoVotes = {}; // {promoId: 'ok'|'ko'}
+let _allPromos      = [..._STATIC_PROMOS];
+let _promoVotes     = {};   // {promoId: 'ok'|'ko'}
 let _promoFilterCat = '';
-let _promoFilterText = '';
+let _promoFilterText= '';
+let _promoSort      = 'votes';
 
 function openPromosPage() {
   openPage('promosPage');
@@ -2948,16 +2959,54 @@ function openPromosPage() {
 }
 
 async function loadAndRenderPromos() {
-  // Try to load community codes from API
+  const grid = document.getElementById('promoGrid');
+  if (grid) grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">⏳ Chargement…</div>';
   try {
-    const r = await fetch(`${API}/promos?limit=50`);
+    const params = new URLSearchParams({ limit: 80, sort: _promoSort });
+    if (_promoFilterCat) params.set('cat', _promoFilterCat);
+    const r = await fetch(`${API}/promos?${params}`);
     if (r.ok) {
       const d = await r.json();
-      const community = (d.codes || []).map(p => ({...p, source:'community'}));
-      _allPromos = [..._STATIC_PROMOS, ...community];
+      const community = (d.codes || []).map(p => ({...p, source: p.source || 'community'}));
+      // Merge: community from API replaces static, keep static only if no API data
+      _allPromos = community.length ? community : [..._STATIC_PROMOS];
+      // Restore user votes from returned data
+      community.forEach(p => { if (p.user_vote) _promoVotes[p.id] = p.user_vote; });
     }
-  } catch(e) { /* use static */ }
+  } catch(e) { _allPromos = [..._STATIC_PROMOS]; }
+  renderPromoStats();
   renderPromoGrid();
+}
+
+function renderPromoStats() {
+  const el = document.getElementById('promoStatsBanner');
+  if (!el) return;
+  const total    = _allPromos.length;
+  const working  = _allPromos.filter(p => {
+    const tot = (p.votes_ok||0)+(p.votes_ko||0);
+    return tot > 0 && (p.votes_ok||0)/tot >= 0.7;
+  }).length;
+  const verified = _allPromos.filter(p => p.source === 'verified' || p.is_verified).length;
+  el.innerHTML = `
+    <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)">${total}</div>
+      <div style="font-size:11px;color:var(--txt3)">Codes actifs</div>
+    </div>
+    <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green)">${working}</div>
+      <div style="font-size:11px;color:var(--txt3)">Confirmés ✅</div>
+    </div>
+    <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold)">${verified}</div>
+      <div style="font-size:11px;color:var(--txt3)">Vérifiés ✓</div>
+    </div>`;
+}
+
+function setPromoSort(sort, btn) {
+  _promoSort = sort;
+  document.querySelectorAll('#promoSortFilter .comm-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadAndRenderPromos();
 }
 
 function renderPromoGrid() {
@@ -2965,64 +3014,101 @@ function renderPromoGrid() {
   if (!grid) return;
 
   let promos = _allPromos.filter(p => {
-    const matchCat  = !_promoFilterCat  || p.cat === _promoFilterCat;
-    const matchText = !_promoFilterText || (p.store + p.code + p.desc).toLowerCase().includes(_promoFilterText);
+    const matchCat  = !_promoFilterCat  || p.cat === _promoFilterCat || p.category === _promoFilterCat;
+    const matchText = !_promoFilterText || (p.store + p.code + (p.desc||'') + (p.description||'')).toLowerCase().includes(_promoFilterText);
     return matchCat && matchText;
   });
 
-  // Sort: community first by vote ratio, then static
-  promos.sort((a, b) => {
-    const ratioA = a.votes_ok / Math.max(1, a.votes_ok + a.votes_ko);
-    const ratioB = b.votes_ok / Math.max(1, b.votes_ok + b.votes_ko);
-    return ratioB - ratioA;
-  });
-
   if (!promos.length) {
-    grid.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txt3)">Aucun code trouvé.<br>Sois le premier à en ajouter un !</div>';
+    grid.innerHTML = `<div style="text-align:center;padding:32px 20px;color:var(--txt3)">
+      <div style="font-size:36px;margin-bottom:10px">🏷️</div>
+      <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:6px">Aucun code trouvé</div>
+      <div style="font-size:12px;margin-bottom:16px">Sois le premier à en ajouter un !</div>
+      <button onclick="openAddPromoModal()" style="background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">+ Ajouter un code</button>
+    </div>`;
     return;
   }
 
-  grid.innerHTML = promos.map(p => {
-    const total   = (p.votes_ok||0) + (p.votes_ko||0);
-    const pct     = total > 0 ? Math.round((p.votes_ok||0) / total * 100) : null;
-    const voted   = _promoVotes[p.id];
-    const isComm  = p.source === 'community';
-    const trustColor = pct === null ? 'var(--txt3)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : '#FF3B30';
-    const storeEmoji = p.emoji || getStoreEmoji(p.store);
+  grid.innerHTML = promos.map(p => renderPromoCard(p)).join('');
+}
 
-    return `
-    <div class="promo-card" style="position:relative">
-      ${p.source === 'verified' ? '<div style="position:absolute;top:10px;right:10px;font-size:10px;background:rgba(0,214,143,.12);color:var(--green);border:1px solid rgba(0,214,143,.2);border-radius:6px;padding:2px 7px;font-weight:700">✓ Vérifié</div>' : '<div style="position:absolute;top:10px;right:10px;font-size:10px;background:rgba(255,92,43,.1);color:var(--accent);border:1px solid rgba(255,92,43,.15);border-radius:6px;padding:2px 7px;font-weight:700">🤝 Communauté</div>'}
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <span style="font-size:26px">${storeEmoji}</span>
-        <div>
-          <div style="font-size:14px;font-weight:600">${escHtml(p.store)}</div>
-          <span style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:1px 7px;display:inline-block;margin-top:2px;font-weight:600">${escHtml(p.discount)}</span>
-        </div>
+function renderPromoCard(p) {
+  const total      = (p.votes_ok||0) + (p.votes_ko||0);
+  const pct        = total > 0 ? Math.round((p.votes_ok||0) / total * 100) : null;
+  const voted      = _promoVotes[p.id] || p.user_vote;
+  const isVerified = p.source === 'verified' || p.is_verified;
+  const storeEmoji = p.emoji || getStoreEmoji(p.store);
+  const isOwn      = currentUser && p.submitted_by === currentUser?.uid;
+
+  // Trust color + label
+  let trustColor, trustLabel, trustBg;
+  if (pct === null) {
+    trustColor = 'var(--txt3)'; trustLabel = 'Pas encore voté'; trustBg = 'var(--bg3)';
+  } else if (pct >= 80) {
+    trustColor = 'var(--green)'; trustLabel = `✅ ${pct}% de réussite`; trustBg = 'rgba(0,214,143,.08)';
+  } else if (pct >= 50) {
+    trustColor = 'var(--gold)'; trustLabel = `⚠️ ${pct}% de réussite`; trustBg = 'rgba(245,166,35,.08)';
+  } else {
+    trustColor = '#FF3B30'; trustLabel = `❌ ${pct}% — peut-être expiré`; trustBg = 'rgba(255,59,48,.06)';
+  }
+
+  // Progress bar width
+  const barWidth = pct !== null ? pct : 0;
+  const barColor = pct !== null ? (pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : '#FF3B30') : 'var(--border)';
+
+  return `
+  <div class="promo-card" style="position:relative;margin-bottom:10px">
+    <!-- Badge source -->
+    <div style="position:absolute;top:10px;right:10px;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;${isVerified ? 'background:rgba(0,214,143,.12);color:var(--green);border:1px solid rgba(0,214,143,.2)' : 'background:rgba(255,92,43,.1);color:var(--accent);border:1px solid rgba(255,92,43,.15)'}">
+      ${isVerified ? '✓ Vérifié' : '🤝 Communauté'}
+    </div>
+
+    <!-- Header: store + discount -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-right:70px">
+      <span style="font-size:26px">${storeEmoji}</span>
+      <div>
+        <div style="font-size:14px;font-weight:700">${escHtml(p.store)}</div>
+        <span style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:2px 8px;display:inline-block;margin-top:2px;font-weight:600">${escHtml(p.discount||p.discount_desc||'')}</span>
       </div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">${escHtml(p.desc||'')}</div>
-      <div class="promo-code-row" style="margin-bottom:10px">
-        <div class="promo-code">${escHtml(p.code)}</div>
-        <button class="promo-copy" onclick="copyPromo('${escHtml(p.code)}',this)">Copier</button>
+    </div>
+
+    <!-- Description -->
+    ${(p.description||p.desc) ? `<div style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.4">${escHtml(p.description||p.desc)}</div>` : ''}
+
+    <!-- Code + copy -->
+    <div class="promo-code-row" style="margin-bottom:10px">
+      <div class="promo-code" style="flex:1;letter-spacing:2px;font-size:15px">${escHtml(p.code)}</div>
+      <button class="promo-copy" onclick="copyPromo('${escHtml(p.code)}',this)">Copier</button>
+      <button onclick="sharePromo('${escHtml(p.code)}','${escHtml(p.store)}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:var(--txt)">↗</button>
+    </div>
+
+    <!-- Trust progress bar -->
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:${trustColor};font-weight:600">${trustLabel}</span>
+        <span style="font-size:10px;color:var(--txt3)">${total > 0 ? total + ' vote' + (total>1?'s':'') : ''}</span>
       </div>
-      <!-- Taux de succès communauté -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:11px;color:${trustColor};font-weight:600">
-          ${pct !== null ? `${pct}% de réussite (${total} votes)` : 'Pas encore voté'}
-        </div>
-        ${p.expiry ? `<div style="font-size:11px;color:var(--txt3)">⏳ ${escHtml(p.expiry)}</div>` : ''}
+      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${barWidth}%;background:${barColor};border-radius:2px;transition:width .4s"></div>
       </div>
-      <!-- Boutons vote -->
-      <div style="display:flex;gap:6px">
-        <button onclick="votePromo('${p.id}','ok',this)" class="comm-vote-btn validate ${voted==='ok'?'voted':''}" style="flex:1;font-size:11px;padding:6px 0">
-          ✅ Fonctionne · ${p.votes_ok||0}
-        </button>
-        <button onclick="votePromo('${p.id}','ko',this)" class="comm-vote-btn expired ${voted==='ko'?'voted':''}" style="flex:1;font-size:11px;padding:6px 0">
-          ❌ Expiré · ${p.votes_ko||0}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
+    </div>
+
+    <!-- Meta: author + expiry -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:10px;color:var(--txt3)">👤 ${escHtml(p.author_name||'Communauté')}</span>
+      ${p.expiry ? `<span style="font-size:10px;color:var(--txt3)">⏳ ${escHtml(p.expiry)}</span>` : ''}
+    </div>
+
+    <!-- Vote buttons -->
+    <div style="display:flex;gap:6px">
+      <button onclick="votePromo(${p.id},'ok',this)" class="comm-vote-btn validate ${voted==='ok'?'voted':''}" style="flex:1;font-size:11px;padding:7px 0">
+        ✅ Fonctionne · ${p.votes_ok||0}
+      </button>
+      <button onclick="votePromo(${p.id},'ko',this)" class="comm-vote-btn expired ${voted==='ko'?'voted':''}" style="flex:1;font-size:11px;padding:7px 0">
+        ❌ Expiré · ${p.votes_ko||0}
+      </button>
+    </div>
+  </div>`;
 }
 
 function filterPromos(text) {
@@ -3034,35 +3120,45 @@ function filterPromosByCat(cat, btn) {
   _promoFilterCat = cat;
   document.querySelectorAll('#promoCatFilter .comm-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderPromoGrid();
+  loadAndRenderPromos();
 }
 
-function votePromo(id, type, btn) {
-  const prev = _promoVotes[id];
-  const promo = _allPromos.find(p => p.id === id || p.id === String(id));
+async function votePromo(id, type, btn) {
+  if (!currentUser) { showToast('⚠️ Connecte-toi pour voter'); openAuth('login'); return; }
+
+  const promo = _allPromos.find(p => p.id == id);
   if (!promo) return;
 
+  const prev = _promoVotes[id] || promo.user_vote;
+
+  // Optimistic UI
+  if (prev) {
+    promo[prev === 'ok' ? 'votes_ok' : 'votes_ko'] = Math.max(0, (promo[prev === 'ok' ? 'votes_ok' : 'votes_ko']||0) - 1);
+  }
   if (prev === type) {
     delete _promoVotes[id];
-    promo[type === 'ok' ? 'votes_ok' : 'votes_ko'] = Math.max(0, (promo[type === 'ok' ? 'votes_ok' : 'votes_ko']||0) - 1);
+    promo.user_vote = null;
   } else {
-    if (prev) {
-      promo[prev === 'ok' ? 'votes_ok' : 'votes_ko'] = Math.max(0, (promo[prev === 'ok' ? 'votes_ok' : 'votes_ko']||0) - 1);
-    }
     _promoVotes[id] = type;
+    promo.user_vote = type;
     promo[type === 'ok' ? 'votes_ok' : 'votes_ko'] = (promo[type === 'ok' ? 'votes_ok' : 'votes_ko']||0) + 1;
   }
   renderPromoGrid();
   showToast(type === 'ok' ? '✅ Merci pour ton vote !' : '❌ Code signalé comme expiré');
 
-  // Sync with API (best effort)
-  if (currentUser) {
-    fetch(`${API}/promos/${id}/vote`, {
+  // Sync API
+  try {
+    const r = await fetch(`${API}/promos/${id}/vote`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${currentUser.token}`},
       body: JSON.stringify({ vote_type: type })
-    }).catch(() => {});
-  }
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (promo) { promo.votes_ok = d.votes_ok; promo.votes_ko = d.votes_ko; }
+      renderPromoGrid();
+    }
+  } catch(e) {}
 }
 
 function openAddPromoModal() {
@@ -3084,40 +3180,41 @@ async function submitPromoCode() {
   const desc     = document.getElementById('apDesc')?.value?.trim();
   const expiry   = document.getElementById('apExpiry')?.value;
 
-  if (!store) { showToast('⚠️ Indique le marchand'); return; }
-  if (!code)  { showToast('⚠️ Indique le code'); return; }
-  if (!discount) { showToast('⚠️ Indique la réduction'); return; }
+  if (!store)    { showToast('⚠️ Indique le marchand'); return; }
+  if (!code)     { showToast('⚠️ Indique le code'); return; }
+  if (!discount) { showToast(`⚠️ Indique la réduction`); return; }
 
-  // Check doublon
-  if (_allPromos.some(p => p.code === code)) {
-    showToast('⚠️ Ce code existe déjà !'); return;
-  }
+  const btn = document.querySelector('#addPromoOverlay button[onclick="submitPromoCode()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi…'; }
 
-  const newPromo = {
-    id:       'c_' + Date.now(),
-    store, code, discount, cat,
-    desc:     desc || '',
-    emoji:    getStoreEmoji(store),
-    expiry:   expiry ? new Date(expiry).toLocaleDateString('fr-FR') : null,
-    votes_ok: 1,
-    votes_ko: 0,
-    source:   'community'
-  };
-  _allPromos.push(newPromo);
-  _promoVotes[newPromo.id] = 'ok'; // auto-vote du soumetteur
-  closeAddPromo();
-  renderPromoGrid();
-  showToast(`🏷️ Code "${code}" ajouté ! +10 pts`);
-  ['apStore','apCode','apDiscount','apDesc','apExpiry'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-
-  // Sync API
   try {
-    await fetch(`${API}/promos`, {
+    const r = await fetch(`${API}/promos`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${currentUser.token}`},
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${currentUser.token}`},
       body: JSON.stringify({ store, code, discount, category: cat, description: desc, expiry_date: expiry })
     });
-  } catch(e) {}
+    const d = await r.json();
+    if (!r.ok) { showToast(`❌ ${d.detail || 'Erreur'}`); return; }
+
+    closeAddPromo();
+    showToast(`🏷️ Code "${code}" ajouté ! +10 pts`);
+    ['apStore','apCode','apDiscount','apDesc','apExpiry'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    await loadAndRenderPromos();
+  } catch(e) {
+    showToast('❌ Erreur réseau, réessaie');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🏷️ Publier le code'; }
+  }
+}
+
+function sharePromo(code, store) {
+  const text = `Code promo ${store} : ${code} 🏷️ Trouvé sur DealScan julvox.com`;
+  if (navigator.share) {
+    navigator.share({ title: `Code promo ${store}`, text, url: 'https://julvox.com' })
+      .catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ Lien copié pour partage !'));
+  }
 }
 
 function getStoreEmoji(store) {
