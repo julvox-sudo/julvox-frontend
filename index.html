@@ -965,6 +965,18 @@ a{text-decoration:none}
       try { updateNavForUser(); } catch(e) {}
     }
   });
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  const firebaseConfig = {apiKey:"AIzaSyBC01Ux0Gt-T-2GbZTzVGUfS1s0bcCUZXQ",authDomain:"julvox-dealscan.firebaseapp.com",projectId:"julvox-dealscan",messagingSenderId:"192020498483",appId:"1:192020498483:web:d5f69537490ca305883b46"};
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  window._firebaseAuth = auth;
+  window._fbSignIn = (e,p) => signInWithEmailAndPassword(auth,e,p);
+  window._fbSignUp = (e,p) => createUserWithEmailAndPassword(auth,e,p);
+  window._fbSignOut = () => signOut(auth);
+  window._fbReset = (e) => sendPasswordResetEmail(auth,e);
 </script>
 </head>
 <body>
