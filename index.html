@@ -935,6 +935,9 @@ a{text-decoration:none}
 .newsletter-btn{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
 .newsletter-btn:hover{opacity:.88}
 .newsletter-ok{font-size:13px;color:var(--green);margin-top:10px;display:none}
+.nl-freq-btn{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt2);font-family:'Inter',sans-serif;transition:all .2s}
+.nl-freq-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nl-freq-active{background:rgba(255,92,43,.12);border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1054,12 +1057,21 @@ a{text-decoration:none}
 <!-- NEWSLETTER -->
 <div class="newsletter-box" id="newsletterBox">
   <div class="newsletter-title">📬 Deals en avant-première</div>
-  <div class="newsletter-sub">Reçois les meilleures offres chaque matin à 8h00.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
+  <div class="newsletter-sub">Reçois les meilleures offres directement dans ta boîte mail.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
+
+  <!-- Choix de fréquence -->
+  <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+    <button onclick="selectNewsletterFreq(this,'daily')"   class="nl-freq-btn nl-freq-active" data-freq="daily">📅 Quotidien</button>
+    <button onclick="selectNewsletterFreq(this,'weekly')"  class="nl-freq-btn" data-freq="weekly">📆 Hebdo</button>
+    <button onclick="selectNewsletterFreq(this,'flash')"   class="nl-freq-btn" data-freq="flash">⚡ Flash only</button>
+    <button onclick="selectNewsletterFreq(this,'monthly')" class="nl-freq-btn" data-freq="monthly">🗓️ Mensuel</button>
+  </div>
+
   <div class="newsletter-row">
     <input class="newsletter-input" type="email" id="newsletterEmail" placeholder="ton@email.com" onkeydown="if(event.key==='Enter')subscribeNewsletter()"/>
     <button class="newsletter-btn" onclick="subscribeNewsletter()">M'inscrire →</button>
   </div>
-  <div class="newsletter-ok" id="newsletterOk">✅ Inscription confirmée ! À demain matin 🔥</div>
+  <div class="newsletter-ok" id="newsletterOk">✅ Inscription confirmée ! 🔥</div>
 </div>
 
 <footer class="legal-footer" id="mainFooter">
@@ -1800,7 +1812,10 @@ a{text-decoration:none}
       <div class="ob-title" style="text-align:center">Bienvenue sur DealScan</div>
       <div class="ob-subtitle" style="text-align:center">L'app qui détecte les vraies bonnes affaires grâce à l'algorithme NovaDeal™</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px">
-        ${['✅ Détection fausses promos automatique','🏆 Score de confiance NovaDeal™ sur chaque deal','🔔 Alertes prix intelligentes et prédictives','🔍 Comparateur multi-marchands en temps réel'].map(f=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${f}</span></div>`).join('')}
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>✅ Détection fausses promos automatique</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🏆 Score de confiance NovaDeal™ sur chaque deal</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span>🔔 Alertes prix intelligentes et prédictives</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px"><span>🔍 Comparateur multi-marchands en temps réel</span></div>
       </div>
       <button class="ob-next-btn" onclick="obNext(2)">Commencer →</button>
     </div>
@@ -3245,9 +3260,14 @@ function loginWithGoogle() {
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({code, redirect_uri: window.location.origin})
     });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || 'Erreur Google');
-    loginSuccess({token: d.access_token, is_premium: d.user?.is_premium || false, name: d.user?.name}, d.user?.email);
+    let d;
+    try { d = await r.json(); } catch(_) { throw new Error('Réponse serveur invalide'); }
+    if (!r.ok) throw new Error(d?.detail || 'Erreur serveur Google');
+    if (!d?.access_token) throw new Error('Token manquant dans la réponse');
+    const userEmail   = d.user?.email   || '';
+    const userName    = d.user?.name    || userEmail.split('@')[0] || 'Utilisateur';
+    const isPremium   = d.is_premium    || d.user?.is_premium || false;
+    loginSuccess({token: d.access_token, is_premium: isPremium, name: userName}, userEmail);
   } catch(e) {
     showToast('❌ Connexion Google échouée : ' + e.message);
   }
@@ -6011,9 +6031,7 @@ function renderTrending(deals, el) {
 }
 
 // ── INIT APP ──────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  checkOnboarding();
-});
+// checkOnboarding désactivé - initOnboarding() gère déjà l'onboarding principal
 
 
 
@@ -6950,6 +6968,14 @@ document.addEventListener('keydown', (e) => {
 
 
 // ── NEWSLETTER ────────────────────────────────────────────────
+let _newsletterFreq = 'daily';
+
+function selectNewsletterFreq(btn, freq) {
+  _newsletterFreq = freq;
+  document.querySelectorAll('.nl-freq-btn').forEach(b => b.classList.remove('nl-freq-active'));
+  btn.classList.add('nl-freq-active');
+}
+
 async function subscribeNewsletter() {
   const email = document.getElementById('newsletterEmail')?.value?.trim();
   const btn   = document.querySelector('.newsletter-btn');
@@ -6962,26 +6988,33 @@ async function subscribeNewsletter() {
 
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
+  const freqMap = {
+    daily:   {type: 'daily',   hour: 8},
+    weekly:  {type: 'weekly',  day: 'monday', hour: 8},
+    flash:   {type: 'custom',  days: ['monday','wednesday','friday'], hour: 8},
+    monthly: {type: 'monthly', day: 1, hour: 8},
+  };
+  const freqObj = freqMap[_newsletterFreq] || freqMap.daily;
+
   try {
     const res = await fetch(API + '/newsletter/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'homepage_footer' }),
+      body: JSON.stringify({ email, frequency: freqObj, source: 'homepage_footer' }),
     });
     const data = await res.json();
-    if (ok) { ok.style.display = 'block'; }
+    if (ok) { ok.textContent = `✅ Inscription confirmée ! Fréquence : ${freqLabel} 🔥`; ok.style.display = 'block'; }
     document.getElementById('newsletterEmail').value = '';
     showToast('📬 ' + (data.message || 'Inscription réussie !'));
-    // Sauvegarder localement
-    try { localStorage.setItem('ds_newsletter', email); } catch(e) {}
+    try { localStorage.setItem('ds_newsletter', JSON.stringify({email, freq: _newsletterFreq})); } catch(e) {}
   } catch(e) {
-    // Fallback local si API indisponible
-    if (ok) { ok.style.display = 'block'; }
+    if (ok) { ok.textContent = `✅ Inscription enregistrée ! Fréquence : ${freqLabel} 🔥`; ok.style.display = 'block'; }
     showToast('📬 Inscription enregistrée !');
-    try { localStorage.setItem('ds_newsletter', email); } catch(e2) {}
+    try { localStorage.setItem('ds_newsletter', JSON.stringify({email, freq: _newsletterFreq})); } catch(e2) {}
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "M'inscrire →"; }
   }
+}
 }
 
 // Masquer le bloc newsletter si déjà inscrit
