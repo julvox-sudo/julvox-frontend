@@ -3281,6 +3281,15 @@ function getStoreEmoji(store) {
   return '🏷️';
 }
 
+function trackAffiliateClick(dealId, store, src = 'site') {
+  // Tracking silencieux des clics affiliés
+  fetch(`${API}/affiliate/click`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal_id: dealId, store, source: src })
+  }).catch(() => {});
+}
+
 function copyPromo(code, btn) {
   navigator.clipboard.writeText(code).then(() => {
     btn.textContent = '✅'; btn.style.background = 'var(--green)';
@@ -5657,7 +5666,7 @@ function renderCommDealCard(d) {
 
     <!-- Actions -->
     <div style="display:flex;gap:8px">
-      ${d.url ? `<a href="${escHtml(d.url)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;text-decoration:none">🛒 Voir l'offre →</a>` : ''}
+      ${d.url ? `<a href="${d.id ? API.replace('/api','')+'/go/comm_'+d.id+'?src=community' : escHtml(d.url)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;text-decoration:none">🛒 Voir l'offre →</a>` : ''}
       <button onclick="openCommComments(${d.id},'${escHtml(d.product_name||'Deal')}')" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt)">💬 Commenter ${d.comments_count ? `(${d.comments_count})` : ''}</button>
     </div>
   </div>`;
@@ -8475,5 +8484,7 @@ function getDemoDeals(cat) {
 </script>
 
 <script src="/enhancements.js"></script>
+  <!-- Awin verification -->
+  <div style="position:fixed;bottom:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.15);z-index:1;pointer-events:none">Hello Awin</div>
 </body>
 </html>
