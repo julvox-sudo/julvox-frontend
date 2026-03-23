@@ -6383,10 +6383,17 @@ async function enableNotifPermission() {
 async function subscribeToPush() {
   if (!swRegistration) return;
   try {
+    // Récupérer la clé publique VAPID depuis le backend
+    let vapidKey = 'BFZIjtxs_NVTn-QteCxYYGYYpWtb38FSRuC49NAwtRtmUUhf2n6padi5-BPA85nH_QnPnuK2H1t4Xs010UURGuA';
+    try {
+      const kr = await fetch(`${API}/push/vapid-public-key`);
+      if (kr.ok) { const kd = await kr.json(); if (kd.public_key) vapidKey = kd.public_key; }
+    } catch(e) {}
+
     // Subscribe to push
     const sub = await swRegistration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array('BEl62iUYgUivxIkv69yViEuiBIa40U4RNSIfRnusCoBMrV_XWB4HT6dHbV8SG4DxLHiUObzXNJbfNRuGbOqUHZw')
+      applicationServerKey: urlBase64ToUint8Array('BFZIjtxs_NVTn-QteCxYYGYYpWtb38FSRuC49NAwtRtmUUhf2n6padi5-BPA85nH_QnPnuK2H1t4Xs010UURGuA')
     });
     // Envoyer la subscription au backend
     if (currentUser) {
