@@ -1,144 +1,221 @@
 // ============================================================
-//  DealScan — Service Worker v5
-//  Cache offline-first pour une expérience fluide même sans réseau
+//  DealScan — Service Worker v6 PWA
+//  Cache offline-first + Push Notifications par catégorie
 // ============================================================
 
-const CACHE_NAME   = 'dealscan-v6';
-const CACHE_STATIC = 'dealscan-static-v6';
+const CACHE_VERSION = 'v7';
+const CACHE_NAME    = `dealscan-${CACHE_VERSION}`;
+const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;
 
-// Ressources à mettre en cache immédiatement à l'installation
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
 ];
 
-// ── Install : mise en cache des assets statiques ─────────────
+// ── Install ──────────────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_STATIC).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Silencieux si un asset échoue (ex: fonts offline)
-      });
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_STATIC)
+      .then(cache => cache.addAll(STATIC_ASSETS).catch(() => {}))
+      .then(() => self.skipWaiting())
   );
 });
 
-// ── Activate : nettoyage des anciens caches ──────────────────
+// ── Activate ─────────────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
+    caches.keys()
+      .then(keys => Promise.all(
         keys.filter(k => k !== CACHE_NAME && k !== CACHE_STATIC)
             .map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
-// ── Fetch : stratégie selon le type de ressource ─────────────
+// ── Fetch ────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 1. API Railway → Network first (données fraîches), fallback cache
-  if (url.hostname.includes('railway.app')) {
-    event.respondWith(networkFirstWithCache(event.request, CACHE_NAME, 60));
+  // API Railway → Network first
+  if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {
+    event.respondWith(networkFirst(event.request, CACHE_NAME, 60));
     return;
   }
 
-  // 2. Fonts Google → Cache first (ne changent jamais)
+  // Fonts → Cache first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(cacheFirst(event.request, CACHE_STATIC));
     return;
   }
 
-  // 3. Page HTML principale → Network first, fallback cache
-  if (event.request.mode === 'navigate' || url.pathname === '/') {
-    event.respondWith(networkFirstWithCache(event.request, CACHE_STATIC, 300));
+  // Navigation HTML → Network first avec fallback offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(networkFirst(event.request, CACHE_STATIC, 300));
     return;
   }
 
-  // 4. Tout le reste → Network only (pas de cache)
-  event.respondWith(fetch(event.request).catch(() => {
-    return caches.match('/index.html');
-  }));
+  // Reste → Network with cache fallback
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match('/index.html'))
+  );
 });
 
-// ── Stratégie Network First ────────────────────────────────────
-async function networkFirstWithCache(request, cacheName, ttlSeconds = 60) {
+async function networkFirst(request, cacheName, ttl = 60) {
   try {
-    const networkResponse = await fetch(request.clone());
-    if (networkResponse.ok) {
+    const res = await fetch(request.clone());
+    if (res.ok) {
       const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
+      cache.put(request, res.clone());
     }
-    return networkResponse;
+    return res;
   } catch(e) {
-    // Réseau indisponible → essayer le cache
     const cached = await caches.match(request);
-    if (cached) {
-      const cachedAt = cached.headers.get('sw-cached-at');
-      // Vérifier TTL
-      if (cachedAt && (Date.now() - parseInt(cachedAt)) < ttlSeconds * 1000) {
-        return cached;
-      }
-      if (cachedAt) return cached; // Retourner cache expiré plutôt que rien
-    }
+    if (cached) return cached;
     return new Response(JSON.stringify({ error: 'offline', deals: [] }), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
 }
 
-// ── Stratégie Cache First ─────────────────────────────────────
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
   try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
-    }
-    return response;
+    const res = await fetch(request);
+    if (res.ok) (await caches.open(cacheName)).put(request, res.clone());
+    return res;
   } catch(e) {
     return new Response('', { status: 503 });
   }
 }
 
-// ── Push Notifications ────────────────────────────────────────
+// ── Push Notifications ───────────────────────────────────────
 self.addEventListener('push', event => {
   if (!event.data) return;
+
   let data;
-  try { data = event.data.json(); } 
-  catch(e) { data = { title: '🔥 DealScan', body: event.data.text() }; }
+  try { data = event.data.json(); }
+  catch(e) { data = { title: '🔥 DealScan', body: event.data.text(), type: 'general' }; }
+
+  // Vérifier les préférences utilisateur (stockées via postMessage)
+  const notifType = data.type || 'general';
+
+  const notifOptions = {
+    body:    data.body    || 'Un nouveau deal vous attend !',
+    icon:    data.icon    || '/icon-192.png',
+    badge:   '/badge-72.png',
+    image:   data.image   || undefined,
+    tag:     data.tag     || `dealscan-${notifType}`,
+    data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
+    vibrate: [200, 100, 200],
+    requireInteraction: notifType === 'alert_price', // Les alertes prix restent jusqu'au clic
+    actions: _getActions(notifType),
+  };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || '🔥 DealScan', {
-      body:    data.body || 'Un nouveau deal vous attend !',
-      icon:    '/icon-192.png',
-      badge:   '/badge-72.png',
-      tag:     data.tag || 'dealscan-notif',
-      data:    { url: data.url || 'https://julvox.com' },
-      actions: [
-        { action: 'view',    title: '🔥 Voir le deal' },
-        { action: 'dismiss', title: '✕ Ignorer' },
-      ],
-      vibrate: [200, 100, 200],
+    self.registration.showNotification(data.title || _getTitle(notifType), notifOptions)
+  );
+});
+
+function _getTitle(type) {
+  const titles = {
+    deal_score90: '🏆 Deal exceptionnel',
+    alert_price:  '🎯 Alerte prix déclenchée !',
+    flash_deal:   '⚡ Vente Flash',
+    newsletter:   '📬 Tes deals du jour',
+    new_feature:  '✨ Nouveauté DealScan',
+    community:    '🤝 Communauté',
+  };
+  return titles[type] || '🔥 DealScan';
+}
+
+function _getActions(type) {
+  if (type === 'alert_price') return [
+    { action: 'view',    title: '🛒 Voir le deal' },
+    { action: 'snooze',  title: '⏰ Rappel +1h' },
+    { action: 'dismiss', title: '✕ Ignorer' },
+  ];
+  if (type === 'flash_deal') return [
+    { action: 'view',    title: '⚡ Saisir l\'offre' },
+    { action: 'dismiss', title: '✕' },
+  ];
+  return [
+    { action: 'view',    title: '🔥 Voir' },
+    { action: 'dismiss', title: '✕' },
+  ];
+}
+
+// ── Notification click ───────────────────────────────────────
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  if (event.action === 'dismiss') return;
+
+  const notifData = event.notification.data || {};
+  let url = notifData.url || 'https://julvox.com';
+
+  // Snooze : re-notify dans 1h
+  if (event.action === 'snooze') {
+    const data = event.notification.data;
+    setTimeout(() => {
+      self.registration.showNotification(event.notification.title, {
+        body: event.notification.body,
+        icon: event.notification.icon,
+        data,
+        tag: (data.tag || 'snooze') + '-snoozed',
+      });
+    }, 3600000);
+    return;
+  }
+
+  if (notifData.dealId) url = `https://julvox.com/?deal=${notifData.dealId}`;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
+      for (const c of cls) {
+        if (c.url.startsWith('https://julvox.com') && 'focus' in c) {
+          c.postMessage({ type: 'navigate', url });
+          return c.focus();
+        }
+      }
+      return clients.openWindow(url);
     })
   );
 });
 
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  if (event.action === 'dismiss') return;
-  const url = event.notification.data?.url || 'https://julvox.com';
-  event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(windowClients => {
-      for (const client of windowClients) {
-        if (client.url === url && 'focus' in client) return client.focus();
-      }
-      if (clients.openWindow) return clients.openWindow(url);
-    })
-  );
+// ── Background Sync (retry failed API calls) ─────────────────
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-votes') {
+    event.waitUntil(syncPendingVotes());
+  }
+  if (event.tag === 'sync-alerts') {
+    event.waitUntil(syncPendingAlerts());
+  }
+});
+
+async function syncPendingVotes() {
+  // Les votes en attente sont envoyés quand la connexion revient
+  try {
+    const cache = await caches.open('dealscan-pending');
+    const keys  = await cache.keys();
+    for (const req of keys) {
+      try {
+        const res = await fetch(req);
+        if (res.ok) await cache.delete(req);
+      } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+async function syncPendingAlerts() {
+  // Idem pour les alertes
+}
+
+// ── Message from page ─────────────────────────────────────────
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

@@ -1878,14 +1878,14 @@ a{text-decoration:none}
   <button class="install-prompt-close" onclick="dismissInstallPrompt()">✕</button>
   <div class="install-prompt-header">
     <div class="install-prompt-icon">🔥</div>
-    <div>
+    <div style="flex:1">
       <div class="install-prompt-title">Installer DealScan</div>
-      <div class="install-prompt-sub">Accès rapide depuis l'écran d'accueil</div>
+      <div class="install-prompt-sub">Notifications push · Mode hors ligne · Accès rapide</div>
     </div>
   </div>
   <div id="installInstructions" class="install-prompt-steps"></div>
-  <div style="display:flex;gap:8px">
-    <button id="installPwaBtn" onclick="triggerPwaInstall()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:600;cursor:pointer" class="display:none">
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button id="installPwaBtn" onclick="triggerPwaInstall()" style="flex:1;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;display:none;font-family:'Syne',sans-serif">
       📲 Installer l'app
     </button>
     <button onclick="dismissInstallPrompt()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--txt2);border-radius:12px;padding:11px;font-size:13px;cursor:pointer">
@@ -4112,6 +4112,14 @@ async function openAccountPage() {
           <span class="account-item-label">🎁 Parrainage</span>
           <span style="color:var(--accent);font-size:13px">Gagner du Premium →</span>
         </div>
+        <div class="account-item" style="cursor:pointer" onclick="openPage('notifsPage');renderNotifsPage()">
+          <span class="account-item-label">🔔 Notifications push</span>
+          <span style="font-size:13px;color:var(--txt3)" id="notifStatusBadge">→</span>
+        </div>
+        <div class="account-item" style="cursor:pointer" onclick="showInstallPrompt()">
+          <span class="account-item-label">📲 Installer l'app</span>
+          <span style="font-size:13px;color:var(--txt3)" id="pwaInstallBadge">→</span>
+        </div>
         <div class="account-item" style="cursor:pointer" onclick="openNewsletterPrefs()">
           <span class="account-item-label">📬 Préférences newsletter</span>
           <span style="font-size:13px;color:var(--txt3)">→</span>
@@ -6259,65 +6267,174 @@ function updateMetaTags(deal) {
 // BLOC 3 — Scanner, TikTok, PWA Install, SEO, Deal of Day
 // ══════════════════════════════════════════════════════════════
 
-// ── PWA INSTALL ───────────────────────────────────────────────
+// ── PWA INSTALL & SERVICE WORKER ────────────────────────────
 let deferredInstallPrompt = null;
+let swRegistration        = null;
 
+// Détecter le prompt d'installation natif (Android/Chrome)
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  // Show after 30s if not dismissed
-  setTimeout(showInstallPrompt, 30000);
+  // Afficher après 45s si l'utilisateur n'a pas déjà dismissé
+  const dismissed = (() => { try { return localStorage.getItem('ds_install_dismissed'); } catch(e) { return false; } })();
+  if (!dismissed) setTimeout(showInstallPrompt, 45000);
+  // Mettre à jour le badge dans Mon Compte
+  const badge = document.getElementById('pwaInstallBadge');
+  if (badge) { badge.textContent = '📲 Disponible'; badge.style.color = 'var(--accent)'; }
 });
 
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
-  showToast('✅ DealScan installé !');
+  showToast(`✅ DealScan installé sur votre écran d'accueil !`);
+  document.getElementById('installPrompt')?.classList.remove('show');
+  const badge = document.getElementById('pwaInstallBadge');
+  if (badge) { badge.textContent = '✅ Installé'; badge.style.color = 'var(--green)'; }
 });
 
 function showInstallPrompt() {
   try { if (localStorage.getItem('ds_install_dismissed')) return; } catch(e) {}
-  const prompt = document.getElementById('installPrompt');
-  if (!prompt) return;
+  // Ne pas afficher si déjà en mode standalone (déjà installé)
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
 
-  const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const instrEl   = document.getElementById('installInstructions');
-  const btn       = document.getElementById('installPwaBtn');
+  const prompt  = document.getElementById('installPrompt');
+  if (!prompt) return;
+  const instrEl = document.getElementById('installInstructions');
+  const btn     = document.getElementById('installPwaBtn');
+  const isIOS   = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
 
   if (isIOS) {
-    instrEl.innerHTML = `1. Appuyez sur <strong>Partager</strong> (ic\u00f4ne carr\u00e9 \u2191)<br>2. Faites d\u00e9filer et tapez <strong>"Sur l'\u00e9cran d'accueil"</strong><br>3. Confirmez avec <strong>Ajouter</strong>`;
+    instrEl.innerHTML =
+      `<div style="margin-bottom:6px">Pour installer DealScan sur iOS :</div>` +
+      `<div style="font-size:12px;color:var(--txt2);line-height:1.8">` +
+      `1. Appuyez sur <strong>Partager</strong> (⬆ en bas de Safari)<br>` +
+      `2. Faites défiler → <strong>"Sur l'écran d'accueil"</strong><br>` +
+      `3. Confirmez avec <strong>Ajouter</strong>` +
+      `</div>`;
     if (btn) btn.style.display = 'none';
+    prompt.classList.add('show');
   } else if (deferredInstallPrompt) {
-    instrEl.innerHTML = 'Installez DealScan pour un accès rapide, notifications push et mode hors ligne.';
+    instrEl.innerHTML =
+      `<div style="font-size:12px;color:var(--txt2);line-height:1.6">` +
+      `✅ Notifications push en temps réel<br>` +
+      `✅ Mode hors ligne — deals en cache<br>` +
+      `✅ Accès rapide depuis l'écran d'accueil<br>` +
+      `✅ Raccourcis : Flash, Promos, Alertes` +
+      `</div>`;
     if (btn) btn.style.display = 'block';
-  } else {
-    return; // Already installed or not supported
+    prompt.classList.add('show');
   }
-
-  prompt.classList.add('show');
 }
 
 async function triggerPwaInstall() {
   if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
+  const { outcome } = await deferredInstallPrompt.prompt().then ? 
+    await deferredInstallPrompt.userChoice :
+    { outcome: 'dismissed' };
   if (outcome === 'accepted') showToast('✅ DealScan installé !');
   dismissInstallPrompt();
 }
 
 function dismissInstallPrompt() {
   document.getElementById('installPrompt')?.classList.remove('show');
-  try { localStorage.setItem('ds_install_dismissed', '1'); } catch(e) {}
+  try { localStorage.setItem('ds_install_dismissed', Date.now().toString()); } catch(e) {}
 }
 
-// Register Service Worker
+// ── Service Worker registration ───────────────────────────────
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.log('SW error:', err));
+  window.addEventListener('load', async () => {
+    try {
+      swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log('✅ SW registered:', swRegistration.scope);
+
+      // Écouter les messages du SW (navigation depuis notif)
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data?.type === 'navigate' && e.data.url) {
+          const url = new URL(e.data.url);
+          const params = url.searchParams;
+          if (params.get('deal'))   openDeal(parseInt(params.get('deal')));
+          if (params.get('action') === 'flash')  openFlashPage();
+          if (params.get('action') === 'promos') openPromosPage();
+          if (params.get('action') === 'alerts') openAccountPage();
+        }
+      });
+
+      // Vérifier les notifications
+      updateNotifBadge();
+
+    } catch(err) {
+      console.log('SW error:', err);
+    }
   });
 }
+
+// ── Gestion notifications push ────────────────────────────────
+async function enableNotifPermission() {
+  if (!('Notification' in window)) { showToast('⚠️ Notifications non supportées'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    showToast('✅ Notifications activées !');
+    updateNotifBadge();
+    await subscribeToPush();
+  } else {
+    showToast('❌ Permission refusée. Modifiez les paramètres du navigateur.');
+  }
+}
+
+async function subscribeToPush() {
+  if (!swRegistration) return;
+  try {
+    // Subscribe to push
+    const sub = await swRegistration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array('BEl62iUYgUivxIkv69yViEuiBIa40U4RNSIfRnusCoBMrV_XWB4HT6dHbV8SG4DxLHiUObzXNJbfNRuGbOqUHZw')
+    });
+    // Envoyer la subscription au backend
+    if (currentUser) {
+      await fetch(`${API}/push/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.token}` },
+        body: JSON.stringify({ subscription: sub.toJSON() })
+      }).catch(() => {});
+    }
+  } catch(e) {
+    console.log('Push subscribe error:', e);
+  }
+}
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notifStatusBadge');
+  if (!badge) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    badge.textContent = '✅ Activées';
+    badge.style.color = 'var(--green)';
+  } else if (Notification.permission === 'denied') {
+    badge.textContent = '❌ Bloquées';
+    badge.style.color = '#FF3B30';
+  } else {
+    badge.textContent = '→';
+    badge.style.color = '';
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding  = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64   = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData  = window.atob(base64);
+  const output   = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) output[i] = rawData.charCodeAt(i);
+  return output;
+}
+
+// ── Gestion des raccourcis PWA (URL params au démarrage) ──────
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('action') === 'flash')   setTimeout(() => openFlashPage(), 500);
+  if (params.get('action') === 'promos')  setTimeout(() => openPromosPage(), 500);
+  if (params.get('action') === 'alerts')  setTimeout(() => openAccountPage(), 500);
+  if (params.get('action') === 'analyze') setTimeout(() => openPage('analyzePage'), 500);
+  if (params.get('sort') === 'score')     setTimeout(() => setSort(null, 'score'), 500);
+});
 
 // Handle URL shortcuts from manifest
 const _urlParams = new URLSearchParams(window.location.search);

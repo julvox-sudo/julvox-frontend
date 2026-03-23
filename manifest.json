@@ -2,59 +2,72 @@
   "name": "DealScan — Deals vérifiés NovaDeal™",
   "short_name": "DealScan",
   "description": "Les meilleures promos analysées automatiquement. Score NovaDeal™ anti-fausses-promos.",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#0a0a0f",
   "theme_color": "#FF5C2B",
   "orientation": "portrait-primary",
   "lang": "fr",
+  "dir": "ltr",
+  "scope": "/",
   "categories": ["shopping", "finance", "lifestyle"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%23FF5C2B'/><text y='145' x='28' font-size='130'>🔥</text></svg>",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='38' fill='%23FF5C2B'/%3E%3Ctext y='145' x='28' font-size='130'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23FF5C2B'/><text y='390' x='68' font-size='360'>🔥</text></svg>",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23FF5C2B'/%3E%3Ctext y='390' x='68' font-size='360'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "Top Deals",
+      "short_name": "Top Deals",
+      "url": "/?sort=score&utm_source=pwa_shortcut",
+      "description": "Deals avec le meilleur score NovaDeal™",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='80' font-size='80'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ventes Flash",
+      "short_name": "Flash",
+      "url": "/?action=flash&utm_source=pwa_shortcut",
+      "description": "Offres limitées dans le temps",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='80' font-size='80'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "Codes Promo",
+      "short_name": "Promos",
+      "url": "/?action=promos&utm_source=pwa_shortcut",
+      "description": "Codes promo communautaires",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='80' font-size='80'%3E%F0%9F%8F%B7%EF%B8%8F%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mes Alertes",
+      "short_name": "Alertes",
+      "url": "/?action=alerts&utm_source=pwa_shortcut",
+      "description": "Gérer mes alertes prix",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='80' font-size='80'%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    }
+  ],
   "screenshots": [
     {
-      "src": "/og-image.png",
-      "sizes": "1200x630",
-      "type": "image/png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 844'%3E%3Crect width='390' height='844' fill='%230a0a0f'/%3E%3Ctext y='100' x='20' font-size='28' fill='%23FF5C2B' font-family='sans-serif' font-weight='bold'%3EDealScan%3C/text%3E%3C/svg%3E",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
       "label": "DealScan — Feed des meilleurs deals"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Meilleurs deals",
-      "url": "/?sort=score",
-      "description": "Voir les deals avec le meilleur score NovaDeal™"
-    },
-    {
-      "name": "Analyser un deal",
-      "url": "/?action=analyze",
-      "description": "Deal ou pas Deal ? — Analyse instantanée"
-    },
-    {
-      "name": "Mes alertes",
-      "url": "/?action=alerts",
-      "description": "Gérer mes alertes prix"
-    }
-  ],
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.julvox.dealscan",
-      "id": "com.julvox.dealscan"
-    }
-  ],
   "prefer_related_applications": false,
-  "handle_links": "preferred"
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
