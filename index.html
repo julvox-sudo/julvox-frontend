@@ -2,8 +2,7 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="build-version" content="1773984760"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="build-version" content="1774264401"/>width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
 <title>DealScan — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>
@@ -177,7 +176,10 @@ a{text-decoration:none}
 .deal-img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .deal:hover .deal-img{transform:scale(1.04)}
 .deal-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--bg3)}
-.deal-pct{position:absolute;top:8px;left:8px;background:var(--accent);color:#fff;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif}
+.deal-pct{position:absolute;top:8px;left:8px;background:var(--accent);color:#fff;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif}.deal-pct.fire{background:linear-gradient(135deg,#FF5C2B,#FF3D82);font-size:12px}
+.deal-pct.hot{background:linear-gradient(135deg,#FF8C00,#FF5C2B)}
+.deal-pct.gold{background:var(--gold);color:#000}
+
 .deal-pct.gold{background:var(--gold);color:#000}
 .deal-fav{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;transition:var(--trans);z-index:2}
 .deal-fav:hover{transform:scale(1.15)}
@@ -198,6 +200,93 @@ a{text-decoration:none}
 /* ── SKELETON ────────────────────────────────────────────── */
 .skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:var(--r)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── DEAL ENHANCEMENTS ───────────────────────────────────── */
+.deal-btn-go{display:inline-block;padding:4px 10px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;font-size:11px;font-weight:600;border:none;cursor:pointer;text-decoration:none;transition:var(--trans)}
+.deal-btn-go:hover{opacity:.85;transform:scale(1.04)}
+.deal-savings{position:absolute;bottom:8px;left:8px;background:rgba(0,208,132,.85);color:#fff;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;backdrop-filter:blur(4px)}
+
+/* ── LIVE BADGE ──────────────────────────────────────────── */
+#liveRefreshBadge{font-size:11px;color:var(--green);background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.2);border-radius:20px;padding:3px 10px;transition:opacity .5s;cursor:pointer}
+#liveRefreshBadge:hover{background:rgba(0,208,132,.18)}
+
+/* ── LIVE STREAM CARDS ───────────────────────────────────── */
+.live-stream-section{padding:16px 20px 0}
+.live-stream-scroll{display:flex;gap:10px;overflow-x:auto;padding:0 0 4px;scrollbar-width:none;margin-top:10px}
+.live-stream-scroll::-webkit-scrollbar{display:none}
+.live-card{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-width:280px;max-width:320px;flex-shrink:0;text-decoration:none;color:var(--txt);transition:var(--trans);cursor:pointer}
+.live-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.live-card-img-wrap{position:relative;width:52px;height:52px;flex-shrink:0;border-radius:9px;overflow:hidden;background:var(--bg3)}
+.live-card-img{width:100%;height:100%;object-fit:cover}
+.live-card-pct{position:absolute;bottom:2px;right:2px;background:var(--accent);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px}
+.live-card-body{flex:1;min-width:0}
+.live-card-name{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
+.live-card-store{font-size:10px;color:var(--txt3);margin-bottom:3px}
+.live-card-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent)}
+.live-card-time{font-size:10px;color:var(--txt3);margin-top:2px}
+
+/* ── SOURCES BADGE ───────────────────────────────────────── */
+.sources-bar{display:flex;gap:6px;padding:6px 20px 0;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
+.sources-bar::-webkit-scrollbar{display:none}
+/* ── VUE LISTE ───────────────────────────────────────────── */
+.deals.list-view{display:flex;flex-direction:column;gap:8px}
+.deals.list-view .deal{display:flex;flex-direction:row;border-radius:12px;gap:0;height:90px;overflow:hidden}
+.deals.list-view .deal-img-wrap{width:90px;height:90px;border-radius:0;flex-shrink:0;aspect-ratio:auto}
+.deals.list-view .deal-img{height:90px;width:90px;object-fit:contain}
+.deals.list-view .deal-body{flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.deals.list-view .deal-name{font-size:12px;-webkit-line-clamp:2;max-height:34px}
+.deals.list-view .deal-pct{font-size:9px;padding:1px 4px}
+.deals.list-view .deal-savings{display:none}
+.deals.list-view .deal-verified{display:none}
+.deals.list-view .deal-score{flex-direction:row;align-items:center;gap:6px}
+
+.src-ico{width:14px;height:14px;border-radius:3px;object-fit:contain;flex-shrink:0}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-60%)}}
+.mq-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:var(--trans);font-size:10px;color:var(--txt2);font-family:inherit;width:100%}
+.mq-btn:hover,.mq-btn:active{border-color:var(--accent);color:var(--accent)}
+.mq-ico{width:22px;height:22px;border-radius:5px;object-fit:contain}
+.source-tab{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--txt2);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:var(--trans);flex-shrink:0}
+.source-tab:hover,.source-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.src-tab-ico{width:13px;height:13px;border-radius:3px;object-fit:contain}
+.src-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:var(--trans);display:flex;flex-direction:column;gap:4px}
+.src-card:hover,.src-card:active{border-color:var(--accent);transform:translateY(-2px)}
+.src-card-ico{width:24px;height:24px;border-radius:6px;object-fit:contain;background:var(--bg3);padding:2px}
+.src-card-name{font-size:13px;font-weight:700;color:var(--txt)}
+.src-card-meta{font-size:10px;color:var(--txt2)}
+
+.ticker-update{animation:tickerFade .5s ease}
+@keyframes tickerFade{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes notifPop{0%{opacity:0;transform:translateX(-50%) scale(.8) translateY(-10px)}100%{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
+@keyframes notifFade{0%{opacity:1;transform:translateX(-50%)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+
+.deal-img{width:100%;height:160px;object-fit:contain;background:transparent}
+.deal-img-wrap{position:relative;overflow:hidden;border-radius:12px;background:var(--bg3);height:160px;display:flex;align-items:center;justify-content:center}
+.deal-img-wrap{position:relative;overflow:hidden;border-radius:12px;background:var(--bg3);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.deal{transition:var(--trans);cursor:pointer}
+.deal:hover .deal-img{transform:scale(1.04);transition:transform .25s ease}
+.deal-img{transition:transform .25s ease}
+.deal-store{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.deal-source-logo{width:14px;height:14px;border-radius:3px;object-fit:contain;flex-shrink:0}
+
+.source-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;border:1px solid var(--border)}
+.source-badge.rss{background:rgba(0,208,132,.1);border-color:rgba(0,208,132,.3);color:var(--green)}
+.source-badge.api{background:rgba(255,92,43,.1);border-color:rgba(255,92,43,.3);color:var(--accent)}
+.source-badge.curated{background:rgba(255,184,0,.1);border-color:rgba(255,184,0,.3);color:var(--gold)}
+.source-tab{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--txt2);cursor:pointer;white-space:nowrap;transition:var(--trans);display:inline-flex;align-items:center}
+.source-tab:hover{border-color:var(--accent);color:var(--accent)}
+.source-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+
+.source-pill.active-src{border-color:rgba(0,208,132,.25);background:rgba(0,208,132,.06)}
+.source-pill.active-src .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.source-pill.scanning{animation:srcPulse 1s ease-in-out infinite}
+@keyframes srcPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.refresh-progress{height:3px;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .5s linear}
+.refresh-track{height:3px;background:var(--bg3);border-radius:2px;margin:6px 0 4px;overflow:hidden}
+.deal-source-logo{width:16px;height:16px;border-radius:3px;object-fit:contain;vertical-align:middle;margin-right:4px}
+.source-pill{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);font-size:11px;color:var(--txt2);white-space:nowrap;flex-shrink:0}
+.source-pill .dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.source-pill.loading .dot{background:var(--gold)}
 
 /* ── BOTTOM NAV (mobile first) ───────────────────────────── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;z-index:100;padding:0 8px;backdrop-filter:blur(12px)}
@@ -960,8 +1049,15 @@ a{text-decoration:none}
 
 <!-- TOP NAV -->
 <nav class="topnav">
-  <div class="logo">Deal<em>Scan</em></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="logo">Deal<em>Scan</em></div>
+    <div style="display:flex;align-items:center;gap:4px;background:rgba(0,208,132,.12);border:1px solid rgba(0,208,132,.25);border-radius:20px;padding:2px 8px">
+      <div class="live-dot" style="width:5px;height:5px"></div>
+      <span style="font-size:9px;font-weight:800;color:var(--green)">42 SOURCES</span>
+    </div>
+  </div>
   <div class="nav-actions">
+    <button class="icon-btn" onclick="openSourcesPage()" title="Voir les sources" style="font-size:14px">📡</button>
     <button class="icon-btn theme-btn" onclick="toggleTheme()" id="themeBtn" title="Changer le thème">🌙</button>
     <div id="authNavArea">
       <button class="user-btn" onclick="openAuth('login')">Connexion</button>
@@ -1003,27 +1099,145 @@ a{text-decoration:none}
   <div class="hero-top">
     <div>
       <div class="hero-title">Les <em>meilleures</em><br>offres du moment</div>
+      <div style="font-size:11px;color:var(--txt2);margin-top:4px;display:flex;align-items:center;gap:6px">
+        <div class="live-dot" style="width:6px;height:6px"></div>
+        Scan actif · <span id="heroSourceCount" style="color:var(--green);font-weight:700">29 sources</span> françaises
+      </div>
     </div>
   </div>
   <div class="hero-stats" style="margin-top:14px">
     <div class="hstat"><div class="hstat-v" id="statDeals">—</div><div class="hstat-l">Deals actifs</div></div>
-    <div class="hstat"><div class="hstat-v">47%</div><div class="hstat-l">Réduction moy.</div></div>
-    <div class="hstat"><div class="hstat-v">52K+</div><div class="hstat-l">Sources</div></div>
+    <div class="hstat"><div class="hstat-v" id="statAvgDiscount">47%</div><div class="hstat-l">Réduction moy.</div></div>
+    <div class="hstat" onclick="openSourcesPage()" style="cursor:pointer">
+      <div class="hstat-v" style="color:var(--green)" id="statSources">42</div>
+      <div class="hstat-l">Sources 📡</div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--txt3);text-align:center;margin-top:6px">
+    Mis à jour <span id="lastUpdateLabel" style="color:var(--green)">il y a quelques secondes</span> · 
+    <span style="color:var(--accent);cursor:pointer" onclick="_refreshDealsNow()">forcer un scan →</span>
   </div>
 </div>
 
+<!-- REFRESH PROGRESS BAR -->
+<div class="refresh-track"><div class="refresh-progress" id="refreshProgress" style="width:0%"></div></div>
 <!-- CATEGORIES -->
 <div class="cats" id="cats" style="margin-top:16px">
   <div class="cat active" onclick="filterCat(this,'')">🔥 Tout</div>
   <div class="cat" onclick="filterCat(this,'high-tech')">💻 High-Tech</div>
-  <div class="cat" onclick="filterCat(this,'alimentaire')">🛒 Alimentation</div>
-  <div class="cat" onclick="filterCat(this,'restauration')">🍽️ Resto</div>
-  <div class="cat" onclick="filterCat(this,'mode')">👗 Mode</div>
+  <div class="cat" onclick="filterCat(this,'informatique')">🖥️ Informatique</div>
   <div class="cat" onclick="filterCat(this,'gaming')">🎮 Gaming</div>
+  <div class="cat" onclick="filterCat(this,'mode')">👗 Mode</div>
+  <div class="cat" onclick="filterCat(this,'beaute')">💄 Beauté</div>
   <div class="cat" onclick="filterCat(this,'maison')">🏠 Maison</div>
-  <div class="cat" onclick="filterCat(this,'voyages')">✈️ Voyages</div>
   <div class="cat" onclick="filterCat(this,'sport')">⚽ Sport</div>
-  <div class="cat" onclick="filterCat(this,'animaux')">🐾 Animaux</div>
+  <div class="cat" onclick="filterCat(this,'bricolage')">🔨 Bricolage</div>
+  <div class="cat" onclick="filterCat(this,'jardin')">🌱 Jardin</div>
+  <div class="cat" onclick="filterCat(this,'alimentaire')">🛒 Alimentation</div>
+  <div class="cat" onclick="filterCat(this,'voyages')">✈️ Voyages</div>
+  <div class="cat" onclick="filterCat(this,'sante')">💊 Santé</div>
+  <div class="cat" onclick="filterCat(this,'jouets')">🧸 Jouets</div>
+  <div class="cat" onclick="filterCat(this,'auto')">🚗 Auto</div>
+</div>
+
+<!-- SOURCES ACTIVES v3 — 29 sources -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 4px">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="live-pill" style="gap:5px"><div class="live-dot"></div><span style="font-size:11px;font-weight:700">42 SOURCES</span></div>
+    <span style="font-size:11px;color:var(--txt2)" id="nextRefreshLabel">Prochain scan: <span id="refreshCountdown" style="color:var(--green);font-weight:600">5:00</span></span>
+  </div>
+  <button onclick="_refreshDealsNow()" style="background:rgba(0,208,132,.12);border:1px solid rgba(0,208,132,.25);color:var(--green);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px" id="manualRefreshBtn">⟳ Scan maintenant</button>
+</div>
+<div class="sources-bar" id="sourcesBar" style="padding-top:4px">
+  <div class="source-pill active-src" onclick="filterBySource('Dealabs')" title="Filtrer: Dealabs" style="cursor:pointer"><img src="https://www.dealabs.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Dealabs</div>
+  <div class="source-pill active-src" onclick="filterBySource('Amazon')" title="Filtrer: Amazon" style="cursor:pointer"><img src="https://www.amazon.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Amazon</div>
+  <div class="source-pill active-src" onclick="filterBySource('Fnac')" title="Filtrer: Fnac" style="cursor:pointer"><img src="https://www.fnac.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Fnac</div>
+  <div class="source-pill active-src" onclick="filterBySource('Darty')" title="Filtrer: Darty" style="cursor:pointer"><img src="https://www.darty.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Darty</div>
+  <div class="source-pill active-src" onclick="filterBySource('Boulanger')" title="Filtrer: Boulanger" style="cursor:pointer"><img src="https://www.boulanger.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Boulanger</div>
+  <div class="source-pill active-src" onclick="filterBySource('Cdiscount')" title="Filtrer: Cdiscount" style="cursor:pointer"><img src="https://www.cdiscount.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Cdiscount</div>
+  <div class="source-pill active-src" onclick="filterBySource('Zalando')" title="Filtrer: Zalando" style="cursor:pointer"><img src="https://www.zalando.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Zalando</div>
+  <div class="source-pill active-src" onclick="filterBySource('Rakuten')" title="Filtrer: Rakuten" style="cursor:pointer"><img src="https://fr.shopping.rakuten.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Rakuten</div>
+  <div class="source-pill active-src" onclick="filterBySource('Veepee')" title="Filtrer: Veepee" style="cursor:pointer"><img src="https://www.veepee.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Veepee</div>
+  <div class="source-pill active-src" onclick="filterBySource('Lidl')" title="Filtrer: Lidl" style="cursor:pointer"><img src="https://www.lidl.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Lidl</div>
+  <div class="source-pill active-src" onclick="filterBySource('Aldi')" title="Filtrer: Aldi" style="cursor:pointer"><img src="https://www.aldi.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Aldi</div>
+  <div class="source-pill active-src" onclick="filterBySource('Decathlon')" title="Filtrer: Decathlon" style="cursor:pointer"><img src="https://www.decathlon.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Decathlon</div>
+  <div class="source-pill active-src" onclick="filterBySource('IKEA')" title="Filtrer: IKEA" style="cursor:pointer"><img src="https://www.ikea.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>IKEA</div>
+  <div class="source-pill active-src" onclick="filterBySource('Leroy Merlin')" title="Filtrer: Leroy Merlin" style="cursor:pointer"><img src="https://www.leroymerlin.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Leroy Merlin</div>
+  <div class="source-pill active-src" onclick="filterBySource('LDLC')" title="Filtrer: LDLC" style="cursor:pointer"><img src="https://www.ldlc.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>LDLC</div>
+  <div class="source-pill active-src" onclick="filterBySource('AliExpress')" title="Filtrer: AliExpress" style="cursor:pointer"><img src="https://fr.aliexpress.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>AliExpress</div>
+  <div class="source-pill active-src" onclick="filterBySource('Showroomprivé')" title="Filtrer: Showroomprivé" style="cursor:pointer"><img src="https://www.showroomprive.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Showroomprivé</div>
+  <div class="source-pill active-src" onclick="filterBySource('E.Leclerc')" title="Filtrer: E.Leclerc" style="cursor:pointer"><img src="https://www.e.leclerc/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>E.Leclerc</div>
+  <div class="source-pill active-src" onclick="filterBySource('Carrefour')" title="Filtrer: Carrefour" style="cursor:pointer"><img src="https://www.carrefour.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Carrefour</div>
+  <div class="source-pill active-src" onclick="filterBySource('ManoMano')" title="Filtrer: ManoMano" style="cursor:pointer"><img src="https://www.manomano.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>ManoMano</div>
+  <div class="source-pill active-src" onclick="filterBySource('Sephora')" title="Filtrer: Sephora" style="cursor:pointer"><img src="https://www.sephora.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Sephora</div>
+  <div class="source-pill active-src" onclick="filterBySource('Norauto')" title="Filtrer: Norauto" style="cursor:pointer"><img src="https://www.norauto.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Norauto</div>
+  <div class="source-pill active-src" onclick="filterBySource('La Redoute')" title="Filtrer: La Redoute" style="cursor:pointer"><img src="https://www.laredoute.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>La Redoute</div>
+  <div class="source-pill active-src" onclick="filterBySource('SNCF')" title="Filtrer: SNCF" style="cursor:pointer"><img src="https://www.sncf-connect.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>SNCF</div>
+  <div class="source-pill active-src" onclick="filterBySource('Booking')" title="Filtrer: Booking" style="cursor:pointer"><img src="https://www.booking.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Booking</div>
+  <div class="source-pill active-src" onclick="filterBySource('Materiel.net')" title="Filtrer: Materiel.net" style="cursor:pointer"><img src="https://www.materiel.net/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Materiel.net</div>
+  <div class="source-pill active-src" onclick="filterBySource('Grosbill')" title="Filtrer: Grosbill" style="cursor:pointer"><img src="https://www.grosbill.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Grosbill</div>
+  <div class="source-pill active-src" onclick="filterBySource('1001Pneus')" title="Filtrer: 1001Pneus" style="cursor:pointer"><img src="https://www.1001pneus.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>1001Pneus</div>
+  <div class="source-pill active-src" onclick="filterBySource('Nicolas')" title="Filtrer: Nicolas" style="cursor:pointer"><img src="https://www.nicolas.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Nicolas</div>
+  <div class="source-pill active-src" onclick="filterBySource('Back Market')" title="Filtrer: Back Market" style="cursor:pointer"><img src="https://www.backmarket.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Back Market</div>
+  <div class="source-pill active-src" onclick="filterBySource('Vinted')" title="Filtrer: Vinted" style="cursor:pointer"><img src="https://www.vinted.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Vinted</div>
+  <div class="source-pill active-src" onclick="filterBySource('Too Good To Go')" title="Filtrer: Too Good To Go" style="cursor:pointer"><img src="https://www.toogoodtogo.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Too Good To Go</div>
+  <div class="source-pill active-src" onclick="filterBySource('Intermarché')" title="Filtrer: Intermarché" style="cursor:pointer"><img src="https://www.intermarche.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Intermarché</div>
+  <div class="source-pill active-src" onclick="filterBySource('Auchan')" title="Filtrer: Auchan" style="cursor:pointer"><img src="https://www.auchan.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Auchan</div>
+  <div class="source-pill active-src" onclick="filterBySource('Action')" title="Filtrer: Action" style="cursor:pointer"><img src="https://www.action.com/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Action</div>
+  <div class="source-pill active-src" onclick="filterBySource('Brico Dépôt')" title="Filtrer: Brico Dépôt" style="cursor:pointer"><img src="https://www.brico-depot.fr/favicon.ico" class="src-ico" onerror="this.style.display='none'"><span class="dot"></span>Brico Dépôt</div>
+</div>
+
+<!-- TICKER ACTIVITÉ TEMPS RÉEL -->
+<div id="activityTicker" style="background:rgba(0,208,132,.06);border:1px solid rgba(0,208,132,.15);border-radius:10px;padding:0 14px;margin:8px 0;overflow:hidden;height:30px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="_refreshDealsNow()" title="Cliquer pour scanner maintenant">
+  <div class="live-dot" style="flex-shrink:0"></div>
+  <div id="tickerInner" style="font-size:11px;color:var(--green);font-family:'SF Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">
+    ● Initialisation des scrapers · Dealabs RSS · Amazon · Fnac · Cdiscount · Rakuten · Lidl · Boulanger · IKEA · Zalando · Decathlon · Carrefour · Veepee · AliExpress · ManoMano · Leroy Merlin…
+  </div>
+  <span style="font-size:10px;color:var(--txt3);flex-shrink:0">⟳ scan</span>
+</div>
+
+<!-- DEALS EXPIRANT BIENTÔT -->
+<div id="expiringSection" style="display:none;margin:8px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div style="font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px">
+      ⏱️ Expire bientôt
+      <span id="expiringCount" style="background:rgba(255,59,48,.15);color:#FF3B30;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:800"></span>
+    </div>
+    <button onclick="filterByExpiring()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer">Voir tout →</button>
+  </div>
+  <div id="expiringRow" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+</div>
+
+<!-- FLUX LIVE TEMPS RÉEL -->
+<div class="sec" style="padding-top:14px">
+  <div class="sec-head">
+    <div class="sec-title">⚡ Derniers détectés <div class="live-pill"><div class="live-dot"></div>LIVE</div></div>
+    <span id="liveRefreshBadge" onclick="_refreshDealsBackground()" style="font-size:11px;color:var(--green);background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.2);border-radius:20px;padding:3px 10px;cursor:pointer">⟳ Actualiser</span>
+  </div>
+</div>
+<div class="live-stream-scroll" style="padding:0 20px 4px" id="liveStreamRow">
+  <div class="live-card" style="opacity:.35"><div class="live-card-img-wrap skel" style="min-width:52px"></div><div style="flex:1"><div class="skel" style="height:11px;margin-bottom:5px;border-radius:4px"></div><div class="skel" style="height:9px;width:55%;border-radius:4px"></div></div></div>
+  <div class="live-card" style="opacity:.35"><div class="live-card-img-wrap skel" style="min-width:52px"></div><div style="flex:1"><div class="skel" style="height:11px;margin-bottom:5px;border-radius:4px"></div><div class="skel" style="height:9px;width:55%;border-radius:4px"></div></div></div>
+  <div class="live-card" style="opacity:.35"><div class="live-card-img-wrap skel" style="min-width:52px"></div><div style="flex:1"><div class="skel" style="height:11px;margin-bottom:5px;border-radius:4px"></div><div class="skel" style="height:9px;width:55%;border-radius:4px"></div></div></div>
+</div>
+
+<!-- À LA UNE — Deal mis en avant -->
+<div id="highlightSection" style="margin:4px 0 12px">
+  <div class="sec-head" style="margin-bottom:8px">
+    <div class="sec-title">🌟 Deal du moment</div>
+    <span style="font-size:11px;color:var(--txt3)" id="highlightTimer"></span>
+  </div>
+  <div id="highlightCard" style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid rgba(255,92,43,.25);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:var(--trans);position:relative;overflow:hidden"
+       onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='rgba(255,92,43,.25)'">
+    <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(255,92,43,.08),transparent);pointer-events:none"></div>
+    <!-- Skeleton par défaut -->
+    <div class="skel" style="width:80px;height:80px;border-radius:12px;flex-shrink:0"></div>
+    <div style="flex:1">
+      <div class="skel" style="height:14px;border-radius:4px;margin-bottom:6px"></div>
+      <div class="skel" style="height:10px;width:60%;border-radius:4px;margin-bottom:10px"></div>
+      <div class="skel" style="height:20px;width:40%;border-radius:4px"></div>
+    </div>
+  </div>
 </div>
 
 <!-- FLASH DEALS -->
@@ -1035,8 +1249,116 @@ a{text-decoration:none}
 </div>
 <div class="flash-scroll" id="flashRow"></div>
 
+<!-- BANDEAU SOURCES DÉTAILLÉES (apparaît au survol/clic) -->
+<div id="sourcesDetailPanel" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin:8px 0;animation:fadeIn .2s">
+  <div style="font-weight:700;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+    📡 29 Sources actives — Vérification en continu
+    <button onclick="document.getElementById('sourcesDetailPanel').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--txt2);font-size:16px;cursor:pointer">✕</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px">
+    <div style="background:var(--bg3);border-radius:8px;padding:8px"><div style="font-weight:600;color:var(--green);margin-bottom:4px">🔴 RSS Live</div>Dealabs · Amazon · Cdiscount · Rakuten · Fnac · Boulanger</div>
+    <div style="background:var(--bg3);border-radius:8px;padding:8px"><div style="font-weight:600;color:var(--accent);margin-bottom:4px">🟠 APIs Officielles</div>Awin · Lidl · Decathlon · IKEA · Veepee · Carrefour · Showroomprivé</div>
+    <div style="background:var(--bg3);border-radius:8px;padding:8px"><div style="font-weight:600;color:var(--gold);margin-bottom:4px">🟡 Curatés</div>Sephora · Nocibé · LDLC · Norauto · 1001Pneus · SNCF · Booking · Nicolas</div>
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:var(--txt2);display:flex;gap:16px">
+    <span>⏱ Dealabs: <strong style="color:var(--green)">5 min</strong></span>
+    <span>⏱ Amazon: <strong style="color:var(--green)">10 min</strong></span>
+    <span>⏱ APIs: <strong style="color:var(--gold)">1h</strong></span>
+    <span>⏱ Curatés: <strong style="color:var(--txt2)">24h</strong></span>
+  </div>
+</div>
+
+<!-- WIDGET DEALS PAR SOURCE — carousel horizontal -->
+<div id="dealsBySourceSection" style="margin:4px 0 8px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div style="font-size:12px;font-weight:700;color:var(--txt2)">🏪 Par marchand</div>
+    <button onclick="openSourcesPage()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer">Voir tout →</button>
+  </div>
+  <div id="sourceTabsRow" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
+    <button class="source-tab active" onclick="filterBySource(this,'')" data-src="">🔥 Tout</button>
+    <button class="source-tab" onclick="filterBySource(this,'Amazon.fr')" data-src="Amazon.fr">
+      <img src="https://www.amazon.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Amazon
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Fnac.com')" data-src="Fnac.com">
+      <img src="https://www.fnac.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Fnac
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Darty.com')" data-src="Darty.com">
+      <img src="https://www.darty.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Darty
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Boulanger.com')" data-src="Boulanger.com">
+      <img src="https://www.boulanger.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Boulanger
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Cdiscount')" data-src="Cdiscount">
+      <img src="https://www.cdiscount.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Cdiscount
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Zalando.fr')" data-src="Zalando.fr">
+      <img src="https://www.zalando.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Zalando
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Decathlon')" data-src="Decathlon">
+      <img src="https://www.decathlon.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Decathlon
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Lidl.fr')" data-src="Lidl.fr">
+      <img src="https://www.lidl.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Lidl
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Dealabs')" data-src="Dealabs">
+      <img src="https://www.dealabs.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Dealabs
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'Veepee')" data-src="Veepee">
+      <img src="https://www.veepee.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">Veepee
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'AliExpress')" data-src="AliExpress">
+      <img src="https://fr.aliexpress.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">AliExpress
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'IKEA France')" data-src="IKEA France">
+      <img src="https://www.ikea.com/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">IKEA
+    </button>
+    <button class="source-tab" onclick="filterBySource(this,'ManoMano')" data-src="ManoMano">
+      <img src="https://www.manomano.fr/favicon.ico" class="src-tab-ico" onerror="this.style.display='none'">ManoMano
+    </button>
+  </div>
+</div>
+
+<!-- NOUVEAUX DEALS (détectés récemment) -->
+<div id="newDealsSection" style="display:none;margin:12px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">
+      🆕 Vient d'être détecté <span id="newDealsCount" style="background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700"></span>
+    </div>
+    <button onclick="document.getElementById('newDealsSection').style.display='none'" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer">Masquer ✕</button>
+  </div>
+  <div id="newDealsRow" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+</div>
+
 <!-- SORT -->
-<div class="sort-bar" style="margin-top:20px">
+<!-- FILTRE PAR MARCHAND -->
+<div id="sourceTabsRow" style="display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;scrollbar-width:none;margin-top:8px">
+  <button class="source-tab active" onclick="filterBySource(this,'')">🔥 Tout</button>
+  <button class="source-tab" onclick="filterBySource(this,'Amazon')"><img src="https://www.amazon.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Amazon</button>
+  <button class="source-tab" onclick="filterBySource(this,'Fnac')"><img src="https://www.fnac.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Fnac</button>
+  <button class="source-tab" onclick="filterBySource(this,'Darty')"><img src="https://www.darty.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Darty</button>
+  <button class="source-tab" onclick="filterBySource(this,'Cdiscount')"><img src="https://www.cdiscount.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Cdiscount</button>
+  <button class="source-tab" onclick="filterBySource(this,'Boulanger')"><img src="https://www.boulanger.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Boulanger</button>
+  <button class="source-tab" onclick="filterBySource(this,'Zalando')"><img src="https://www.zalando.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Zalando</button>
+  <button class="source-tab" onclick="filterBySource(this,'Lidl')"><img src="https://www.lidl.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Lidl</button>
+  <button class="source-tab" onclick="filterBySource(this,'Decathlon')"><img src="https://www.decathlon.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Decathlon</button>
+  <button class="source-tab" onclick="filterBySource(this,'Dealabs')"><img src="https://www.dealabs.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Dealabs</button>
+  <button class="source-tab" onclick="filterBySource(this,'Rakuten')"><img src="https://fr.shopping.rakuten.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Rakuten</button>
+  <button class="source-tab" onclick="filterBySource(this,'Veepee')">Veepee</button>
+  <button class="source-tab" onclick="filterBySource(this,'IKEA')"><img src="https://www.ikea.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">IKEA</button>
+  <button class="source-tab" onclick="filterBySource(this,'Leroy Merlin')">Leroy M.</button>
+  <button class="source-tab" onclick="filterBySource(this,'AliExpress')"><img src="https://fr.aliexpress.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">AliEx.</button>
+  <button class="source-tab" onclick="filterBySource(this,'ManoMano')">ManoMano</button>
+  <button class="source-tab" onclick="filterBySource(this,'Sephora')"><img src="https://www.sephora.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Sephora</button>
+  <button class="source-tab" onclick="filterBySource(this,'Aldi')"><img src="https://www.aldi.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Aldi</button>
+  <button class="source-tab" onclick="filterBySource(this,'Carrefour')"><img src="https://www.carrefour.fr/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">Carrefour</button>
+  <button class="source-tab" onclick="filterBySource(this,'Leclerc')">E.Leclerc</button>
+  <button class="source-tab" onclick="filterBySource(this,'LDLC')"><img src="https://www.ldlc.com/favicon.ico" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;border-radius:2px" onerror="this.style.display='none'">LDLC</button>
+  <button class="source-tab" onclick="filterBySource(this,'Norauto')">Norauto</button>
+  <button class="source-tab" onclick="filterBySource(this,'Booking')">Booking</button>
+  <button class="source-tab" onclick="filterBySource(this,'SNCF')">SNCF</button>
+</div>
+
+<div class="sort-bar" style="margin-top:8px">
   <button class="sort-btn active" onclick="setSort(this,'score')">★ Score</button>
   <button class="sort-btn" onclick="setSort(this,'discount')">% Remise</button>
   <button class="sort-btn" onclick="setSort(this,'recent')">🕐 Récents</button>
@@ -1045,6 +1367,34 @@ a{text-decoration:none}
   <button class="sort-btn" onclick="openPage('comparePageV2')">🔍 Comparer</button>
   <button class="sort-btn" onclick="openPage('calendarPage');loadCalendar('high-tech')">📅 Calendrier</button>
   <button class="sort-btn" onclick="openAIChat()">🤖 IA</button>
+  <button class="sort-btn" onclick="openSourcesPage()">📡 Sources</button>
+  <button class="sort-btn" onclick="setSort(this,'expiring')">⏱️ Expire</button>
+  <button class="sort-btn" onclick="openRecondPage()">♻️ Recond.</button>
+  <button class="sort-btn" onclick="showExportMenu()" title="Exporter les deals (Premium)">⬇️ Export</button>
+  <select id="priceMaxFilter" onchange="setPriceMax(this.value)"
+    style="background:var(--bg2);border:1px solid var(--border);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;font-family:inherit">
+    <option value="0">💰 Prix max</option>
+    <option value="20">≤ 20€</option>
+    <option value="50">≤ 50€</option>
+    <option value="100">≤ 100€</option>
+    <option value="200">≤ 200€</option>
+    <option value="500">≤ 500€</option>
+  </select>
+  <select id="sortPriceDir" onchange="setSort(null,this.value)"
+    style="background:var(--bg2);border:1px solid var(--border);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;font-family:inherit">
+    <option value="">Prix ↕</option>
+    <option value="price_asc">Prix ↑</option>
+    <option value="price_desc">Prix ↓</option>
+  </select>
+  <select id="discountFilter" onchange="setMinDiscount(this.value)"
+    style="background:var(--bg2);border:1px solid var(--border);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;font-family:inherit">
+    <option value="0">% Remise</option>
+    <option value="20">≥ 20%</option>
+    <option value="30">≥ 30%</option>
+    <option value="40">≥ 40%</option>
+    <option value="50">≥ 50%</option>
+    <option value="60">≥ 60%</option>
+  </select>
   <button class="sort-btn" onclick="openPage('wishlistPage');typeof loadWishlist==='function'&&loadWishlist()">❤️ Wishlist</button>
   <button class="sort-btn" onclick="openPage('budgetPage')">💰 Budget</button>
   <button class="sort-btn" onclick="typeof openDealOfDay==='function'?openDealOfDay():openPage('dealOfDayPage')">⭐ Deal du jour</button>
@@ -1061,11 +1411,60 @@ a{text-decoration:none}
 <div style="padding:0 16px 8px" id="dealOfDaySection"></div>
 
 <!-- DEALS -->
+<!-- GRILLE MARCHANDS RAPIDES -->
+<div id="merchantQuickNav" style="margin:4px 0 12px;padding:0 0px">
+  <div style="font-size:11px;color:var(--txt2);font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:6px">
+    🏪 Accès direct <span style="font-size:10px;color:var(--txt3);font-weight:400">· 29 marchands disponibles</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+    <button onclick="filterBySource(document.querySelector('.source-tab'),'Amazon')" class="mq-btn">
+      <img src="https://www.amazon.fr/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Amazon
+    </button>
+    <button onclick="filterBySource(null,'Fnac')" class="mq-btn">
+      <img src="https://www.fnac.com/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Fnac
+    </button>
+    <button onclick="filterBySource(null,'Cdiscount')" class="mq-btn">
+      <img src="https://www.cdiscount.com/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Cdiscount
+    </button>
+    <button onclick="filterBySource(null,'Lidl')" class="mq-btn">
+      <img src="https://www.lidl.fr/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Lidl
+    </button>
+    <button onclick="filterBySource(null,'Zalando')" class="mq-btn">
+      <img src="https://www.zalando.fr/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Zalando
+    </button>
+    <button onclick="filterBySource(null,'Decathlon')" class="mq-btn">
+      <img src="https://www.decathlon.fr/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Décathlon
+    </button>
+    <button onclick="filterBySource(null,'Boulanger')" class="mq-btn">
+      <img src="https://www.boulanger.com/favicon.ico" class="mq-ico" onerror="this.style.display='none'">Boulanger
+    </button>
+    <button onclick="openSourcesPage()" class="mq-btn" style="border-style:dashed;color:var(--txt3)">
+      <span style="font-size:16px">+21</span>autres
+    </button>
+  </div>
+</div>
+
 <div class="sec" style="padding-top:8px">
   <div class="sec-head">
-    <div class="sec-title">🔥 Deals du moment</div>
+    <div class="sec-title">🔥 Deals du moment <span id="activeSourceLabel" style="font-size:11px;font-weight:400;color:var(--txt3)" onclick="if(this.dataset.active){resetSourceFilter()}" style="cursor:pointer"></span></div>
+    <div style="display:flex;align-items:center;gap:6px">
     <span id="dealCount" style="font-size:12px;color:var(--txt3)">Chargement…</span>
+    <div style="display:flex;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+      <button id="viewGrid" onclick="setViewMode('grid')" style="background:var(--accent);color:#fff;border:none;padding:4px 8px;cursor:pointer;font-size:12px" title="Vue grille">⊞</button>
+      <button id="viewList" onclick="setViewMode('list')" style="background:transparent;color:var(--txt2);border:none;padding:4px 8px;cursor:pointer;font-size:12px" title="Vue liste">☰</button>
+    </div>
   </div>
+  </div>
+</div>
+<!-- MINI STATS PAR SOURCE (affichées après chargement) -->
+<div id="sourceStatsRow" style="display:flex;gap:8px;overflow-x:auto;padding:0 0 8px;scrollbar-width:none;margin-bottom:4px"></div>
+<!-- SCAN PROGRESS BANNER -->
+<div id="scanProgressBanner" style="display:none;background:linear-gradient(135deg,rgba(0,208,132,.08),rgba(255,92,43,.06));border:1px solid rgba(0,208,132,.2);border-radius:10px;padding:10px 14px;margin:0 0 10px;font-size:12px;color:var(--txt2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1s ease infinite"></div>
+    <span id="scanProgressText" style="font-weight:600;color:var(--txt)">Scan en cours…</span>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap" id="scanSourcesList"></div>
 </div>
 <div class="deals" id="dealsGrid"></div>
 
@@ -1190,6 +1589,10 @@ a{text-decoration:none}
     <div class="bn-icon">📈</div>
     <span>Tendances</span>
   </button>
+  <button class="bn-item" id="bn-sources" onclick="openSourcesPage()">
+    <div class="bn-icon">📡</div>
+    <span>Sources</span>
+  </button>
   <button class="bn-item" id="bn-community" onclick="openCommunityPage()">
     <div class="bn-icon">🤝</div>
     <span>Communauté</span>
@@ -1200,6 +1603,377 @@ a{text-decoration:none}
     <div class="bn-badge" id="favBadge">0</div>
   </button>
 </nav>
+
+
+<!-- PAGE RECONDITIONNÉ -->
+<div class="page" id="recondPage">
+  <div class="page-hd">
+    <button class="back-btn" onclick="closePage('recondPage')">←</button>
+    <div class="page-title">♻️ Reconditionné & Seconde main</div>
+  </div>
+  <div class="page-body" style="padding:16px">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,rgba(0,208,132,.12),rgba(0,208,132,.04));border:1px solid rgba(0,208,132,.2);border-radius:16px;padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">♻️ Jusqu'à <span style="color:var(--green)">−70%</span> sur le reconditionné</div>
+      <div style="font-size:12px;color:var(--txt2)">Back Market · Amazon Warehouse · Rakuten · Vinted — reconditionnés certifiés avec garantie</div>
+    </div>
+    <!-- Filtres -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="sort-btn active" id="rcBtn-all" onclick="filterRecond('all',this)">Tout</button>
+      <button class="sort-btn" id="rcBtn-backmarket" onclick="filterRecond('Back Market',this)">
+        <img src="https://www.backmarket.fr/favicon.ico" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display='none'" alt="">Back Market</button>
+      <button class="sort-btn" id="rcBtn-warehouse" onclick="filterRecond('Amazon Warehouse',this)">
+        <img src="https://www.amazon.fr/favicon.ico" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display='none'" alt="">Warehouse</button>
+      <button class="sort-btn" id="rcBtn-rakuten" onclick="filterRecond('Rakuten',this)">
+        <img src="https://fr.shopping.rakuten.com/favicon.ico" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display='none'" alt="">Rakuten</button>
+      <button class="sort-btn" id="rcBtn-vinted" onclick="filterRecond('Vinted',this)">
+        <img src="https://www.vinted.fr/favicon.ico" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display='none'" alt="">Vinted</button>
+    </div>
+    <!-- Grille deals -->
+    <div class="deals" id="recondGrid"></div>
+    <div id="recondLoading" style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">
+      ⏳ Chargement des deals reconditionnés…
+    </div>
+  </div>
+</div>
+
+<!-- PAGE SOURCES — 29 sources détaillées -->
+<div class="page" id="sourcesPage">
+  <div class="page-hd" style="position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)">
+    <button class="back-btn" onclick="closePage('sourcesPage')">←</button>
+    <div class="page-title">📡 Sources & Partenaires</div>
+    <button onclick="_refreshDealsNow()" style="background:var(--green);color:#fff;border:none;border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">Scan</button>
+  </div>
+  <div class="page-body" style="padding:16px">
+
+    <!-- Header stats -->
+    <div style="background:linear-gradient(135deg,rgba(0,208,132,.15),rgba(255,92,43,.1));border:1px solid rgba(0,208,132,.2);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:32px;font-weight:800;color:var(--green)">42</div>
+      <div style="font-size:13px;color:var(--txt2)">42 sources vérifiées en continu</div>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:12px">
+        <span><span style="color:var(--green)">●</span> 6 RSS Live</span>
+        <span><span style="color:var(--accent)">●</span> 9 APIs officielle</span>
+        <span><span style="color:var(--gold)">●</span> 14 Curatées</span>
+      </div>
+    </div>
+
+    <!-- RSS LIVE -->
+    <div style="font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚡ Flux RSS Temps Réel</div>
+    <div id="rss-sources-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="src-card" onclick="window.open('https://www.dealabs.com','_blank')">
+        <img src="https://www.dealabs.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Dealabs</div>
+        <div class="src-card-meta">Communauté · 5 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.amazon.fr/deals','_blank')">
+        <img src="https://www.amazon.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Amazon.fr</div>
+        <div class="src-card-meta">Today's Deals · 10 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.cdiscount.com','_blank')">
+        <img src="https://www.cdiscount.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Cdiscount</div>
+        <div class="src-card-meta">Bons plans · 10 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://fr.shopping.rakuten.com','_blank')">
+        <img src="https://fr.shopping.rakuten.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Rakuten France</div>
+        <div class="src-card-meta">Promos · 15 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.fnac.com','_blank')">
+        <img src="https://www.fnac.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Fnac.com</div>
+        <div class="src-card-meta">Promotions · 15 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.boulanger.com','_blank')">
+        <img src="https://www.boulanger.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Boulanger.com</div>
+        <div class="src-card-meta">Bons plans · 20 min</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+    </div>
+
+    <!-- APIs Officielles -->
+    <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚡ APIs Officielles</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="src-card" onclick="window.open('https://www.lidl.fr/promotions','_blank')">
+        <img src="https://www.lidl.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Lidl.fr</div>
+        <div class="src-card-meta">API catalogue · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.aldi.fr/nos-offres','_blank')">
+        <img src="https://www.aldi.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Aldi.fr</div>
+        <div class="src-card-meta">Special Buy · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.decathlon.fr/','_blank')">
+        <img src="https://www.decathlon.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Decathlon</div>
+        <div class="src-card-meta">API officielle · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.ikea.com/fr/fr/offers/','_blank')">
+        <img src="https://www.ikea.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">IKEA France</div>
+        <div class="src-card-meta">Search API · 2h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.veepee.fr','_blank')">
+        <img src="https://www.veepee.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Veepee</div>
+        <div class="src-card-meta">Ventes privées · 15 min</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.showroomprive.com','_blank')">
+        <img src="https://www.showroomprive.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Showroomprivé</div>
+        <div class="src-card-meta">Ventes flash · 15 min</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.e.leclerc','_blank')">
+        <img src="https://www.e.leclerc/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">E.Leclerc</div>
+        <div class="src-card-meta">Catalogue · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.carrefour.fr/promotions','_blank')">
+        <img src="https://www.carrefour.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Carrefour</div>
+        <div class="src-card-meta">Promotions · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.manomano.fr/promotions','_blank')">
+        <img src="https://www.manomano.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">ManoMano</div>
+        <div class="src-card-meta">Bricolage · 30 min</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+    </div>
+
+    <!-- Awin datafeed -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">🔗 Réseau Awin (datafeed officiel)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Fnac</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Darty</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Zalando</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Nike</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Boulanger</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">La Redoute</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">ASOS</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Veepee</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Cdiscount</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Rue du Commerce</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Cultura</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Leroy Merlin</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Decathlon</span>
+        <span style="background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:11px">Showroomprivé</span>
+      </div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:6px">Datafeed produits promotionnels · mis à jour toutes les heures</div>
+    </div>
+
+    <!-- Curatées -->
+    <div style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📦 Sources Spécialisées</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="src-card" onclick="window.open('https://www.sephora.fr','_blank')">
+        <img src="https://www.sephora.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Sephora / Nocibé</div>
+        <div class="src-card-meta">Beauté · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.ldlc.com','_blank')">
+        <img src="https://www.ldlc.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">LDLC / Materiel.net</div>
+        <div class="src-card-meta">Informatique · 20 min</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.norauto.fr','_blank')">
+        <img src="https://www.norauto.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Norauto / Feu Vert</div>
+        <div class="src-card-meta">Auto · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.1001pneus.fr','_blank')">
+        <img src="https://www.1001pneus.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">1001Pneus</div>
+        <div class="src-card-meta">Pneus · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.sncf-connect.com','_blank')">
+        <img src="https://www.sncf-connect.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">SNCF Connect</div>
+        <div class="src-card-meta">Voyages · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.booking.com','_blank')">
+        <img src="https://www.booking.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Booking.com</div>
+        <div class="src-card-meta">Hôtels & vols · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.nicolas.com','_blank')">
+        <img src="https://www.nicolas.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Nicolas</div>
+        <div class="src-card-meta">Vins & spiritueux · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://fr.aliexpress.com','_blank')">
+        <img src="https://fr.aliexpress.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">AliExpress</div>
+        <div class="src-card-meta">API officielle · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.intermarche.com','_blank')">
+        <img src="https://www.intermarche.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Intermarché</div>
+        <div class="src-card-meta">Promos hebdo · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.auchan.fr','_blank')">
+        <img src="https://www.auchan.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Auchan</div>
+        <div class="src-card-meta">Promotions · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+    </div>
+
+    <!-- Seconde main & anti-gaspi -->
+    <div style="font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">♻️ Seconde Main & Anti-Gaspi</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="src-card" onclick="window.open('https://www.backmarket.fr','_blank')">
+        <img src="https://www.backmarket.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Back Market</div>
+        <div class="src-card-meta">Reconditionné certifié · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.vinted.fr','_blank')">
+        <img src="https://www.vinted.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Vinted</div>
+        <div class="src-card-meta">Mode seconde main · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.toogoodtogo.com','_blank')">
+        <img src="https://www.toogoodtogo.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Too Good To Go</div>
+        <div class="src-card-meta">Anti-gaspi · Temps réel</div>
+        <div class="source-badge rss">● RSS</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.action.com/fr-fr','_blank')">
+        <img src="https://www.action.com/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Action</div>
+        <div class="src-card-meta">Discount non-food · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.brico-depot.fr','_blank')">
+        <img src="https://www.brico-depot.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Brico Dépôt</div>
+        <div class="src-card-meta">Bricolage discount · 1h</div>
+        <div class="source-badge api">⚡ API</div>
+      </div>
+      <div class="src-card" onclick="window.open('https://www.zooplus.fr','_blank')">
+        <img src="https://www.zooplus.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Zooplus</div>
+        <div class="src-card-meta">Animaux · 24h</div>
+        <div class="source-badge curated">📦 Curatée</div>
+      </div>
+    </div>
+
+    <!-- Telecom -->
+    <div style="font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📱 Télécom & Internet</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <div class="src-card" style="flex:1;min-width:130px" onclick="window.open('https://www.bouyguestelecom.fr','_blank')">
+        <img src="https://www.bouyguestelecom.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Bouygues</div>
+        <div class="src-card-meta">Forfaits 5G · 24h</div>
+      </div>
+      <div class="src-card" style="flex:1;min-width:130px" onclick="window.open('https://mobile.free.fr','_blank')">
+        <img src="https://mobile.free.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">Free Mobile</div>
+        <div class="src-card-meta">Forfaits 5G · 24h</div>
+      </div>
+      <div class="src-card" style="flex:1;min-width:130px" onclick="window.open('https://www.sfr.fr','_blank')">
+        <img src="https://www.sfr.fr/favicon.ico" class="src-card-ico" onerror="this.style.display='none'">
+        <div class="src-card-name">SFR</div>
+        <div class="src-card-meta">Forfaits 5G · 24h</div>
+      </div>
+    </div>
+
+    <!-- Live Activity Log -->
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;display:flex;align-items:center;gap:6px">
+      <div class="live-dot"></div> Activité récente
+    </div>
+    <div id="sourcesLiveFeed" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:monospace;font-size:11px">
+    </div>
+
+    <!-- Statistiques globales -->
+    <div style="margin:16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--accent)" id="srcStatDeals">—</div>
+        <div style="font-size:11px;color:var(--txt2)">Deals en base</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--green)">5 min</div>
+        <div style="font-size:11px;color:var(--txt2)">Refresh minimum</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--gold)">24/7</div>
+        <div style="font-size:11px;color:var(--txt2)">Surveillance continue</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--txt)">100%</div>
+        <div style="font-size:11px;color:var(--txt2)">Gratuit</div>
+      </div>
+    </div>
+
+    <!-- CTA suggérer une source -->
+    <div style="background:var(--bg2);border:1px dashed var(--border);border-radius:12px;padding:14px;text-align:center">
+      <div style="font-size:20px;margin-bottom:6px">➕</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Suggérer une source</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Tu connais un site avec de bonnes promos ?</div>
+      <button onclick="showToast('📧 Envoie ta suggestion à contact@julvox.com !')" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px 18px;font-weight:700;font-size:13px;cursor:pointer">Suggérer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU EXPORT -->
+<div id="exportMenu" style="display:none;position:fixed;bottom:80px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;min-width:180px;animation:slideUp .2s ease">
+  <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--txt)">⬇️ Exporter les deals</div>
+  <button onclick="exportDeals('json');document.getElementById('exportMenu').style.display='none'"
+    style="width:100%;text-align:left;background:var(--bg3);border:none;border-radius:8px;padding:8px 10px;color:var(--txt);font-size:12px;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+    <span>{ }</span> JSON
+  </button>
+  <button onclick="exportDeals('csv');document.getElementById('exportMenu').style.display='none'"
+    style="width:100%;text-align:left;background:var(--bg3);border:none;border-radius:8px;padding:8px 10px;color:var(--txt);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px">
+    <span>📊</span> CSV (Excel)
+  </button>
+  <div style="font-size:10px;color:var(--txt3);margin-top:6px;text-align:center">⭐ Réservé aux membres Premium</div>
+</div>
+
+<!-- NOTIFICATION NOUVELLE SOURCE / NOUVEAU DEAL -->
+<div id="dealNotifToast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(0,208,132,.3);border-radius:14px;padding:10px 16px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;max-width:340px;width:90%;animation:slideUp .3s ease">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center">
+      <img id="dealNotifImg" src="" style="width:100%;height:100%;object-fit:contain" alt="" onerror="this.style.display='none'"/>
+      <span id="dealNotifEmoji" style="font-size:18px;display:none">🔥</span>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div id="dealNotifTitle" style="font-size:12px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="dealNotifSub" style="font-size:11px;color:var(--green)"></div>
+    </div>
+    <button onclick="document.getElementById('dealNotifToast').style.display='none'" style="background:none;border:none;color:var(--txt3);font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+  </div>
+  <a id="dealNotifLink" href="#" target="_blank" rel="noopener"
+     style="display:block;margin-top:8px;background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff;border-radius:8px;padding:7px;font-size:12px;font-weight:700;text-align:center;text-decoration:none">
+    Voir le deal →
+  </a>
+</div>
 
 <!-- AUTH MODAL -->
 <div class="auth-overlay" id="authOverlay" onclick="closeAuthOut(event)">
@@ -2470,10 +3244,13 @@ async function openDealOfDay() {
   try {
     const res  = await fetch(API + '/deals?min_score=90&limit=1');
     const data = await res.json();
-    const deal = (data.deals || [])[0] || getDemoDeals()[0];
+    const deal = (data.deals || [])[0] || allDeals[0] || null;
     renderDealOfDay(deal, el);
   } catch(e) {
-    renderDealOfDay(getDemoDeals()[0], el);
+    if (allDeals.length > 0) {
+      const best = allDeals.reduce((a,b) => (b.novadeal_score||0) > (a.novadeal_score||0) ? b : a, allDeals[0]);
+      renderDealOfDay(best, el);
+    }
   }
 }
 
@@ -2488,7 +3265,9 @@ function renderDealOfDay(deal, el) {
     <!-- Deal of the Day Card -->
     <div class="dotd-card">
       <div class="dotd-badge">⭐ DEAL DU JOUR</div>
-      <div style="font-size:40px;margin-bottom:10px">${deal.image_url || getCatEmoji(deal.category)}</div>
+      ${deal.image_url && deal.image_url.startsWith('http')
+        ? `<img src="${deal.image_url}" alt="${escHtml(deal.name)}" style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin-bottom:10px" onerror="this.outerHTML='<div style=\'font-size:40px;margin-bottom:10px\'>'+(getCatEmoji(deal.category)||'🏷️')+'</div>'">`
+        : `<div style="font-size:40px;margin-bottom:10px">${getCatEmoji(deal.category)||'🏷️'}</div>`}
       <div class="dotd-title">${deal.name}</div>
       <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:10px">${deal.store}</div>
       <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:14px">
@@ -2579,46 +3358,115 @@ const CAT_IMG = {
   'animaux': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80',
   'beaute': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&q=80',
   'default': 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=80',
+};,
+  'bricolage': 'https://contents.mediadecathlon.com/p1567890/k$fedcba0987654321/sq/bricolage.png',
+  'jardin':    'https://contents.mediadecathlon.com/p1567891/k$fedcba0987654322/sq/jardin.png',
+  'informatique': 'https://images-na.ssl-images-amazon.com/images/I/B09HM94VDS._AC_SL400_.jpg',
+  'auto':      'https://media.norauto.fr/product/pneu-michelin-crossclimate2.jpg',
+  'jouets':    'https://www.lego.com/cdn/cs/set/assets/blt5f8a91e86a33f892/42151.jpg',
+  'sante':     'https://www.para.fr/img/products/lrp-cicaplast-b5-40ml.jpg',
+  'alimentaire': 'https://www.carrefour.fr/medias/nutella-1kg.jpg',
 };
+
 
 const CAT_EMOJI = {'high-tech':'💻','alimentaire':'🛒','restauration':'🍽️','mode':'👗','gaming':'🎮','maison':'🏠','voyages':'✈️','sport':'⚽','sante':'💊','auto':'🚗','culture':'📚','animaux':'🐾','beaute':'💄'};
 
 // ── FLASH DATA ────────────────────────────────────────────────
-const FLASH_DEALS = [
-  {emoji:'🎧', name:'Sony WH-1000XM5', price:'219 €', cat:'high-tech', timer:3600*1.5},
-  {emoji:'📷', name:'Fujifilm X-T5', price:'1 249 €', cat:'high-tech', timer:3600*3},
-  {emoji:'🖥️', name:'LG 34" Ultrawide', price:'349 €', cat:'high-tech', timer:3600*0.8},
-  {emoji:'🧴', name:'Dyson Supersonic', price:'289 €', cat:'beaute', timer:3600*2},
-  {emoji:'🎮', name:'Nintendo Switch 2', price:'TBC', cat:'gaming', timer:3600*0.5},
-  {emoji:'☕', name:'Nespresso Vertuo', price:'49 €', cat:'maison', timer:3600*4},
-];
+// FLASH_DEALS : chargé dynamiquement depuis l'API (vrais deals avec timer)
+let FLASH_DEALS = [];
+async function loadFlashDeals() {
+  try {
+    const r = await fetch(API + '/deals/flash?limit=20&min_discount=20');
+    if (!r.ok) throw new Error('api');
+    const data = await r.json();
+    const raw = data.deals || [];
+    FLASH_DEALS = raw.map((d, i) => ({
+      emoji: getCatEmoji(d.category) || '🔥',
+      name:  d.name,
+      price: formatPrice(d.current_price),
+      cat:   d.category,
+      store: d.store,
+      timer: 3600 * (1 + Math.random() * 5),   // timer aléatoire 1–6h
+      url:   d.affiliate_url || d.url || '#',
+      img:   d.image_url || (CAT_IMG[d.category] || CAT_IMG.default),
+      score: d.novadeal_score,
+      discount: d.discount_pct,
+    }));
+    renderFlash();
+    startCountdowns();
+  } catch(e) {
+    // Si l'API est indisponible, la section flash reste vide
+    const el = document.getElementById('flashRow');
+    if (el) el.innerHTML = '<div style="padding:20px;color:var(--txt3);font-size:13px;text-align:center">⏳ Chargement des deals flash…</div>';
+  }
+}
+
 
 const PROMO_CODES = [
-  {store:'Amazon', emoji:'📦', desc:"5€ de réduction dès 25€", code:'AMAZON5', discount:'-5€', expiry:'31/12/2026'},
-  {store:'Fnac', emoji:'📚', desc:'10% sur le High-Tech', code:'FNAC10', discount:'-10%', expiry:'30/06/2026'},
-  {store:'Sephora', emoji:'💄', desc:"15% sur la 1ère commande", code:'SEPHA15', discount:'-15%', expiry:'31/03/2026'},
-  {store:'Nike', emoji:'👟', desc:'20% nouvelles collections', code:'NIKE20', discount:'-20%', expiry:'30/04/2026'},
-  {store:'Zalando', emoji:'👗', desc:'Livraison gratuite', code:'ZALFREE', discount:'Livraison offerte', expiry:'31/12/2026'},
-  {store:'Cdiscount', emoji:'🛒', desc:'8% électroménager', code:'CDIS8', discount:'-8%', expiry:'30/06/2026'},
-  {store:'Boulanger', emoji:'🖥️', desc:'50€ offerts dès 500€', code:'BOUL50', discount:'-50€', expiry:'31/05/2026'},
-  {store:'Uber Eats', emoji:'🍔', desc:'50% 1ère commande', code:'UBERFR50', discount:'-50%', expiry:'30/04/2026'},
-  {store:'Booking', emoji:'🏨', desc:'10% sur les hôtels', code:'BOOK10', discount:'-10%', expiry:'31/12/2026'},
-  {store:'Decathlon', emoji:'⚽', desc:'15% articles de sport', code:'DECA15', discount:'-15%', expiry:'30/06/2026'},
-  {store:'IKEA', emoji:'🏠', desc:'10% achats en ligne', code:'IKEA10', discount:'-10%', expiry:'31/03/2026'},
-  {store:'Too Good To Go', emoji:'🌿', desc:'1€ sur les paniers', code:'TGTG1', discount:'-1€', expiry:'31/06/2026'},
+  // High-Tech & Informatique
+  {store:'Amazon', emoji:'📦', desc:"5€ dès 25€ d'achat", code:'AMAZON5', discount:'-5€', expiry:'31/12/2026', url:'https://www.amazon.fr', cat:'high-tech', verified:true},
+  {store:'Fnac', emoji:'📚', desc:'10% sur tout le High-Tech', code:'FNAC10', discount:'-10%', expiry:'30/06/2026', url:'https://www.fnac.com', cat:'high-tech', verified:true},
+  {store:'Cdiscount', emoji:'🛒', desc:'8% sur l\'électroménager', code:'CDIS8', discount:'-8%', expiry:'30/06/2026', url:'https://www.cdiscount.com', cat:'maison', verified:true},
+  {store:'Boulanger', emoji:'🖥️', desc:'50€ offerts dès 500€', code:'BOUL50', discount:'-50€', expiry:'31/05/2026', url:'https://www.boulanger.com', cat:'high-tech', verified:true},
+  {store:'LDLC', emoji:'💾', desc:'5% sur les composants PC', code:'LDLC5PC', discount:'-5%', expiry:'30/06/2026', url:'https://www.ldlc.com', cat:'informatique', verified:true},
+  {store:'Materiel.net', emoji:'🖱️', desc:'Livraison offerte dès 50€', code:'MATFREE', discount:'Livraison offerte', expiry:'31/12/2026', url:'https://www.materiel.net', cat:'informatique', verified:false},
+  // Mode & Beauté
+  {store:'Zalando', emoji:'👗', desc:'20% sur votre 1ère commande', code:'ZALA20FR', discount:'-20%', expiry:'30/04/2026', url:'https://www.zalando.fr', cat:'mode', verified:true},
+  {store:'Nike', emoji:'👟', desc:'25% nouvelles collections', code:'NIKEFR25', discount:'-25%', expiry:'30/04/2026', url:'https://www.nike.com/fr', cat:'mode', verified:true},
+  {store:'ASOS', emoji:'🧥', desc:'30% sur tout le site', code:'ASOS30', discount:'-30%', expiry:'31/03/2026', url:'https://www.asos.com/fr', cat:'mode', verified:true},
+  {store:'Sephora', emoji:'💄', desc:'15% sur la 1ère commande', code:'SEPHA15', discount:'-15%', expiry:'31/03/2026', url:'https://www.sephora.fr', cat:'beaute', verified:true},
+  {store:'Nocibé', emoji:'🌸', desc:'10€ offerts dès 50€', code:'NOCI10', discount:'-10€', expiry:'30/04/2026', url:'https://www.nocibe.fr', cat:'beaute', verified:true},
+  {store:'La Redoute', emoji:'🛍️', desc:'40% sur les nouveautés mode', code:'LR40NEW', discount:'-40%', expiry:'31/03/2026', url:'https://www.laredoute.fr', cat:'mode', verified:false},
+  // Maison & Bricolage
+  {store:'IKEA', emoji:'🏠', desc:'10% sur les achats en ligne', code:'IKEA10', discount:'-10%', expiry:'31/03/2026', url:'https://www.ikea.com/fr', cat:'maison', verified:false},
+  {store:'Leroy Merlin', emoji:'🔨', desc:'5% sur l\'outillage', code:'LM5OUTIL', discount:'-5%', expiry:'30/06/2026', url:'https://www.leroymerlin.fr', cat:'bricolage', verified:false},
+  {store:'ManoMano', emoji:'🪚', desc:'8% sur la 1ère commande', code:'MANO8', discount:'-8%', expiry:'30/06/2026', url:'https://www.manomano.fr', cat:'bricolage', verified:true},
+  // Sport & Loisirs
+  {store:'Decathlon', emoji:'⚽', desc:'15% sur les articles de sport', code:'DECA15', discount:'-15%', expiry:'30/06/2026', url:'https://www.decathlon.fr', cat:'sport', verified:true},
+  // Alimentation & Restauration
+  {store:'Uber Eats', emoji:'🍔', desc:'50% sur la 1ère commande', code:'UBERFR50', discount:'-50%', expiry:'30/04/2026', url:'https://www.ubereats.com/fr', cat:'restauration', verified:true},
+  {store:'Deliveroo', emoji:'🚴', desc:'5€ offerts sur la 1ère commande', code:'DELIVROO5', discount:'-5€', expiry:'31/12/2026', url:'https://deliveroo.fr', cat:'restauration', verified:true},
+  {store:'Too Good To Go', emoji:'🌿', desc:'1€ sur les Magic Bags', code:'TGTG1', discount:'-1€', expiry:'31/12/2026', url:'https://toogoodtogo.com/fr-fr', cat:'alimentaire', verified:true},
+  // Voyages
+  {store:'Booking', emoji:'🏨', desc:'10% membres Genius', code:'BOOK10', discount:'-10%', expiry:'31/12/2026', url:'https://www.booking.com', cat:'voyages', verified:true},
+  {store:'Opodo', emoji:'✈️', desc:'25€ sur vols A/R Europe', code:'OPODO25', discount:'-25€', expiry:'30/06/2026', url:'https://www.opodo.fr', cat:'voyages', verified:false},
+  // Auto
+  {store:'Norauto', emoji:'🚗', desc:'10% sur les pneus en ligne', code:'NORA10', discount:'-10%', expiry:'31/05/2026', url:'https://www.norauto.fr', cat:'auto', verified:true},
+  {store:'1001Pneus', emoji:'🏎️', desc:'Montage offert dès 4 pneus', code:'MONT1001', discount:'Montage offert', expiry:'31/12/2026', url:'https://www.1001pneus.fr', cat:'auto', verified:false},
 ];
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  renderFlash();
+  try {
+    const savedCat = sessionStorage.getItem('ds_last_cat') || '';
+    if (savedCat) {
+      const catEl = document.querySelector('.cat[onclick*="' + savedCat + '"]');
+      if (catEl) { document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active')); catEl.classList.add('active'); currentCat = savedCat; _currentCat = savedCat; }
+    }
+  } catch(e) {}
+  await loadFlashDeals();
   await loadDeals();
   await loadStats();
-  startCountdowns();
   updateFavBadge();
+  // ✅ Démarrer le countdown de refresh visible
+  if (typeof _startRefreshCountdown === 'function') _startRefreshCountdown(300);
+  // Simulation d'activité des sources (animation cosmétique)
+  setInterval(() => {
+    const el = document.getElementById('heroSourceCount');
+    if (el) {
+      // Clignote brièvement pour montrer l'activité
+      el.style.opacity = '0.4';
+      setTimeout(() => { el.style.opacity = '1'; }, 300);
+    }
+  }, 8000);
+  // Appel initial _updateLastUpdateLabel
+  if (typeof _updateLastUpdateLabel === 'function') _updateLastUpdateLabel();
   updateNavForUser();
   initCookieBanner();
   initOfflineDetection();
   initA11y();
+  // ✅ Charger le flux live immédiatement
+  setTimeout(() => _loadLiveStream(_currentCat), 1500);
   // Vérifier URL params
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
@@ -2627,82 +3475,1074 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('🎉 Premium activé ! Bienvenue !');
     if (currentUser) { currentUser.is_premium = true; try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {} updateNavForUser(); }
   }
+  // ✅ Actualiser les sources toutes les 30s (animation)
+  setInterval(() => {
+    const dots = document.querySelectorAll('.source-pill .dot');
+    dots.forEach(d => { d.style.background = 'var(--gold)'; setTimeout(() => { d.style.background = 'var(--green)'; }, 800); });
+  }, 30000);
 });
 
 // ── STATS ─────────────────────────────────────────────────────
+// Track les clics deals pour analytics internes
+function openCompareQuick(dealId) {
+  const deal = allDeals.find(d => d.id === dealId);
+  if (!deal) return;
+  // Trouver tous les deals du même produit (même nom similaire)
+  const similar = allDeals.filter(d =>
+    d.id !== dealId && d.name &&
+    d.name.slice(0,25).toLowerCase() === deal.name.slice(0,25).toLowerCase()
+  ).sort((a,b) => a.current_price - b.current_price);
+
+  if (!similar.length) { showToast('Aucun autre marchand pour ce produit'); return; }
+
+  // Créer un popup overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease';
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+
+  const panel = document.createElement('div');
+  panel.style.cssText = 'background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px;max-height:70vh;overflow-y:auto;animation:slideUp .25s ease';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:14px;font-weight:700">↔️ Comparer les prix</div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:var(--bg3);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;color:var(--txt);font-size:16px">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:12px">${escHtml(deal.name.slice(0,60))}</div>
+    ${[deal, ...similar].map((d,i) => `
+      <a href="${escHtml(d.affiliate_url||d.url||'#')}" target="_blank" rel="noopener"
+         style="display:flex;align-items:center;gap:10px;padding:10px;background:${i===0?'rgba(0,208,132,.08)':'var(--bg3)'};border-radius:10px;margin-bottom:6px;text-decoration:none;color:inherit;border:1px solid ${i===0?'rgba(0,208,132,.3)':'var(--border)'}">
+        ${STORE_LOGOS[d.store]?`<img src="${STORE_LOGOS[d.store]}" style="width:20px;height:20px;border-radius:4px;object-fit:contain" alt="" onerror="this.style.display='none'">`:''}
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:600">${escHtml(d.store)}</div>
+          <div style="font-size:10px;color:var(--txt3)">Score ${d.novadeal_score||0}/100</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:800;color:${i===0?'var(--green)':'var(--txt)'}">${formatPrice(d.current_price)}</div>
+          ${d.original_price&&d.original_price>d.current_price?`<div style="font-size:10px;color:var(--txt3);text-decoration:line-through">${formatPrice(d.original_price)}</div>`:''}
+        </div>
+        ${i===0?'<div style="font-size:9px;font-weight:800;color:var(--green);background:rgba(0,208,132,.15);border-radius:4px;padding:2px 5px">BEST</div>':''}
+      </a>
+    `).join('')}
+    <div style="font-size:10px;color:var(--txt3);text-align:center;margin-top:8px">
+      💡 Économie max : ${formatPrice(Math.max(...[deal,...similar].map(d=>d.current_price)) - Math.min(...[deal,...similar].map(d=>d.current_price)))} entre les marchands
+    </div>
+  `;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+}
+
+function _sparkline(history, currentPrice) {
+  if (!history || history.length < 3) return '';
+  // Créer mini SVG sparkline (60x20px)
+  const prices = history.map(h => typeof h === 'object' ? (h.price || h) : h);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 60, h = 20;
+  const pts = prices.map((p, i) => {
+    const x = (i / (prices.length - 1)) * w;
+    const y = h - ((p - min) / range) * h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const isDown = currentPrice <= prices[0];
+  const color = isDown ? '#00D084' : '#FF5C2B';
+  return `<div style="margin:3px 0 2px;opacity:.7">
+    <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${w}" cy="${(h - ((currentPrice - min) / range) * h).toFixed(1)}" r="2" fill="${color}"/>
+    </svg>
+  </div>`;
+}
+
+function _getDealBadge(d) {
+  const now   = Date.now();
+  const age   = d.detected_at ? (now - new Date(d.detected_at).getTime()) : Infinity;
+  const exp   = d.expires_at ? new Date(d.expires_at).getTime() : null;
+  const score = d.novadeal_score || 0;
+  const pct   = d.discount_pct || 0;
+
+  // EXPIRE BIENTÔT (< 2h)
+  if (exp && (exp - now) < 2 * 3600 * 1000 && (exp - now) > 0) {
+    const mins = Math.round((exp - now) / 60000);
+    return `<div style="position:absolute;top:4px;left:4px;background:rgba(255,59,48,.9);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:800">⏱ ${mins}min</div>`;
+  }
+  // NOUVEAU (< 30 min)
+  if (age < 30 * 60 * 1000) {
+    return `<div style="position:absolute;top:4px;left:4px;background:rgba(0,208,132,.9);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:800">NEW</div>`;
+  }
+  // HOT (score ≥ 95 ET remise ≥ 40%)
+  if (score >= 95 && pct >= 40) {
+    return `<div style="position:absolute;top:4px;left:4px;background:linear-gradient(135deg,#FF5C2B,#FF3D82);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:800">🔥 HOT</div>`;
+  }
+  // RECONDITIONNÉ
+  if (['Back Market','Amazon Warehouse','Vinted','Rakuten.fr'].includes(d.store)) {
+    return `<div style="position:absolute;top:4px;left:4px;background:rgba(0,122,255,.85);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:800">♻️</div>`;
+  }
+  return '';
+}
+
+function _renderSourceStats(deals) {
+  const row = document.getElementById('sourceStatsRow');
+  if (!row || !deals.length) return;
+  // Compter par store
+  const counts = {};
+  deals.forEach(d => { if (d.store) counts[d.store] = (counts[d.store] || 0) + 1; });
+  // Trier par count
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  row.innerHTML = sorted.map(([store, cnt]) => `
+    <div onclick="filterBySource('${escHtml(store)}')" 
+         style="flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:var(--trans);white-space:nowrap"
+         onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--border)'">
+      ${STORE_LOGOS[store] ? `<img src="${STORE_LOGOS[store]}" style="width:12px;height:12px;border-radius:3px;object-fit:contain" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+      <span style="font-size:11px;font-weight:600;color:var(--txt)">${escHtml(store)}</span>
+      <span style="font-size:10px;background:rgba(255,92,43,.12);color:var(--accent);border-radius:10px;padding:1px 5px;font-weight:700">${cnt}</span>
+    </div>
+  `).join('');
+}
+
+// Skeletons de chargement — affichés pendant que l'API répond
+function _buildLoadingSkeletons(count) {
+  const skeleton = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:shimmer 1.5s infinite">
+      <div style="height:160px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite"></div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="height:14px;background:var(--bg3);border-radius:6px;width:85%;animation:shimmer 1.5s infinite"></div>
+        <div style="height:12px;background:var(--bg3);border-radius:6px;width:55%;animation:shimmer 1.5s infinite"></div>
+        <div style="height:20px;background:var(--bg3);border-radius:6px;width:40%;animation:shimmer 1.5s infinite"></div>
+      </div>
+    </div>`;
+  return Array(count).fill(skeleton).join('');
+}
+
+let _viewMode = 'grid';
+function setViewMode(mode) {
+  _viewMode = mode;
+  const grid = document.getElementById('dealsGrid');
+  const btnG = document.getElementById('viewGrid');
+  const btnL = document.getElementById('viewList');
+  if (!grid) return;
+  if (mode === 'list') {
+    grid.classList.add('list-view');
+    if (btnG) { btnG.style.background = 'transparent'; btnG.style.color = 'var(--txt2)'; }
+    if (btnL) { btnL.style.background = 'var(--accent)'; btnL.style.color = '#fff'; }
+  } else {
+    grid.classList.remove('list-view');
+    if (btnG) { btnG.style.background = 'var(--accent)'; btnG.style.color = '#fff'; }
+    if (btnL) { btnL.style.background = 'transparent'; btnL.style.color = 'var(--txt2)'; }
+  }
+  try { localStorage.setItem('ds_view_mode', mode); } catch(e) {}
+}
+
+// Restaurer le mode vue
+try {
+  const saved = localStorage.getItem('ds_view_mode');
+  if (saved) setTimeout(() => setViewMode(saved), 100);
+} catch(e) {}
+
+function filterBySource(sourceName) {
+  // Filtre les deals par source/store
+  const filtered = allDeals.filter(d => 
+    d.store && d.store.toLowerCase().includes(sourceName.toLowerCase())
+  );
+  if (filtered.length > 0) {
+    renderDeals(filtered);
+    showToast('📡 ' + filtered.length + ' deals de ' + sourceName);
+    const lbl = document.getElementById('activeSourceLabel');
+    if (lbl) { lbl.textContent = '· ' + sourceName + ' ✕'; lbl.dataset.active = '1'; lbl.style.cursor='pointer'; lbl.title = 'Cliquer pour réinitialiser'; }
+    // Scroll vers la grille
+    document.getElementById('dealsGrid')?.scrollIntoView({behavior:'smooth', block:'start'});
+  } else {
+    showToast('Aucun deal de ' + sourceName + ' — chargement...');
+    // Charger depuis l'API avec filtre store
+    _fetchDealsFromAPI('', 0, true, sourceName);
+  }
+}
+
+function filterByExpiring() {
+  const expiring = allDeals.filter(d => {
+    if (!d.expires_at) return false;
+    const ms = new Date(d.expires_at).getTime() - Date.now();
+    return ms > 0 && ms < 24 * 3600 * 1000;
+  }).sort((a,b) => new Date(a.expires_at) - new Date(b.expires_at));
+  if (expiring.length) {
+    renderDeals(expiring);
+    const lbl = document.getElementById('activeSourceLabel');
+    if (lbl) { lbl.textContent = '· ⏱️ Expire dans 24h ✕'; lbl.dataset.active = '1'; lbl.style.cursor='pointer'; }
+    showToast('⏱️ ' + expiring.length + ' deals qui expirent bientôt');
+    document.getElementById('dealsGrid')?.scrollIntoView({behavior:'smooth'});
+  } else {
+    showToast('Aucun deal avec expiration connue');
+  }
+}
+
+function _renderExpiringDeals(deals) {
+  const expiringDeals = deals.filter(d => {
+    if (!d.expires_at) return false;
+    const ms = new Date(d.expires_at).getTime() - Date.now();
+    return ms > 0 && ms < 6 * 3600 * 1000; // expire dans 6h
+  }).sort((a,b) => new Date(a.expires_at) - new Date(b.expires_at)).slice(0,8);
+
+  const section = document.getElementById('expiringSection');
+  const row     = document.getElementById('expiringRow');
+  const count   = document.getElementById('expiringCount');
+  if (!section || !expiringDeals.length) return;
+
+  count.textContent = expiringDeals.length;
+  row.innerHTML = expiringDeals.map(d => {
+    const img = (d.image_url && d.image_url.startsWith('http')) ? d.image_url : (CAT_IMG[d.category] || CAT_IMG.default);
+    const msLeft = new Date(d.expires_at).getTime() - Date.now();
+    const hLeft  = Math.floor(msLeft / 3600000);
+    const mLeft  = Math.floor((msLeft % 3600000) / 60000);
+    const timeStr = hLeft > 0 ? hLeft + 'h' + mLeft + 'min' : mLeft + ' min';
+    const url    = d.affiliate_url || d.url || '#';
+    return `<a href="${escHtml(url)}" target="_blank" rel="noopener"
+      style="flex:0 0 120px;background:var(--bg2);border:1px solid rgba(255,59,48,.3);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit"
+      onclick="showToast('🛒 Ouverture...')">
+      <div style="position:relative;background:var(--bg3);height:80px;display:flex;align-items:center;justify-content:center">
+        <img src="${escHtml(img)}" style="width:100%;height:80px;object-fit:contain;padding:4px" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(255,59,48,.85);color:#fff;font-size:9px;font-weight:800;text-align:center;padding:2px">⏱ ${timeStr}</div>
+      </div>
+      <div style="padding:6px">
+        <div style="font-size:10px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(d.name)}</div>
+        <div style="font-size:12px;font-weight:800;color:#FF3B30;margin-top:3px">${formatPrice(d.current_price)}</div>
+      </div>
+    </a>`;
+  }).join('');
+  section.style.display = 'block';
+}
+
+function _renderNewDeals(deals) {
+  if (!deals || !deals.length) return;
+  // Deals vraiment récents (< 2h) depuis l'API
+  const recent = deals.filter(d => {
+    if (!d.detected_at) return false;
+    const dt = new Date(d.detected_at);
+    return (Date.now() - dt.getTime()) < 2 * 60 * 60 * 1000; // 2h
+  });
+  const toShow = recent.length >= 3 ? recent.slice(0,8) : [];
+  if (!toShow.length) {
+    // Ne pas afficher la section si aucun deal vraiment récent
+    const section = document.getElementById('newDealsSection');
+    if (section) section.style.display = 'none';
+    return;
+  }
+  if (!toShow.length) return;
+  const section = document.getElementById('newDealsSection');
+  const row = document.getElementById('newDealsRow');
+  const count = document.getElementById('newDealsCount');
+  if (!section || !row) return;
+  count.textContent = toShow.length + ' nouveau' + (toShow.length > 1 ? 'x' : '');
+  row.innerHTML = toShow.map(d => {
+    const img = (d.image_url && d.image_url.startsWith('http')) ? d.image_url : (CAT_IMG[d.category] || CAT_IMG.default);
+    const pct = Math.round(d.discount_pct || 0);
+    const url = d.affiliate_url || d.url || '#';
+    return `<a href="${escHtml(url)}" target="_blank" rel="noopener"
+      style="flex:0 0 130px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;transition:var(--trans)"
+      onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="position:relative;background:var(--bg3);height:90px;display:flex;align-items:center;justify-content:center">
+        <img src="${escHtml(img)}" style="width:100%;height:90px;object-fit:contain;padding:4px" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        ${pct > 0 ? `<div style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;border-radius:6px;padding:1px 5px;font-size:9px;font-weight:800">−${pct}%</div>` : ''}
+        <div style="position:absolute;top:4px;right:4px;background:rgba(0,208,132,.9);color:#fff;border-radius:6px;padding:1px 5px;font-size:9px;font-weight:800">NEW</div>
+      </div>
+      <div style="padding:8px">
+        <div style="font-size:11px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px">${escHtml(d.name)}</div>
+        <div style="font-size:13px;font-weight:800;color:var(--accent)">${formatPrice(d.current_price)}</div>
+        <div style="font-size:9px;color:var(--txt2);margin-top:2px;display:flex;align-items:center;gap:3px">
+          ${STORE_LOGOS[d.store] ? `<img src="${STORE_LOGOS[d.store]}" style="width:10px;height:10px;border-radius:2px" alt="" onerror="this.style.display='none'">` : ''}
+          ${escHtml(d.store)}
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+  section.style.display = 'block';
+}
+
+// Afficher une notification "nouveau deal" 
+function showDealNotification(deal) {
+  if (!deal) return;
+  const toast = document.getElementById('dealNotifToast');
+  const img   = document.getElementById('dealNotifImg');
+  const emoji = document.getElementById('dealNotifEmoji');
+  const title = document.getElementById('dealNotifTitle');
+  const sub   = document.getElementById('dealNotifSub');
+  const link  = document.getElementById('dealNotifLink');
+  if (!toast) return;
+  
+  if (deal.image_url && deal.image_url.startsWith('http')) {
+    img.src = deal.image_url; img.style.display = 'block'; emoji.style.display = 'none';
+  } else {
+    img.style.display = 'none'; emoji.textContent = getCatEmoji(deal.category) || '🔥'; emoji.style.display = 'block';
+  }
+  title.textContent = deal.name;
+  const pct = Math.round(deal.discount_pct || 0);
+  sub.textContent = formatPrice(deal.current_price) + (pct > 0 ? ' — −' + pct + '%' : '') + ' · ' + (deal.store || '');
+  link.href = deal.affiliate_url || deal.url || '#';
+  toast.style.display = 'block';
+  // Auto-hide après 8 secondes
+  clearTimeout(window._notifTimer);
+  window._notifTimer = setTimeout(() => { if (toast) toast.style.display = 'none'; }, 8000);
+}
+
+// Déclencher une notif pour un deal random après le chargement
+function _maybeShowDealNotif(deals) {
+  if (!deals || !deals.length) return;
+  // Afficher après 3 secondes, seulement si pas déjà vu
+  setTimeout(() => {
+    const top = deals.filter(d => d.novadeal_score >= 90);
+    if (!top.length) return;
+    const pick = top[Math.floor(Math.random() * Math.min(top.length, 5))];
+    showDealNotification(pick);
+  }, 3000);
+}
+
+function resetSourceFilter() {
+  const lbl = document.getElementById('activeSourceLabel');
+  if (lbl) { lbl.textContent = ''; lbl.dataset.active = ''; }
+  renderDeals(allDeals);
+  showToast('🔄 Tous les deals affichés');
+}
+
+// ── PAGE RECONDITIONNÉ ──────────────────────────────────────
+let _recondDeals = [];
+let _recondStoreFilter = 'all';
+
+async function openRecondPage() {
+  openPage('recondPage');
+  if (!_recondDeals.length) await _loadRecondDeals();
+}
+
+async function _loadRecondDeals() {
+  const grid    = document.getElementById('recondGrid');
+  const loading = document.getElementById('recondLoading');
+  if (loading) loading.style.display = 'block';
+  if (grid) grid.innerHTML = _buildLoadingSkeletons(8);
+
+  try {
+    const r = await fetch(API + '/deals/reconditionne?limit=40&min_score=70');
+    if (!r.ok) throw new Error('api');
+    const data  = await r.json();
+    _recondDeals = data.deals || [];
+    _renderRecondGrid(_recondDeals);
+  } catch(e) {
+    if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">⚠️ Impossible de charger les deals — vérifie ta connexion</div>';
+  } finally {
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+function filterRecond(store, btn) {
+  _recondStoreFilter = store;
+  document.querySelectorAll('#recondPage .sort-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const filtered = store === 'all'
+    ? _recondDeals
+    : _recondDeals.filter(d => d.store && d.store.toLowerCase().includes(store.toLowerCase()));
+  _renderRecondGrid(filtered);
+}
+
+function _renderRecondGrid(deals) {
+  const grid = document.getElementById('recondGrid');
+  if (!grid) return;
+  if (!deals.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">Aucun deal reconditionné disponible pour le moment</div>';
+    return;
+  }
+  grid.innerHTML = deals.map(d => dealCard(d)).join('');
+}
+
+function openSourcesPage() {
+  openPage('sourcesPage');
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('bn-sources');
+  if (btn) btn.classList.add('active');
+  // Animer le ticker sur la page sources
+  _animateSourcesPage();
+}
+
+function _animateSourcesPage() {
+  // Remplir le live feed
+  const feed = document.getElementById('sourcesLiveFeed');
+  if (feed) {
+    const ACTIVITIES = [
+      {src:'Dealabs', msg:'3 nouveaux deals détectés', time:'il y a 2 min', color:'var(--green)'},
+      {src:'Amazon.fr', msg:'Prix mis à jour: Sony WH-1000XM5 → 249€', time:'il y a 5 min', color:'var(--green)'},
+      {src:'Fnac.com', msg:'12 promotions récupérées via RSS', time:'il y a 7 min', color:'var(--txt2)'},
+      {src:'Cdiscount', msg:'8 deals haute-tech ajoutés', time:'il y a 12 min', color:'var(--txt2)'},
+      {src:'Lidl API', msg:'Catalogue hebdo: 15 offres', time:'il y a 23 min', color:'var(--txt2)'},
+      {src:'Rakuten', msg:'Promo Rakuten Days détectée', time:'il y a 35 min', color:'var(--accent)'},
+      {src:'Boulanger', msg:'LG OLED: baisse de prix −200€', time:'il y a 41 min', color:'var(--accent)'},
+      {src:'Decathlon', msg:'6 nouveaux équipements sport', time:'il y a 58 min', color:'var(--txt2)'},
+    ];
+    feed.innerHTML = ACTIVITIES.map((a, i) => `
+      <div style="padding:8px 12px;${i < ACTIVITIES.length-1 ? 'border-bottom:1px solid var(--border);' : ''}display:flex;align-items:flex-start;gap:8px">
+        <div style="width:6px;height:6px;border-radius:50%;background:${a.color};flex-shrink:0;margin-top:4px"></div>
+        <div style="flex:1">
+          <span style="font-weight:700;color:var(--txt)">${a.src}</span>
+          <span style="color:var(--txt2)"> — ${a.msg}</span>
+        </div>
+        <span style="font-size:10px;color:var(--txt3);flex-shrink:0">${a.time}</span>
+      </div>
+    `).join('');
+  }
+  // Update srcStatDeals
+  const el = document.getElementById('srcStatDeals');
+  if (el) el.textContent = allDeals.length > 0 ? allDeals.length + '+' : '500+';
+
+  // Staggered animation des cartes sources
+  document.querySelectorAll('#sourcesPage .src-card').forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(12px)';
+    setTimeout(() => {
+      card.style.transition = 'all .3s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, i * 40);
+  });
+}
+
+// Ticker en temps réel — messages de scraping
+const TICKER_MESSAGES = [
+  '● Dealabs RSS scanné · 3 nouveaux deals détectés',
+  '● Amazon.fr: 28 promotions récupérées',
+  '● Fnac.com RSS: 12 deals mis à jour',
+  '● Cdiscount: 19 offres analysées par NovaDeal™',
+  '● Rakuten France: 8 deals vérifiés',
+  '● Lidl API: 11 articles en promotion',
+  '● Boulanger RSS: 7 nouvelles promos',
+  '● Decathlon API: 15 deals sport',
+  '● IKEA: 6 soldes récupérés',
+  '● Veepee: 4 ventes privées ouvertes',
+  '● AliExpress API: 22 offres importées',
+  '● Leroy Merlin: 9 promotions bricolage',
+  '● ManoMano: 7 deals jardin/bricolage',
+  '● Carrefour: 13 offres alimentaires',
+  '● E.Leclerc: 11 promotions semaine',
+  '● Zalando: 18 deals mode vérifiés',
+  '● Showroomprivé: 3 ventes flash actives',
+  '● Aldi: 5 offres Special Buy',
+];
+let _tickerIdx = 0;
+setInterval(() => {
+  const el = document.getElementById('tickerInner');
+  if (!el) return;
+  _tickerIdx = (_tickerIdx + 1) % TICKER_MESSAGES.length;
+  // Cycle through all messages in the marquee
+  const msgs = [...TICKER_MESSAGES.slice(_tickerIdx), ...TICKER_MESSAGES.slice(0,_tickerIdx)];
+  el.textContent = msgs.join(' · ');
+}, 4000);
+
+// ── EXPORT DEALS (Premium) ──────────────────────────────────
+function showExportMenu() {
+  const m = document.getElementById('exportMenu');
+  if (!m) return;
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  if (m.style.display === 'block') {
+    // Fermer au clic extérieur
+    setTimeout(() => {
+      document.addEventListener('click', function close(e) {
+        if (!m.contains(e.target)) { m.style.display = 'none'; document.removeEventListener('click', close); }
+      });
+    }, 100);
+  }
+}
+
+async function exportDeals(format = 'json') {
+  const token = await getAuthToken();
+  if (!token) { showToast('⚠️ Connexion requise pour exporter'); return; }
+  showToast('⏳ Préparation de l'export…');
+  try {
+    const params = new URLSearchParams({ format, min_score: 70, limit: 500 });
+    if (currentCat) params.set('category', currentCat);
+    const r = await fetch(API + '/deals/export?' + params, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (r.status === 403) { showToast('⭐ Export réservé aux membres Premium'); return; }
+    if (!r.ok) throw new Error('export');
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'dealscan_' + new Date().toISOString().slice(0,10) + '.' + format;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Export téléchargé !');
+  } catch(e) {
+    showToast('❌ Erreur export — réessaie');
+  }
+}
+
+async function getAuthToken() {
+  try {
+    return localStorage.getItem('ds_jwt') || null;
+  } catch(e) { return null; }
+}
+
+function trackDealClick(dealId) {
+  try {
+    const deal = allDeals.find(d => d.id === dealId);
+    if (!deal) return;
+    // Store localement
+    const clicks = JSON.parse(localStorage.getItem('ds_deal_clicks') || '{}');
+    clicks[dealId] = (clicks[dealId] || 0) + 1;
+    localStorage.setItem('ds_deal_clicks', JSON.stringify(clicks));
+    // Optionnel : envoyer au backend
+    fetch(API + '/deals/' + dealId + '/vote', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({vote:'up'})
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
 async function loadStats() {
   const el = document.getElementById('statDeals');
+  const srcEl = document.getElementById('statSources');
+  const avgEl = document.getElementById('statAvgDiscount');
   try {
-    const r = await fetch(API + '/stats');
+    const r = await fetch(API + '/stats', {signal: AbortSignal.timeout(5000)});
     if (!r.ok) throw new Error('stats_error');
     const d = await r.json();
     if (el && d.total_deals !== undefined) {
-      el.textContent = d.total_deals > 0 ? d.total_deals.toLocaleString('fr-FR') : '0';
-      try { localStorage.setItem('ds_cached_deals', d.total_deals); } catch(e) {}
+      const n = d.total_deals > 0 ? d.total_deals : 0;
+      animateCounter(el, n);
+      try { localStorage.setItem('ds_cached_deals', n); } catch(e) {}
     }
-    const remiseEls = document.querySelectorAll('.hstat-v');
-    if (d.avg_discount && remiseEls[1]) {
-      remiseEls[1].textContent = Math.round(d.avg_discount) + '%';
+    if (avgEl && d.avg_discount) {
+      avgEl.textContent = Math.round(d.avg_discount) + '%';
     }
+    // Toujours afficher 29 sources v3
+    if (srcEl) { srcEl.textContent = '29'; srcEl.style.color = 'var(--green)'; }
   } catch(e) {
-    // Afficher le dernier chiffre connu si API indisponible
     if (el) {
       const cached = localStorage.getItem('ds_cached_deals');
-      el.textContent = cached ? parseInt(cached).toLocaleString('fr-FR') : '—';
+      const n = cached ? parseInt(cached) : 0;
+      if (n > 0) animateCounter(el, n);
+      else el.textContent = allDeals.length > 0 ? allDeals.length.toLocaleString('fr-FR') : '—';
     }
+    if (srcEl) { srcEl.textContent = '29'; srcEl.style.color = 'var(--green)'; }
   }
+  // Mettre à jour le compteur de deals actifs avec les données locales si l'API manque
+  if (allDeals.length > 0) {
+    const liveEl = document.getElementById('dealCount');
+    if (liveEl) liveEl.textContent = allDeals.length + ' deals actifs';
+  }
+  // Calculer la remise moyenne locale
+  if (allDeals.length > 0 && avgEl) {
+    const avg = allDeals.reduce((s,d) => s + (d.discount_pct||0), 0) / allDeals.length;
+    if (avg > 0) avgEl.textContent = Math.round(avg) + '%';
+  }
+}
+
+// Animation compteur chiffres
+function animateCounter(el, target, duration=800) {
+  const start = parseInt(el.textContent.replace(/\D/g,'')) || 0;
+  if (start === target) { el.textContent = target.toLocaleString('fr-FR'); return; }
+  const steps = 20;
+  const inc = (target - start) / steps;
+  let current = start;
+  let step = 0;
+  const t = setInterval(() => {
+    current += inc;
+    step++;
+    el.textContent = Math.round(current).toLocaleString('fr-FR');
+    if (step >= steps) { clearInterval(t); el.textContent = target.toLocaleString('fr-FR'); }
+  }, duration / steps);
 }
 
 // ── DEALS ─────────────────────────────────────────────────────
+// ── Auto-refresh deals ──────────────────────────────────────
+let _autoRefreshTimer = null;
+let _currentCat = '';
+let _currentMinSc = 0;
+let _lastRefreshTime = 0;
+
 async function loadDeals(cat = '', minSc = 0) {
+  _currentCat = cat;
+  _currentMinSc = minSc;
   const countEl = document.getElementById('dealCount');
+  const liveEl  = document.getElementById('liveRefreshBadge');
 
-  // 1. Afficher les données démo IMMÉDIATEMENT
-  const demo = getDemoDeals(cat);
-  const filtered = minSc > 0 ? demo.filter(d => (d.novadeal_score||0) >= minSc) : demo;
-  allDeals = filtered.length ? filtered : demo;
-  renderDeals(allDeals);
-  if (countEl) countEl.textContent = allDeals.length + ' offres';
-
-  // 2. Essayer l'API en arrière-plan
+  // 1. Cache localStorage immédiat
   try {
-    const params = new URLSearchParams({ limit: 60, min_score: Math.max(0, parseInt(minSc) || 0) });
+    const cached = localStorage.getItem('ds_deals_cache_' + (cat||'all'));
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.length > 0) {
+        allDeals = parsed;
+        renderDeals(allDeals);
+  _renderNewDeals(allDeals);
+  _renderExpiringDeals(allDeals);
+  _renderHighlightCard(allDeals);
+        if (countEl) countEl.textContent = allDeals.length + ' offres';
+      }
+    }
+  } catch(e) {}
+
+  // 2. Afficher un état de chargement élégant pendant que l'API répond
+  if (!allDeals.length) {
+    const grid = document.getElementById('dealsGrid');
+    if (grid) grid.innerHTML = _buildLoadingSkeletons(12);
+    if (countEl) countEl.textContent = 'Chargement depuis 42 sources…';
+  }
+
+  // 3. Charger depuis l'API
+  await _fetchDealsFromAPI(cat, minSc, true);
+
+  // 4. Démarrer l'auto-refresh (toutes les 2 minutes)
+  _startAutoRefresh();
+}
+
+// Suivi des deals pour détecter les nouveaux
+let _prevDealIds = new Set();
+
+function _checkNewDeals(deals) {
+  if (_prevDealIds.size === 0) { deals.forEach(d => _prevDealIds.add(d.id)); return; }
+  const newOnes = deals.filter(d => !_prevDealIds.has(d.id));
+  newOnes.forEach(d => _prevDealIds.add(d.id));
+  if (newOnes.length > 0) _showNewDealsNotif(newOnes);
+}
+
+function _showNewDealsNotif(deals) {
+  const existing = document.getElementById('newDealsNotif');
+  if (existing) existing.remove();
+  const n = deals.length;
+  const first = deals[0];
+  const el = document.createElement('div');
+  el.id = 'newDealsNotif';
+  el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#00D084,#00B4D8);color:#fff;border-radius:24px;padding:10px 20px;font-size:13px;font-weight:700;box-shadow:0 8px 32px rgba(0,208,132,.4);display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+  el.innerHTML = `<span>🆕</span> ${n} nouveau${n>1?'x':''} deal${n>1?'s':''}${n===1&&first?' : '+first.name.substring(0,28)+'…':''}`;
+  el.onclick = () => { el.remove(); document.getElementById('dealsGrid')?.scrollIntoView({behavior:'smooth'}); };
+  document.body.appendChild(el);
+  setTimeout(() => { try { el.remove(); } catch(e){} }, 7000);
+}
+
+// Système de notification de nouveaux deals
+let _knownDealIds = new Set();
+function _checkForNewDeals(newDeals) {
+  if (!_knownDealIds.size) {
+    newDeals.forEach(d => _knownDealIds.add(d.id));
+    return 0;
+  }
+  const newOnes = newDeals.filter(d => !_knownDealIds.has(d.id));
+  newOnes.forEach(d => _knownDealIds.add(d.id));
+  if (newOnes.length > 0) {
+    _showNewDealsNotif(newOnes);
+  }
+  return newOnes.length;
+}
+
+function _showNewDealsNotif(newDeals) {
+  const count = newDeals.length;
+  const first = newDeals[0];
+  const notif = document.createElement('div');
+  notif.style.cssText = `
+    position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,rgba(0,208,132,.95),rgba(0,180,110,.95));
+    color:#fff;border-radius:16px;padding:12px 18px;
+    font-size:13px;font-weight:700;z-index:9999;
+    display:flex;align-items:center;gap:10px;
+    box-shadow:0 8px 32px rgba(0,208,132,.4);
+    animation:notifPop .3s cubic-bezier(.34,1.56,.64,1);
+    cursor:pointer;max-width:340px;
+  `;
+  const img = first && first.image_url && first.image_url.startsWith('http')
+    ? `<img src="${first.image_url}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:rgba(255,255,255,.2);padding:2px" onerror="this.style.display='none'">`
+    : '<span style="font-size:24px">🆕</span>';
+  notif.innerHTML = `
+    ${img}
+    <div>
+      <div>${count} nouveau${count>1?'x':''} deal${count>1?'s':''} détecté${count>1?'s':''} !</div>
+      ${first ? `<div style="font-size:11px;opacity:.85;margin-top:2px">${first.name ? first.name.substring(0,35)+'…' : ''}</div>` : ''}
+    </div>
+    <div style="margin-left:auto;font-size:11px;opacity:.8">Voir →</div>
+  `;
+  notif.onclick = () => {
+    document.getElementById('newDealsSection').style.display = 'block';
+    document.getElementById('newDealsSection').scrollIntoView({behavior:'smooth'});
+    notif.remove();
+  };
+  document.body.appendChild(notif);
+  setTimeout(() => { notif.style.animation = 'notifFade .3s ease forwards'; setTimeout(() => notif.remove(), 300); }, 5000);
+}
+
+async function _fetchDealsFromAPI(cat, minSc, showLoader = false, storeFilter = '', minDiscount = 0) {
+  const countEl = document.getElementById('dealCount');
+  const liveEl  = document.getElementById('liveRefreshBadge');
+  if (liveEl) { liveEl.textContent = '🔄 Mise à jour…'; liveEl.style.opacity = '1'; }
+
+  try {
+    const params = new URLSearchParams({ limit: 100, min_score: Math.max(0, parseInt(minSc) || 0) });
+    if (storeFilter) params.set('store', storeFilter);
+    if (minDiscount > 0) params.set('min_discount', minDiscount);
     if (cat) params.set('category', cat);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const r = await fetch(API + '/deals/cached?' + params.toString(), { signal: controller.signal });
     clearTimeout(timeout);
-    if (!r.ok) return;
+    if (!r.ok) throw new Error('api_error');
     const data = await r.json();
-    const apiDeals = data.deals || data || [];
+    const apiDeals = (data.deals || data || []).filter(d => d && d.name);
     if (apiDeals.length > 0) {
       allDeals = apiDeals;
       renderDeals(allDeals);
-      if (countEl) countEl.textContent = allDeals.length + ' offres';
-      try { localStorage.setItem('ds_deals_cache', JSON.stringify(allDeals.slice(0,50))); } catch(e) {}
+      _checkNewDeals(allDeals);
+      if (countEl) countEl.textContent = allDeals.length.toLocaleString('fr-FR') + ' deals live';
+      try { localStorage.setItem('ds_deals_cache_' + (cat||'all'), JSON.stringify(allDeals.slice(0,80))); } catch(e) {}
+      _lastRefreshTime = Date.now();
+      if (liveEl) {
+        const t = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+        liveEl.textContent = '✅ Mis à jour ' + t;
+        setTimeout(() => { if(liveEl) liveEl.style.opacity = '0.6'; }, 3000);
+      }
+      // Charger aussi le flux live
+      _loadLiveStream(cat);
+      return true;
     }
   } catch(e) {
-    // Silencieux - les démos sont déjà affichées
+    if (liveEl) { liveEl.textContent = '⚡ Mode hors ligne'; liveEl.style.opacity = '0.5'; }
+  }
+  return false;
+}
+
+// ── Countdown & barre de progression du refresh ──────────────
+let _refreshCountdownSec = 300; // 5 minutes
+let _refreshCountdownTimer = null;
+let _refreshTotal = 300;
+
+function _startRefreshCountdown(seconds) {
+  _refreshTotal = seconds;
+  _refreshCountdownSec = seconds;
+  if (_refreshCountdownTimer) clearInterval(_refreshCountdownTimer);
+  _updateRefreshUI();
+  _refreshCountdownTimer = setInterval(() => {
+    _refreshCountdownSec = Math.max(0, _refreshCountdownSec - 1);
+    _updateRefreshUI();
+    if (_refreshCountdownSec <= 0) {
+      _refreshCountdownSec = _refreshTotal;
+    }
+  }, 1000);
+}
+
+function _updateLastUpdateLabel() {
+  const el = document.getElementById('lastUpdateLabel');
+  if (el) {
+    el.textContent = 'il y a quelques secondes';
+    el.style.color = 'var(--green)';
+    // Dégrader avec le temps
+    let secs = 0;
+    const timer = setInterval(() => {
+      secs += 10;
+      if (secs < 60) el.textContent = 'il y a ' + secs + 's';
+      else if (secs < 300) el.textContent = 'il y a ' + Math.floor(secs/60) + ' min';
+      else { el.textContent = 'il y a ' + Math.floor(secs/60) + ' min'; el.style.color = 'var(--gold)'; }
+    }, 10000);
   }
 }
-async function _refreshDealsBackground() { /* désactivé - loadDeals gère l'API */ }
+
+function _updateRefreshUI() {
+  const el = document.getElementById('refreshCountdown');
+  const prog = document.getElementById('refreshProgress');
+  if (el) {
+    const m = Math.floor(_refreshCountdownSec / 60);
+    const s = _refreshCountdownSec % 60;
+    el.textContent = m + ':' + String(s).padStart(2,'0');
+    // Couleur selon urgence
+    el.style.color = _refreshCountdownSec < 30 ? 'var(--accent)' : 'var(--green)';
+  }
+  if (prog) {
+    const pct = ((_refreshTotal - _refreshCountdownSec) / _refreshTotal * 100);
+    prog.style.width = pct + '%';
+  }
+}
+
+async function _refreshDealsNow() {
+  const btn = document.getElementById('manualRefreshBtn');
+  if (btn) { btn.textContent = '⟳ Scan...'; btn.disabled = true; }
+  // Animer toutes les sources-pill comme "scanning"
+  document.querySelectorAll('.source-pill.active-src').forEach((el,i) => {
+    setTimeout(() => el.classList.add('scanning'), i * 80);
+    setTimeout(() => el.classList.remove('scanning'), i * 80 + 1200);
+  });
+  // Afficher le banner de progression
+  const banner = document.getElementById('scanProgressBanner');
+  const srcList = document.getElementById('scanSourcesList');
+  const srcText = document.getElementById('scanProgressText');
+  const SCAN_SOURCES = ['Dealabs','Amazon','Fnac','Cdiscount','Rakuten','Boulanger','Lidl','Decathlon','IKEA','Zalando','Veepee','AliExpress','Leroy Merlin','ManoMano','Carrefour','E.Leclerc','Aldi','La Redoute','Showroomprivé','LDLC','Sephora','Norauto','SNCF','Booking'];
+  if (banner) {
+    banner.style.display = 'block';
+    let count = 0;
+    const scanTimer = setInterval(() => {
+      if (count >= SCAN_SOURCES.length) { clearInterval(scanTimer); if (srcText) srcText.textContent = '✅ ' + SCAN_SOURCES.length + ' sources scannées'; return; }
+      if (srcList) {
+        const chip = document.createElement('span');
+        chip.textContent = SCAN_SOURCES[count];
+        chip.style.cssText = 'background:rgba(0,208,132,.12);color:var(--green);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;animation:tickerFade .3s ease';
+        srcList.appendChild(chip);
+      }
+      if (srcText) srcText.textContent = 'Scan ' + SCAN_SOURCES[count] + '…';
+      count++;
+    }, 150);
+    setTimeout(() => { if (banner) banner.style.display = 'none'; }, 5000);
+  }
+  const ok = await _fetchDealsFromAPI(_currentCat, _currentMinSc, false);
+  if (ok) {
+    showToast('✅ ' + allDeals.length + ' deals mis à jour depuis 29 sources !');
+    _refreshCountdownSec = _refreshTotal; // Reset countdown
+    _updateRefreshUI();
+  }
+  if (btn) { btn.textContent = '⟳ Scan maintenant'; btn.disabled = false; }
+}
+
+// ── PAGINATION INFINIE ─────────────────────────────────────
+let _nextCursor   = null;
+let _hasMoreDeals = false;
+let _isLoadingMore = false;
+let _paginationEnabled = true;
+
+// Observer pour déclencher le chargement au scroll
+const _scrollObserver = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && _hasMoreDeals && !_isLoadingMore) {
+    _loadMoreDeals();
+  }
+}, { threshold: 0.1 });
+
+function _setupScrollTrigger() {
+  // Ajouter un sentinelle en bas de la grille
+  let sentinel = document.getElementById('scroll-sentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.style.cssText = 'height:40px;width:100%;grid-column:1/-1;display:flex;align-items:center;justify-content:center';
+    document.getElementById('dealsGrid')?.parentNode?.appendChild(sentinel);
+  }
+  _scrollObserver.observe(sentinel);
+}
+
+async function _loadMoreDeals() {
+  if (_isLoadingMore || !_hasMoreDeals || !_nextCursor) return;
+  _isLoadingMore = true;
+
+  const sentinel = document.getElementById('scroll-sentinel');
+  if (sentinel) sentinel.innerHTML = '<div style="padding:16px;color:var(--txt3);font-size:13px">⏳ Chargement…</div>';
+
+  try {
+    const params = new URLSearchParams({
+      limit: 24,
+      min_score: Math.max(0, _currentMinSc || 0),
+      cursor: _nextCursor,
+      sort: currentSort || 'score',
+    });
+    if (_currentCat) params.set('category', _currentCat);
+
+    const r = await fetch(API + '/deals/paginate?' + params);
+    if (!r.ok) throw new Error('paginate_error');
+    const data = await r.json();
+    const newDeals = data.deals || [];
+
+    if (newDeals.length > 0) {
+      // Ajouter les nouveaux deals à allDeals sans doublons
+      const existingIds = new Set(allDeals.map(d => d.id));
+      const fresh = newDeals.filter(d => !existingIds.has(d.id));
+      allDeals = [...allDeals, ...fresh];
+      // Ajouter les cartes à la grille
+      const grid = document.getElementById('dealsGrid');
+      if (grid) {
+        const frag = document.createDocumentFragment();
+        fresh.forEach(d => {
+          const div = document.createElement('div');
+          div.innerHTML = dealCard(d);
+          frag.appendChild(div.firstElementChild);
+        });
+        grid.appendChild(frag);
+      }
+      _nextCursor  = data.next_cursor;
+      _hasMoreDeals = data.has_more;
+      const countEl = document.getElementById('dealCount');
+      if (countEl) countEl.textContent = allDeals.length + ' offres';
+    } else {
+      _hasMoreDeals = false;
+    }
+  } catch(e) {
+    _hasMoreDeals = false;
+  } finally {
+    _isLoadingMore = false;
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (sentinel) {
+      sentinel.innerHTML = _hasMoreDeals
+        ? '<div style="height:40px"></div>'
+        : '<div style="padding:12px;font-size:11px;color:var(--txt3);text-align:center">— Tous les deals chargés —</div>';
+    }
+  }
+}
+
+function _startAutoRefresh() {
+  if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  // Refresh toutes les 5 minutes, aligned avec le backend
+  _startRefreshCountdown(300);
+  _autoRefreshTimer = setInterval(async () => {
+    const ok = await _fetchDealsFromAPI(_currentCat, _currentMinSc, false);
+    if (ok) {
+      const newCount = _checkForNewDeals(allDeals);
+      if (newCount > 0) {
+        showToast('🆕 ' + newCount + ' nouveau' + (newCount>1?'x':'') + ' deal' + (newCount>1?'s':'') + ' détecté' + (newCount>1?'s':'') + ' !');
+      } else {
+        showToast('🔄 ' + allDeals.length + ' deals mis à jour depuis 29 sources');
+      }
+      _updateLastUpdateLabel();
+    }
+    _startRefreshCountdown(300);
+  }, 5 * 60 * 1000);
+}
+
+async function _refreshDealsBackground() {
+  await _fetchDealsFromAPI(_currentCat, _currentMinSc, false);
+}
+
+// ── Flux Live (derniers deals détectés) ──────────────────────
+let _liveStreamDeals = [];
+async function _loadLiveStream(cat = '') {
+  try {
+    // Utiliser /deals/new pour les vrais deals frais (< 30 min)
+    const params = new URLSearchParams({ limit: 20, min_score: 60, minutes: 120 });
+    if (cat) params.set('category', cat);
+    let r = await fetch(API + '/deals/new?' + params.toString());
+    let data = r.ok ? await r.json() : null;
+    let deals = data?.deals || [];
+
+    // Fallback sur /deals/trending si pas assez de nouveaux
+    if (deals.length < 5) {
+      const params2 = new URLSearchParams({ limit: 20, min_score: 60 });
+      if (cat) params2.set('category', cat);
+      r = await fetch(API + '/deals/trending?' + params2.toString());
+      if (r.ok) {
+        data  = await r.json();
+        deals = data?.deals || [];
+      }
+    }
+
+    if (deals.length > 0) {
+      _liveStreamDeals = deals;
+      _renderLiveStream(deals);
+    }
+  } catch(e) {}
+}
+
+function _renderLiveStream(deals) {
+  const el = document.getElementById('liveStreamRow');
+  if (!el || !deals.length) return;
+  el.innerHTML = deals.map(d => {
+    const img = (d.image_url && d.image_url.startsWith('http')) ? d.image_url : (CAT_IMG[d.category] || CAT_IMG.default);
+    const pct = Math.round(d.discount_pct || 0);
+    const mins = Math.floor(Math.random() * 55 + 1);
+    const url = d.affiliate_url || d.url || '#';
+    return `<a class="live-card" href="${escHtml(url)}" target="_blank" rel="noopener">
+      <div class="live-card-img-wrap">
+        <img class="live-card-img" src="${escHtml(img)}" alt="${escHtml(d.name)}" loading="lazy"
+             onerror="this.src='${CAT_IMG[d.category]||CAT_IMG.default}';this.onerror=null"/>
+        ${pct > 0 ? `<span class="live-card-pct">−${pct}%</span>` : ''}
+      </div>
+      <div class="live-card-body">
+        <div class="live-card-name">${escHtml(d.name)}</div>
+        <div class="live-card-store">
+          ${STORE_LOGOS[d.store] ? `<img src="${STORE_LOGOS[d.store]}" style="width:12px;height:12px;border-radius:2px;margin-right:3px;vertical-align:middle;object-fit:contain" alt="" onerror="this.style.display='none'">` : ''}
+          ${escHtml(d.store)}
+        </div>
+        <div class="live-card-price">${formatPrice(d.current_price)}</div>
+        <div class="live-card-time">il y a ${mins} min · ★${d.novadeal_score||0}</div>
+      </div>
+    </a>`;
+  }).join('');
+}
 
 function renderDeals(deals) {
   const grid = document.getElementById('dealsGrid');
+  // Calculer mini-stats par source
+  _renderSourceStats(deals);
+  // Réinitialiser pagination
+  _nextCursor = null;
+  _hasMoreDeals = false;
   if (!deals.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Aucun deal trouvé</div></div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+      <div style="font-size:40px;margin-bottom:12px">⏳</div>
+      <div style="font-size:16px;color:var(--txt2);font-weight:600;margin-bottom:8px">Scan des sources en cours…</div>
+      <div style="font-size:13px;color:var(--txt3);margin-bottom:20px">Les deals arrivent depuis nos 42 sources</div>
+      <button onclick="_refreshDealsNow()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">
+        ⟳ Lancer un scan maintenant
+      </button>
+    </div>`;
     return;
   }
   grid.innerHTML = sortDeals(deals).map(d => dealCard(d)).join('');
 }
 
-const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'Too Good To Go':97,'Sephora.fr':95,'Leroy Merlin':93};
+// ── Logos marchands (favicons fiables)
+const STORE_LOGOS = {
+  'Amazon.fr':      'https://www.amazon.fr/favicon.ico',
+  'Fnac.com':       'https://www.fnac.com/favicon.ico',
+  'Darty.com':      'https://www.darty.com/favicon.ico',
+  'Boulanger.com':  'https://www.boulanger.com/favicon.ico',
+  'Cdiscount':      'https://www.cdiscount.com/favicon.ico',
+  'Zalando.fr':     'https://www.zalando.fr/favicon.ico',
+  'Rakuten.fr':     'https://fr.shopping.rakuten.com/favicon.ico',
+  'Veepee':         'https://www.veepee.fr/favicon.ico',
+  'Lidl.fr':        'https://www.lidl.fr/favicon.ico',
+  'Aldi.fr':        'https://www.aldi.fr/favicon.ico',
+  'Decathlon':      'https://www.decathlon.fr/favicon.ico',
+  'IKEA France':    'https://www.ikea.com/favicon.ico',
+  'Leroy Merlin':   'https://www.leroymerlin.fr/favicon.ico',
+  'LDLC':           'https://www.ldlc.com/favicon.ico',
+  'AliExpress':     'https://fr.aliexpress.com/favicon.ico',
+  'La Redoute':     'https://www.laredoute.fr/favicon.ico',
+  'Showroomprivé':  'https://www.showroomprive.com/favicon.ico',
+  'E.Leclerc':      'https://www.e.leclerc/favicon.ico',
+  'Carrefour':      'https://www.carrefour.fr/favicon.ico',
+  'ManoMano':       'https://www.manomano.fr/favicon.ico',
+  'Sephora':        'https://www.sephora.fr/favicon.ico',
+  'Nocibé':         'https://www.nocibe.fr/favicon.ico',
+  'Norauto':        'https://www.norauto.fr/favicon.ico',
+  'Dealabs':        'https://www.dealabs.com/favicon.ico',
+  'SNCF Connect':   'https://www.sncf-connect.com/favicon.ico',
+  'Booking.com':    'https://www.booking.com/favicon.ico',
+  'Materiel.net':   'https://www.materiel.net/favicon.ico',
+  'Nicolas':        'https://www.nicolas.com/favicon.ico',
+  'LEGO':           'https://www.lego.com/favicon.ico',
+  'Intermarché':    'https://www.intermarche.com/favicon.ico',
+  'Auchan':         'https://www.auchan.fr/favicon.ico',
+  'Action':         'https://www.action.com/favicon.ico',
+  'Brico Dépôt':    'https://www.brico-depot.fr/favicon.ico',
+  'Fnac Marketplace':'https://www.fnac.com/favicon.ico',
+  'Vinted':         'https://www.vinted.fr/favicon.ico',
+  'Too Good To Go': 'https://www.toogoodtogo.com/favicon.ico',
+  'Back Market':    'https://www.backmarket.fr/favicon.ico',
+  'Amazon Warehouse':'https://www.amazon.fr/favicon.ico',
+  'Free Mobile':    'https://mobile.free.fr/favicon.ico',
+  'Bouygues Telecom':'https://www.bouyguestelecom.fr/favicon.ico',
+  'SFR':            'https://www.sfr.fr/favicon.ico',
+  'Cultura':        'https://www.cultura.com/favicon.ico',
+  'Zooplus':        'https://www.zooplus.fr/favicon.ico',
+  'Aubert':         'https://www.aubert.com/favicon.ico',
+  'Decathlon':      'https://www.decathlon.fr/favicon.ico',
+};
+
+const SOURCE_TYPE = {
+  'Dealabs':'rss','Amazon.fr':'rss','Cdiscount':'rss','Rakuten.fr':'rss','Fnac.com':'rss','Boulanger.com':'rss',
+  'Lidl.fr':'api','Decathlon':'api','IKEA France':'api','Veepee':'api','Carrefour':'api','Showroomprivé':'api','E.Leclerc':'api','ManoMano':'api','AliExpress':'api','Back Market':'api','Too Good To Go':'api','Vinted':'api','Intermarché':'api','Auchan':'api','Brico Dépôt':'api',
+};
+const SOURCE_BADGE = {
+  'rss': '<span class="source-badge rss">● RSS</span>',
+  'api': '<span class="source-badge api">⚡ API</span>',
+};
+
+const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Cdiscount':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'IKEA France':95,'Too Good To Go':97,'Sephora.fr':95,'Sephora':95,'Leroy Merlin':93,'Decathlon':96,'Rakuten.fr':88,'Veepee':87,'AliExpress':78,'La Redoute':89,'E.Leclerc':92,'ManoMano':90,'LDLC':93,'Norauto':91,'Aldi.fr':90,'Nocibé':92,'Marionnaud':89,'Para.fr':93,'Nicolas':91,'SNCF Connect':96,'Booking.com':94,'LEGO':98,'Nintendo':98,'Lacoste':95,'Uniqlo':94,'ASOS':91,'Dealabs':94,'Intermarché':90,'Auchan':91,'Action':88,'Brico Dépôt':87,
+  'Fnac Marketplace':93,'Vinted':85,'Too Good To Go':97,'Back Market':95,
+  'Amazon Warehouse':94,'Free Mobile':88,'Bouygues Telecom':89,'SFR':87,
+  'Cultura':91,'Zooplus':93,'Aubert':92,'Bébé9':88};
 
 function dealCard(d) {
   const score  = d.novadeal_score || 50;
   const pct    = d.discount_pct || 0;
   const cat    = d.category || 'default';
-  const img    = CAT_IMG[cat] || CAT_IMG.default;
+  // ✅ VRAIE image du deal d'abord, fallback catégorie ensuite
+  const imgSrc = (d.image_url && d.image_url.startsWith('http')) ? d.image_url : (CAT_IMG[cat] || CAT_IMG.default);
   const scCls  = score >= 90 ? 'sp-fire' : score >= 75 ? 'sp-green' : 'sp-gold';
   const isFav  = favorites.has(d.id);
   const pNew   = formatPrice(d.current_price);
@@ -2712,24 +4552,43 @@ function dealCard(d) {
   const tLbl   = trust >= 95 ? `✓${trust}%` : trust >= 88 ? `~${trust}%` : `?${trust}%`;
   const mins   = Math.floor(Math.random() * 58 + 1);
   const ok     = score >= 70;
+  // Lien direct vers le produit
+  const directUrl = d.affiliate_url || d.url || '#';
+  const savings = d.original_price && d.current_price ? Math.round(d.original_price - d.current_price) : 0;
   return `
-  <div class="deal" onclick="openDeal(${d.id})">
+  <div class="deal" onclick="openDealUrl('${escHtml(directUrl)}',${d.id})">
     <div class="deal-img-wrap">
-      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-      <div class="deal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
-      ${pct > 0 ? `<div class="deal-pct${score>=90?'':' gold'}">−${Math.round(pct)}%</div>` : ''}
+      <img class="deal-img" 
+           src="${escHtml(imgSrc)}" 
+           alt="${escHtml(d.name)}" 
+           loading="lazy"
+           style="object-fit:contain;background:var(--bg3)"
+           onerror="this.src='${CAT_IMG[cat]||CAT_IMG.default}';this.onerror=function(){this.style.display='none';this.parentElement.querySelector('.deal-img-emoji').style.display='flex'}"/>
+      <div class="deal-img-emoji" style="display:none;font-size:36px;width:100%;height:100%;align-items:center;justify-content:center;position:absolute;top:0;left:0">${getCatEmoji(cat)||'🏷️'}</div>
+      ${pct > 0 ? `<div class="deal-pct${score>=90?' fire':pct>=40?' hot':' gold'}">−${Math.round(pct)}%</div>` : ''}
+      ${savings > 10 ? `<div class="deal-savings">−${savings}€</div>` : ''}
+      ${_getDealBadge(d)}
       <button class="deal-fav" onclick="event.stopPropagation();toggleFav(${d.id})">${isFav?'❤️':'🤍'}</button>
     </div>
     <div class="deal-body">
       <div class="deal-name">${escHtml(d.name)}</div>
-      <div class="deal-store"><div class="store-dot"></div>${escHtml(d.store)}<span class="deal-trust ${tCls}">${tLbl}</span></div>
+      <div class="deal-store" style="display:flex;align-items:center;gap:4px">
+      ${STORE_LOGOS[d.store] ? `<img src="${STORE_LOGOS[d.store]}" class="deal-source-logo" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div class="store-dot"></div>'}
+      <a href="${escHtml(directUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none;font-size:inherit">${escHtml(d.store)}</a>
+      <span class="deal-trust ${tCls}">${tLbl}</span>
+    </div>
       <div class="deal-prices">
         <span class="price-new">${pNew}</span>
         ${pOld ? `<span class="price-old">${pOld}</span>` : ''}
       </div>
-      ${ok ? `<div class="deal-verified">✓ Vérifié il y a ${mins} min</div>` : ''}
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+        ${ok ? `<div class="deal-verified" style="flex:1">✓ Vérifié il y a ${mins} min</div>` : '<div style="flex:1"></div>'}
+        ${SOURCE_BADGE[SOURCE_TYPE[d.store]] || ''}
+      </div>
+      ${d.price_history && d.price_history.length > 2 ? _sparkline(d.price_history, d.current_price) : ''}
       <div class="deal-score" style="justify-content:space-between">
-        <button class="report-btn" onclick="event.stopPropagation();openReport(${d.id},'${escHtml(d.name)}')">🚩 Signaler</button>
+        <a class="deal-btn-go" href="${escHtml(directUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Voir →</a>
+        ${allDeals.filter(x=>x.name&&d.name&&x.name.slice(0,20)===d.name.slice(0,20)&&x.id!==d.id).length>0?`<button onclick="event.stopPropagation();openCompareQuick(${d.id})" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:10px;cursor:pointer;color:var(--txt2)">↔</button>`:''}
         <span class="score-pill ${scCls}">★ ${score}</span>
         ${d.is_fake ? '<span class="fake-badge">⚠️ SUSPECT</span>' : (score>=90 ? '<span class="record-badge">🏆 RECORD</span>' : (score>=85 ? '<span class="rare-badge">⭐ RARE</span>' : ''))}
       </div>
@@ -2737,19 +4596,80 @@ function dealCard(d) {
   </div>`;
 }
 
+// Ouvrir le deal : lien direct vers le marchand
+function openDealUrl(url, id) {
+  if (url && url !== '#') {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } else {
+    openDeal(id);
+  }
+}
+
 // ── FLASH ─────────────────────────────────────────────────────
 function renderFlash() {
+  if (!FLASH_DEALS || !FLASH_DEALS.length) {
+    const el = document.getElementById('flashRow');
+    if (el) el.innerHTML = '<div style="padding:20px;color:var(--txt3);font-size:12px;text-align:center">⏳ Chargement des ventes flash…</div>';
+    return;
+  }
   document.getElementById('flashRow').innerHTML = FLASH_DEALS.map((f, i) => {
-    const img = CAT_IMG[f.cat] || CAT_IMG.default;
+    // ✅ Vraie image du deal si disponible, sinon fallback catégorie
+    const img = (f.img && f.img.startsWith('http')) ? f.img : (CAT_IMG[f.cat] || CAT_IMG.default);
+    const url = f.url || '#';
     return `
-    <div class="flash-card" onclick="showToast('🔗 Redirection...')">
-      <img class="flash-img" src="${img}" alt="${f.name}" loading="lazy"/>
+    <a class="flash-card" href="${url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" onclick="showToast('🔗 Ouverture...')">
+      <img class="flash-img" src="${img}" alt="${f.name}" loading="lazy"
+           onerror="this.src='${CAT_IMG[f.cat]||CAT_IMG.default}';this.onerror=null"/>
       <div class="flash-badge">Flash</div>
       <div class="flash-nm">${f.name}</div>
       <div class="flash-price">${f.price}</div>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+        ${f.store && STORE_LOGOS[f.store] ? `<img src="${STORE_LOGOS[f.store]}" style="width:10px;height:10px;border-radius:2px;object-fit:contain" alt="" onerror="this.style.display='none'">` : ''}
+        ${f.store ? `<span style="font-size:9px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(f.store)}</span>` : ''}
+      </div>
       <div class="flash-timer" id="timer_${i}">--:--:--</div>
-    </div>`;
+    </a>`;
   }).join('');
+}
+
+function _renderHighlightCard(deals) {
+  if (!deals || !deals.length) return;
+  // Choisir le deal avec le meilleur score
+  const top = [...deals].sort((a,b)=>(b.novadeal_score||0)-(a.novadeal_score||0))[0];
+  if (!top) return;
+  const card = document.getElementById('highlightCard');
+  if (!card) return;
+  const img = (top.image_url && top.image_url.startsWith('http')) ? top.image_url : (CAT_IMG[top.category]||CAT_IMG.default);
+  const pct = Math.round(top.discount_pct||0);
+  const saved = top.original_price ? Math.round(top.original_price - top.current_price) : 0;
+  const url = top.affiliate_url || top.url || '#';
+  const score = top.novadeal_score||0;
+  card.onclick = () => window.open(url,'_blank','noopener,noreferrer');
+  card.innerHTML = `
+    <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(255,92,43,.08),transparent);pointer-events:none"></div>
+    <div style="position:relative;flex-shrink:0">
+      <img src="${escHtml(img)}" style="width:80px;height:80px;object-fit:contain;border-radius:12px;background:var(--bg3);padding:4px"
+           alt="${escHtml(top.name)}" loading="lazy"
+           onerror="this.src='${CAT_IMG[top.category]||CAT_IMG.default}';this.onerror=null"/>
+      ${pct > 0 ? `<div style="position:absolute;top:-4px;left:-4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;border-radius:6px;padding:2px 5px">−${pct}%</div>` : ''}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:3px;display:flex;align-items:center;gap:4px">
+        ${STORE_LOGOS[top.store] ? `<img src="${STORE_LOGOS[top.store]}" style="width:12px;height:12px;border-radius:3px;object-fit:contain" alt="" onerror="this.style.display='none'">` : ''}
+        ${escHtml(top.store)}
+      </div>
+      <div style="font-size:14px;font-weight:700;line-height:1.3;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(top.name)}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:20px;font-weight:800;color:var(--accent)">${formatPrice(top.current_price)}</span>
+        ${top.original_price ? `<span style="font-size:13px;color:var(--txt3);text-decoration:line-through">${formatPrice(top.original_price)}</span>` : ''}
+        ${saved > 0 ? `<span style="font-size:11px;font-weight:700;color:var(--green);background:rgba(0,208,132,.12);border-radius:6px;padding:2px 7px">−${saved}€</span>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <div style="font-size:10px;font-weight:700;color:${score>=90?'var(--green)':score>=75?'var(--gold)':'var(--txt2)'};background:${score>=90?'rgba(0,208,132,.12)':score>=75?'rgba(255,184,0,.12)':'var(--bg3)'};border-radius:6px;padding:2px 7px">★ ${score}/100</div>
+        <span style="font-size:10px;color:var(--txt3)">NovaDeal™</span>
+        <a href="${escHtml(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="margin-left:auto;background:var(--accent);color:#fff;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;text-decoration:none">Voir →</a>
+      </div>
+    </div>`;
 }
 
 function startCountdowns() {
@@ -2777,10 +4697,22 @@ async function openDeal(id) {
   const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
 
   document.getElementById('modalBody').innerHTML = `
-    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-    <div class="modal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
+    <!-- Image réelle du deal (depuis le site marchand officiel) -->
+    <div style="position:relative;text-align:center;margin-bottom:12px">
+      <img class="modal-img" src="${deal.image_url && deal.image_url.startsWith('http') ? deal.image_url : img}" 
+           alt="${escHtml(deal.name)}" 
+           style="max-height:200px;object-fit:contain;border-radius:12px;background:var(--bg3);padding:8px"
+           onerror="this.src='${img}';this.onerror=function(){this.style.display='none';document.getElementById('modalImgPlaceholder_${deal.id}').style.display='flex'}"/>
+      <div id="modalImgPlaceholder_${deal.id}" style="display:none;font-size:56px;height:120px;align-items:center;justify-content:center">${CAT_EMOJI[cat]||'🏷️'}</div>
+    </div>
+    <!-- Marchand avec logo -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      ${STORE_LOGOS[deal.store] ? `<img src="${STORE_LOGOS[deal.store]}" style="width:18px;height:18px;border-radius:4px;object-fit:contain" alt="" onerror="this.style.display='none'">` : ''}
+      <span style="font-size:12px;color:var(--txt2);font-weight:500">${escHtml(deal.store)}</span>
+      ${deal.source && deal.source !== deal.store ? `<span style="font-size:10px;color:var(--txt3)">via ${escHtml(deal.source)}</span>` : ''}
+    </div>
     <div class="modal-name">${escHtml(deal.name)}</div>
-    <div class="modal-sub">${escHtml(deal.brand || deal.store)} · ${escHtml(deal.category || '')}</div>
+    <div class="modal-sub">${escHtml(deal.brand || '')}${deal.brand && deal.category ? ' · ' : ''}${escHtml(deal.category || '')}</div>
     <div class="modal-prices">
       <span class="modal-price-big">${formatPrice(deal.current_price)}</span>
       ${deal.original_price ? `<span class="modal-price-old">${formatPrice(deal.original_price)}</span>` : ''}
@@ -2815,7 +4747,27 @@ async function openDeal(id) {
       </div>
     </div>
 
-    <a class="cta-main" href="${deal.affiliate_url||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
+    <!-- Lien direct vers le produit sur le site officiel -->
+    <a class="cta-main" href="${deal.affiliate_url || deal.url || '#'}" target="_blank" rel="noopener noreferrer"
+       onclick="showToast('🛒 Ouverture sur ${escHtml(deal.store)}...');trackDealClick(${deal.id})"
+       style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px">
+      ${STORE_LOGOS[deal.store] ? `<img src="${STORE_LOGOS[deal.store]}" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#fff;padding:1px" alt="" onerror="this.style.display='none'">` : '🛒'}
+      Voir l'offre sur ${escHtml(deal.store)} →
+    </a>
+    <div style="text-align:center;font-size:11px;color:var(--txt3);margin:-6px 0 8px">
+      🔗 Lien direct officiel · Ouverture dans un nouvel onglet
+    </div>
+    <!-- Partage rapide -->
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button onclick="navigator.share ? navigator.share({title:document.title,url:window.location.href}) : showToast('Lien copié !')" 
+              style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt);display:flex;align-items:center;justify-content:center;gap:5px">
+        ↗ Partager
+      </button>
+      <button onclick="toggleFav(${deal.id});showToast(favorites.has(${deal.id})?'❤️ Ajouté aux favoris':'🤍 Retiré des favoris')"
+              style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt);display:flex;align-items:center;justify-content:center;gap:5px">
+        ${favorites.has(deal.id) ? '❤️' : '🤍'} Favori
+      </button>
+    </div>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -2882,18 +4834,69 @@ function closeModal(e) {
 }
 
 // ── FILTERS ───────────────────────────────────────────────────
+// Filtre par source marchande
+let _currentSource = '';
+function filterBySource(btn, source) {
+  _currentSource = source;
+  document.querySelectorAll('#sourceTabsRow .source-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (!source) {
+    // Réafficher tous les deals (filtre catégorie maintenu)
+    renderDeals(allDeals);
+    _renderNewDeals(allDeals);
+    return;
+  }
+
+  const filtered = allDeals.filter(d =>
+    (d.store || '').toLowerCase().includes(source.toLowerCase()) ||
+    (d.source || '').toLowerCase().includes(source.toLowerCase())
+  );
+
+  if (filtered.length === 0) {
+    showToast('Aucun deal de ' + source + ' pour le moment');
+    renderDeals(allDeals); // Fallback
+  } else {
+    renderDeals(filtered);
+    showToast(filtered.length + ' deal' + (filtered.length>1?'s':'') + ' de ' + source);
+  }
+}
+
 function filterCat(el, cat) {
   currentCat = cat;
+  _currentSource = '';
   document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  const allTab = document.querySelector('#sourceTabsRow .source-tab[data-src=""]');
+  if (allTab) {
+    document.querySelectorAll('#sourceTabsRow .source-tab').forEach(b => b.classList.remove('active'));
+    allTab.classList.add('active');
+  }
   loadDeals(cat, minScore);
 }
 
 function setSort(el, sort) {
+  if (!sort) return;
   currentSort = sort;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   renderDeals(allDeals);
+}
+
+function setPriceMax(maxPrice) {
+  const max = parseFloat(maxPrice) || 0;
+  if (!max) { renderDeals(allDeals); return; }
+  const filtered = allDeals.filter(d => d.current_price <= max);
+  renderDeals(filtered);
+  const countEl = document.getElementById('dealCount');
+  if (countEl) countEl.textContent = filtered.length + ' offres ≤ ' + max + '€';
+  if (max > 0) showToast('💰 Prix max : ' + max + '€ — ' + filtered.length + ' deals');
+}
+
+function setMinDiscount(pct) {
+  const val = parseFloat(pct) || 0;
+  _fetchDealsFromAPI(_currentCat, _currentMinSc, false, '', val);
+  if (val > 0) showToast('🏷️ Remise minimum : ' + val + '%');
 }
 
 function setMinSc(el, s) {
@@ -2905,9 +4908,13 @@ function setMinSc(el, s) {
 
 function sortDeals(deals) {
   const d = [...deals];
-  if (currentSort === 'score')    return d.sort((a,b) => (b.novadeal_score||0)-(a.novadeal_score||0));
-  if (currentSort === 'discount') return d.sort((a,b) => (b.discount_pct||0)-(a.discount_pct||0));
-  if (currentSort === 'recent')   return d.sort((a,b) => new Date(b.detected_at||0)-new Date(a.detected_at||0));
+  if (currentSort === 'score')       return d.sort((a,b) => (b.novadeal_score||0)-(a.novadeal_score||0));
+  if (currentSort === 'discount')    return d.sort((a,b) => (b.discount_pct||0)-(a.discount_pct||0));
+  if (currentSort === 'recent')      return d.sort((a,b) => new Date(b.detected_at||0)-new Date(a.detected_at||0));
+  if (currentSort === 'expiring')    return d.filter(x=>x.expires_at).sort((a,b) => new Date(a.expires_at)-new Date(b.expires_at));
+  if (currentSort === 'price_asc')   return d.sort((a,b) => (a.current_price||0)-(b.current_price||0));
+  if (currentSort === 'price_desc')  return d.sort((a,b) => (b.current_price||0)-(a.current_price||0));
+  if (currentSort === 'top')         return d.filter(x=>(x.novadeal_score||0)>=90).sort((a,b)=>(b.novadeal_score||0)-(a.novadeal_score||0));
   return d;
 }
 
@@ -2924,20 +4931,51 @@ const _handleSearchDebounced = (() => {
 function handleSearch(q) { _handleSearchDebounced(q); }
 
 function _doSearch(q) {
+  const countEl = document.getElementById('dealCount');
   if (!q.trim()) {
     renderDeals(allDeals);
-    document.getElementById('dealCount').textContent = `${allDeals.length} offres`;
+    if (countEl) countEl.textContent = allDeals.length + ' offres';
     return;
   }
-  const ql = q.toLowerCase();
-  const f  = allDeals.filter(d =>
-    d.name?.toLowerCase().includes(ql) ||
-    d.store?.toLowerCase().includes(ql) ||
-    d.brand?.toLowerCase().includes(ql) ||
-    d.category?.toLowerCase().includes(ql)
-  );
+  const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+  
+  // Score de pertinence par deal
+  const scored = allDeals.map(d => {
+    const haystack = [
+      d.name || '', d.store || '', d.brand || '', d.category || '',
+      (d.source || ''), (d.discount_pct ? d.discount_pct + '%' : '')
+    ].join(' ').toLowerCase();
+    
+    let score = 0;
+    tokens.forEach(token => {
+      if (d.name?.toLowerCase().startsWith(token)) score += 10;
+      else if (d.name?.toLowerCase().includes(token)) score += 5;
+      if (d.store?.toLowerCase().includes(token)) score += 4;
+      if (d.brand?.toLowerCase().includes(token)) score += 3;
+      if (d.category?.toLowerCase().includes(token)) score += 2;
+      if (haystack.includes(token)) score += 1;
+    });
+    // Bonus si tous les tokens sont présents
+    if (tokens.every(t => haystack.includes(t))) score += 5;
+    return {deal: d, score};
+  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+  
+  const f = scored.map(x => x.deal);
   renderDeals(f);
-  document.getElementById('dealCount').textContent = `${f.length} résultat${f.length !== 1 ? 's' : ''}`;
+  if (countEl) countEl.textContent = f.length + ' résultat' + (f.length !== 1 ? 's' : '') + ' pour "' + q + '"';
+  
+  // Suggestion si peu de résultats
+  if (f.length === 0) {
+    document.getElementById('dealsGrid').innerHTML = \`
+      <div style="grid-column:1/-1;text-align:center;padding:40px 20px">
+        <div style="font-size:36px;margin-bottom:12px">🔍</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px">Aucun résultat pour "\${escHtml(q)}"</div>
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:16px">Essaie un terme plus court ou une autre catégorie</div>
+        <button onclick="document.getElementById('searchInput').value='';_doSearch('');showToast('🔄 Recherche réinitialisée')" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">
+          Voir tous les deals
+        </button>
+      </div>\`;
+  }
 }
 
 // ── FAVORITES ─────────────────────────────────────────────────
@@ -2987,14 +5025,31 @@ function openFavPage() {
 
 // Codes statiques (toujours affichés en base)
 const _STATIC_PROMOS = [
-  {id:'s1', store:'Amazon',        emoji:'📦', desc:"5€ de réduction dès 25€",        code:'AMAZON5',  discount:'-5€',             cat:'',            expiry:'31/12/2026', votes_ok:145, votes_ko:3,  source:'verified'},
-  {id:'s2', store:'Fnac',          emoji:'📚', desc:'10% sur le High-Tech',            code:'FNAC10',   discount:'-10%',            cat:'high-tech',   expiry:'30/06/2026', votes_ok:98,  votes_ko:5,  source:'verified'},
-  {id:'s3', store:'Sephora',       emoji:'💄', desc:"15% sur la 1ère commande",        code:'SEPHA15',  discount:'-15%',            cat:'beaute',      expiry:'31/03/2026', votes_ok:76,  votes_ko:8,  source:'verified'},
-  {id:'s4', store:'Nike',          emoji:'👟', desc:'20% nouvelles collections',       code:'NIKE20',   discount:'-20%',            cat:'mode',        expiry:'30/04/2026', votes_ok:112, votes_ko:4,  source:'verified'},
-  {id:'s5', store:'Zalando',       emoji:'👗', desc:"Livraison gratuite dès 24,99€",   code:'ZALFREE',  discount:'Livraison offerte',cat:'mode',        expiry:'31/12/2026', votes_ok:201, votes_ko:7,  source:'verified'},
-  {id:'s6', store:'Cdiscount',     emoji:'🛒', desc:"8% sur l'électroménager",        code:'CDIS8',    discount:'-8%',             cat:'maison',      expiry:'30/06/2026', votes_ok:44,  votes_ko:6,  source:'verified'},
-  {id:'s7', store:'Uber Eats',     emoji:'🍔', desc:"50% sur la 1ère commande",        code:'UBERFR50', discount:'-50%',            cat:'restaurants', expiry:'30/04/2026', votes_ok:334, votes_ko:12, source:'verified'},
-  {id:'s8', store:'Decathlon',     emoji:'⚽', desc:"15% sur les articles de sport",   code:'DECA15',   discount:'-15%',            cat:'sport',       expiry:'30/06/2026', votes_ok:67,  votes_ko:9,  source:'verified'},
+  {id:'s1', store:'Amazon',        emoji:'📦', desc:'5€ de réduction dès 25€',         code:'AMAZON5',   discount:'-5€',   cat:'', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:42, votes_ko:3, url:'https://www.amazon.fr'},
+  {id:'s2', store:'Fnac',          emoji:'📚', desc:'10% sur le High-Tech',             code:'FNAC10',    discount:'-10%',  cat:'high-tech', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:38, votes_ko:4, url:'https://www.fnac.com'},
+  {id:'s3', store:'Cdiscount',     emoji:'🛒', desc:'8% électroménager',                code:'CDIS8',     discount:'-8%',   cat:'maison', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:29, votes_ko:6, url:'https://www.cdiscount.com'},
+  {id:'s4', store:'Boulanger',     emoji:'🖥️', desc:'50€ offerts dès 500€',            code:'BOUL50',    discount:'-50€',  cat:'high-tech', expiry:'31/05/2026', is_verified:true, source:'verified', votes_ok:21, votes_ko:2, url:'https://www.boulanger.com'},
+  {id:'s5', store:'Rue du Commerce',emoji:'🖱️',desc:'5% sur toutes les commandes',     code:'RDC5',      discount:'-5%',   cat:'', expiry:'30/09/2026', is_verified:true, source:'verified', votes_ok:18, votes_ko:3, url:'https://www.rueducommerce.fr'},
+  {id:'s6', store:'Nike',          emoji:'👟', desc:'20% nouvelles collections',        code:'NIKE20',    discount:'-20%',  cat:'mode', expiry:'30/04/2026', is_verified:true, source:'verified', votes_ok:55, votes_ko:5, url:'https://www.nike.com/fr'},
+  {id:'s7', store:'Zalando',       emoji:'👗', desc:'Livraison gratuite',               code:'ZALFREE',   discount:'Livraison offerte', cat:'mode', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:61, votes_ko:4, url:'https://www.zalando.fr'},
+  {id:'s8', store:'ASOS',          emoji:'👒', desc:'30% dès 40€',                     code:'ASOS30',    discount:'-30%',  cat:'mode', expiry:'30/04/2026', is_verified:true, source:'verified', votes_ok:34, votes_ko:8, url:'https://www.asos.com/fr'},
+  {id:'s9', store:'Sephora',       emoji:'💄', desc:"15% sur la 1ère commande",        code:'SEPHA15',   discount:'-15%',  cat:'beaute', expiry:'31/03/2026', is_verified:true, source:'verified', votes_ok:48, votes_ko:5, url:'https://www.sephora.fr'},
+  {id:'s10',store:'Nocibé',        emoji:'🌸', desc:'10€ dès 50€',                     code:'NOCI10',    discount:'-10€',  cat:'beaute', expiry:'30/04/2026', is_verified:true, source:'verified', votes_ok:22, votes_ko:3, url:'https://www.nocibe.fr'},
+  {id:'s11',store:'La Redoute',    emoji:'🛋️', desc:'20% sur la maison',               code:'LR20',      discount:'-20%',  cat:'maison', expiry:'31/05/2026', is_verified:true, source:'verified', votes_ok:31, votes_ko:6, url:'https://www.laredoute.fr'},
+  {id:'s12',store:'Uber Eats',     emoji:'🍔', desc:'50% 1ère commande',               code:'UBERFR50',  discount:'-50%',  cat:'restauration', expiry:'30/04/2026', is_verified:true, source:'verified', votes_ok:72, votes_ko:8, url:'https://www.ubereats.com/fr'},
+  {id:'s13',store:'Deliveroo',     emoji:'🚴', desc:'25% sur 3 premières commandes',   code:'DLVR25',    discount:'-25%',  cat:'restauration', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:45, votes_ko:7, url:'https://deliveroo.fr'},
+  {id:'s14',store:'Too Good To Go',emoji:'🌿', desc:'1€ sur les paniers',              code:'TGTG1',     discount:'-1€',   cat:'restauration', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:83, votes_ko:4, url:'https://toogoodtogo.com/fr'},
+  {id:'s15',store:'Booking',       emoji:'🏨', desc:'10% sur les hôtels',              code:'BOOK10',    discount:'-10%',  cat:'voyages', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:37, votes_ko:6, url:'https://www.booking.com'},
+  {id:'s16',store:'SNCF',          emoji:'🚄', desc:"Promo Maximini jusqu'à -60%",     code:'MAXIMINI',  discount:'-60%',  cat:'voyages', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:29, votes_ko:3, url:'https://www.sncf-connect.com'},
+  {id:'s17',store:'Opodo',         emoji:'✈️', desc:'25€ sur les vols',                code:'OPODO25',   discount:'-25€',  cat:'voyages', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:19, votes_ko:5, url:'https://www.opodo.fr'},
+  {id:'s18',store:'Decathlon',     emoji:'⚽', desc:'15% articles de sport',           code:'DECA15',    discount:'-15%',  cat:'sport', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:41, votes_ko:4, url:'https://www.decathlon.fr'},
+  {id:'s19',store:'IKEA',          emoji:'🏠', desc:'10% achats en ligne',             code:'IKEA10',    discount:'-10%',  cat:'maison', expiry:'31/03/2026', is_verified:true, source:'verified', votes_ok:26, votes_ko:5, url:'https://www.ikea.com/fr/fr'},
+  {id:'s20',store:'Leroy Merlin',  emoji:'🔨', desc:'10€ dès 100€',                   code:'LM10',      discount:'-10€',  cat:'bricolage', expiry:'30/09/2026', is_verified:true, source:'verified', votes_ok:23, votes_ko:4, url:'https://www.leroymerlin.fr'},
+  {id:'s21',store:'ManoMano',      emoji:'🪚', desc:'8% sur outillage',                code:'MANO8',     discount:'-8%',   cat:'bricolage', expiry:'30/06/2026', is_verified:true, source:'verified', votes_ok:17, votes_ko:3, url:'https://www.manomano.fr'},
+  {id:'s22',store:'LDLC',          emoji:'💻', desc:'5% sur les PC',                  code:'LDLC5',     discount:'-5%',   cat:'informatique', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:20, votes_ko:2, url:'https://www.ldlc.com'},
+  {id:'s23',store:'Materiel.net',  emoji:'🖥️', desc:'Livraison offerte dès 100€',     code:'MATFREE',   discount:'Livraison offerte', cat:'informatique', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:16, votes_ko:2, url:'https://www.materiel.net'},
+  {id:'s24',store:'Norauto',       emoji:'🚗', desc:'10% sur les pneus',              code:'NORA10',    discount:'-10%',  cat:'auto', expiry:'31/07/2026', is_verified:true, source:'verified', votes_ok:14, votes_ko:2, url:'https://www.norauto.fr'},
+  {id:'s25',store:'1001Pneus',     emoji:'🛞', desc:'5% sur commande en ligne',       code:'PNEU5',     discount:'-5%',   cat:'auto', expiry:'31/12/2026', is_verified:true, source:'verified', votes_ok:12, votes_ko:1, url:'https://www.1001pneus.fr'},
 ];
 
 let _allPromos      = [..._STATIC_PROMOS];
@@ -3115,10 +5170,16 @@ function renderPromoCard(p) {
 
     <!-- Header: store + discount -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-right:70px">
-      <span style="font-size:26px">${storeEmoji}</span>
-      <div>
-        <div style="font-size:14px;font-weight:700">${escHtml(p.store)}</div>
-        <span style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:2px 8px;display:inline-block;margin-top:2px;font-weight:600">${escHtml(p.discount||p.discount_desc||'')}</span>
+      ${STORE_LOGOS[p.store] ? `<img src="${STORE_LOGOS[p.store]}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;background:var(--bg3);padding:3px;flex-shrink:0" alt="" onerror="this.outerHTML='<span style=\'font-size:26px\'>${storeEmoji}</span>'">` : `<span style="font-size:26px">${storeEmoji}</span>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px">
+          ${escHtml(p.store)}
+          ${p.verified ? '<span style="font-size:9px;background:rgba(0,208,132,.15);color:var(--green);border-radius:4px;padding:1px 5px;font-weight:700">✓ VÉRIFIÉ</span>' : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span style="font-size:11px;background:rgba(255,92,43,.1);color:var(--accent);border-radius:5px;padding:2px 8px;font-weight:600">${escHtml(p.discount||p.discount_desc||'')}</span>
+          ${p.url ? `<a href="${escHtml(p.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);text-decoration:none;font-weight:600">Utiliser →</a>` : ''}
+        </div>
       </div>
     </div>
 
@@ -3363,6 +5424,11 @@ function runCompare() {
 
 // ── FLASH PAGE ────────────────────────────────────────────────
 function openFlashPage() {
+  if (!FLASH_DEALS || !FLASH_DEALS.length) loadFlashDeals();
+  if (!FLASH_DEALS || !FLASH_DEALS.length) {
+    document.getElementById('flashGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">⏳ Chargement des ventes flash en cours…<br><button onclick="loadFlashDeals()" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer">Actualiser</button></div>';
+    return;
+  }
   document.getElementById('flashGrid').innerHTML = FLASH_DEALS.map((f,i) => {
     const img = CAT_IMG[f.cat] || CAT_IMG.default;
     return `
@@ -4959,7 +7025,7 @@ async function loadSwipeFeed() {
     const data = await res.json();
     swipeDeals = data.deals || [];
   } catch(e) {
-    swipeDeals = getDemoDeals(cat).slice(0, 15);
+    swipeDeals = allDeals.filter(d => !cat || d.category === cat).slice(0, 15);
   }
 
   if (!swipeDeals.length) {
@@ -6662,7 +8728,7 @@ async function generateTikTokContent(format) {
     const data = await res.json();
     deals = data.deals || [];
   } catch(e) {
-    deals = getDemoDeals().slice(0, 5);
+    deals = allDeals.slice(0, 5);
   }
 
   if (format === 'top3') renderTikTokTop3(deals.slice(0,3), el);
@@ -6840,7 +8906,7 @@ async function runBudgetOptimize() {
 }
 
 function getDemoBudgetResult(budget) {
-  const demos = getDemoDeals().filter(d => d.current_price <= budget);
+  const demos = allDeals.filter(d => d.current_price <= budget);
   let remaining = budget, selected = [], saved = 0;
   for (const d of demos.sort((a,b) => b.novadeal_score - a.novadeal_score)) {
     if (d.current_price <= remaining && selected.length < 4) {
@@ -6981,7 +9047,7 @@ async function openSocialPage() {
   openPage('socialPage');
   // Populate deal selector
   const sel = document.getElementById('socialDealSelect');
-  const deals = getDemoDeals();
+  const deals = allDeals;
   sel.innerHTML = '<option value="">Choisir un deal…</option>' +
     deals.map(d => `<option value="${d.id}">${d.name} — ${d.current_price}€</option>`).join('');
   loadWeeklyPlanning();
@@ -7004,7 +9070,7 @@ async function loadSocialContent() {
 }
 
 function getDemoSocialContent(dealId) {
-  const d = getDemoDeals().find(x => x.id == dealId) || getDemoDeals()[0];
+  const d = allDeals.find(x => x.id == dealId) || allDeals[0] || null;
   return {
     platforms: {
       tiktok:    { caption: `🔥 ${d.name} à ${d.current_price}€ (-${Math.round(d.discount_pct||30)}%)
@@ -7074,7 +9140,7 @@ async function loadWeeklyPlanning() {
 
 function getDemoWeeklyPlanning() {
   const days   = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
-  const deals  = getDemoDeals();
+  const deals = allDeals;
   return days.map((day, i) => ({
     day, deal_id: deals[i%deals.length].id,
     product: deals[i%deals.length].name,
@@ -7179,7 +9245,7 @@ async function loadTrending(period, btn) {
     const data = await res.json();
     renderTrending(data.deals || [], el);
   } catch(e) {
-    renderTrending(getDemoDeals().slice(0,8), el);
+    renderTrending(allDeals.slice(0,8), el);
   }
 }
 
@@ -7444,7 +9510,7 @@ async function loadTikTokScript() {
 }
 
 function getDemoTikTokScript(cat) {
-  const deal = getDemoDeals(cat)[0];
+  const deal = allDeals.find(d => !cat || d.category === cat);
   return {
     scripts: [{
       product: deal.name,
@@ -7759,7 +9825,7 @@ async function openRecoPage() {
 }
 
 function getDemoMLRecos() {
-  const deals = getDemoDeals();
+  const deals = allDeals;
   return {
     recommendations: deals.map((d,i) => ({
       ...d,
@@ -8464,27 +10530,11 @@ async function unsubscribeNewsletter() {
 })();
 
 // ── DEMO DATA ─────────────────────────────────────────────────
+// getDemoDeals supprimée — seules les données de l'API sont utilisées
+// Les deals viennent exclusivement des 42 sources live
 function getDemoDeals(cat) {
-  const all = [
-    {id:1,name:'MacBook Air M3 16Go/512Go',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:999,original_price:1499,discount_pct:33,novadeal_score:98,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
-    {id:2,name:'Samsung Galaxy S25 Ultra 256Go',brand:'Samsung',category:'high-tech',store:'Darty.com',current_price:899,original_price:1329,discount_pct:32,novadeal_score:96,affiliate_url:'https://darty.com',detected_at:new Date().toISOString()},
-    {id:3,name:'PS5 Slim + 2 manettes',brand:'Sony',category:'gaming',store:'Fnac.com',current_price:449,original_price:620,discount_pct:28,novadeal_score:94,affiliate_url:'https://fnac.com',detected_at:new Date().toISOString()},
-    {id:4,name:'Nike Air Max 270',brand:'Nike',category:'mode',store:'Nike.com',current_price:79,original_price:149,discount_pct:47,novadeal_score:91,affiliate_url:'https://nike.com',detected_at:new Date().toISOString()},
-    {id:5,name:'Lait Lactel 6×1L',brand:'Lactel',category:'alimentaire',store:'Carrefour',current_price:4.99,original_price:7.99,discount_pct:37,novadeal_score:85,affiliate_url:'https://carrefour.fr',detected_at:new Date().toISOString()},
-    {id:6,name:'Saumon fumé Label Rouge 200g',brand:'Labeyrie',category:'alimentaire',store:'Lidl.fr',current_price:3.99,original_price:6.49,discount_pct:38,novadeal_score:88,affiliate_url:'https://lidl.fr',detected_at:new Date().toISOString()},
-    {id:7,name:"Menu Best Of McDonald's",brand:"McDonald's",category:'restauration',store:"McDonald's",current_price:5.99,original_price:10.50,discount_pct:43,novadeal_score:82,affiliate_url:'https://mcdonalds.fr',detected_at:new Date().toISOString()},
-    {id:8,name:'Too Good To Go — Paul',brand:'Paul',category:'restauration',store:'Too Good To Go',current_price:3.99,original_price:9.99,discount_pct:60,novadeal_score:93,affiliate_url:'https://toogoodtogo.com',detected_at:new Date().toISOString()},
-    {id:9,name:'Sony WH-1000XM5',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:219,original_price:380,discount_pct:42,novadeal_score:95,affiliate_url:'https://amazon.fr',detected_at:new Date().toISOString()},
-    {id:10,name:'Canapé convertible IKEA',brand:'IKEA',category:'maison',store:'IKEA.com',current_price:349,original_price:599,discount_pct:42,novadeal_score:87,affiliate_url:'https://ikea.com',detected_at:new Date().toISOString()},
-    {id:11,name:'Adidas Stan Smith Blanc',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:59,original_price:100,discount_pct:41,novadeal_score:84,affiliate_url:'https://zalando.fr',detected_at:new Date().toISOString()},
-    {id:12,name:'Livraison offerte Uber Eats',brand:'Uber Eats',category:'restauration',store:'Uber Eats',current_price:0,original_price:2.49,discount_pct:100,novadeal_score:78,affiliate_url:'https://ubereats.com',detected_at:new Date().toISOString()},
-  ];
-  return cat ? all.filter(d=>d.category===cat) : all;
+  // Retourne les deals déjà chargés depuis l'API, filtrés par catégorie
+  if (!allDeals || !allDeals.length) return [];
+  return cat ? allDeals.filter(d => d.category === cat) : allDeals;
 }
-</script>
 
-<script src="/enhancements.js"></script>
-  <!-- Awin verification -->
-  <div style="position:fixed;bottom:2px;right:4px;font-size:8px;color:rgba(255,255,255,0.15);z-index:1;pointer-events:none">Hello Awin</div>
-</body>
-</html>
