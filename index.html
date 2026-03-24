@@ -2620,14 +2620,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const dealId = params.get('deal');
   if (dealId) {
     const id = parseInt(dealId);
-    if (!isNaN(id)) setTimeout(function(){ openDeal(id); }, 400);
+    if (!isNaN(id)) {
+      // Attendre que allDeals soit bien chargé avant d'ouvrir le modal
+      function tryOpenDeal(attempts) {
+        if (allDeals && allDeals.length > 0) {
+          openDeal(id);
+        } else if (attempts > 0) {
+          setTimeout(function(){ tryOpenDeal(attempts - 1); }, 200);
+        }
+      }
+      setTimeout(function(){ tryOpenDeal(20); }, 300);
+    }
   }
 });
 
 // ── STATS ─────────────────────────────────────────────────────
 async function loadStats() {
-  // Calculer les vraies stats depuis la DB locale immédiatement
-  const allDbDeals = Object.values(_DEALS_DB).flat();
+  // Calculer les vraies stats depuis la DB locale — utiliser UNIQUEMENT le tableau principal '' pour éviter les doublons
+  const allDbDeals = _DEALS_DB[''] || [];
   const totalDeals = allDbDeals.length;
   const avgDisc = allDbDeals.length > 0
     ? Math.round(allDbDeals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/allDbDeals.length)
@@ -2641,7 +2651,9 @@ async function loadStats() {
   // Afficher les stats locales immédiatement
   if (elDeals) elDeals.textContent = totalDeals.toLocaleString('fr-FR');
   if (elDiscount) elDiscount.textContent = avgDisc + '%';
-  if (elSources) elSources.textContent = totalSources;
+  // Sources = nombre de marchands uniques dans toute la DB
+  const realSources = new Set((_DEALS_DB[''] || []).map(function(d){return d.store;})).size;
+  if (elSources) elSources.textContent = realSources;
 
   // Tenter de récupérer les stats backend (optionnel)
   try {
@@ -2734,7 +2746,10 @@ function buildAffiliateUrl(url) {
   try {
     const u = new URL(url);
     if (u.hostname.includes('amazon.')) {
+      // Toujours forcer le bon tag, même si un tag différent est déjà dans l'URL
       u.searchParams.set('tag', _TAG);
+      // Nettoyer les paramètres inutiles qui peuvent casser le lien
+      ['ref', 'smid', 'th', 'psc'].forEach(function(p){ u.searchParams.delete(p); });
       return u.toString();
     }
   } catch(e) {}
@@ -2747,7 +2762,7 @@ const _DEALS_DB = {
     {id:2,name:'Samsung Galaxy S24 128Go Noir',brand:'Samsung',category:'high-tech',store:'Amazon.fr',current_price:499,original_price:759,discount_pct:34,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B0CMDJ9XCB?tag=julvox-21',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/2401/gallery/fr-galaxy-s24-s921-sm-s921bzkdeub-thumb-539694961?$413_413_PNG$',description:'Le flagship Samsung à prix réduit',is_flash:false,detected_at:_NOW},
     {id:3,name:'Apple Watch Series 9 41mm GPS Minuit',brand:'Apple',category:'high-tech',store:'Darty.com',current_price:319,original_price:449,discount_pct:29,novadeal_score:96,affiliate_url:'https://www.darty.com/nav/achat/montres_connectees/apple-watch-s9-41.html',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQDY3ref_VW_34FR+watch-45-alum-midnight-nc-s9_VW_34FR_WF_CO?wid=400&hei=400&fmt=jpeg',description:'Apple Watch S9 au meilleur prix chez Darty',is_flash:false,detected_at:_NOW},
     {id:4,name:'Sony WH-1000XM5 Casque Bluetooth ANC',brand:'Sony',category:'high-tech',store:'Darty.com',current_price:279,original_price:399,discount_pct:30,novadeal_score:94,affiliate_url:'https://www.darty.com/nav/achat/son/casque_audio/sony-wh1000xm5b.html',image_url:'https://www.sony.fr/image/5d02da5df552836db8bb2d375467f945?fmt=pjpeg&bgcolor=FFFFFF&bgc=FFFFFF&wid=400&hei=400',description:'Meilleur casque ANC du marché en promo',is_flash:false,detected_at:_NOW},
-    {id:5,name:'Samsung TV QLED 55" 4K QE55Q60C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:549,original_price:799,discount_pct:31,novadeal_score:92,affiliate_url:'https://www.boulanger.com/ref/1167569',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/qe55q60cauxxc/gallery/fr-qled-q60c-qe55q60cauxxc-thumb-535811655?$413_413_PNG$',description:'TV QLED 4K 55 pouces à prix réduit',is_flash:false,detected_at:_NOW},
+    {id:5,name:'Samsung TV QLED 55" 4K QE55Q60C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:549,original_price:799,discount_pct:31,novadeal_score:92,affiliate_url:'https://www.boulanger.com/ref/1261562',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/qe55q60cauxxc/gallery/fr-qled-q60c-qe55q60cauxxc-thumb-535811655?$413_413_PNG$',description:'TV QLED 4K 55 pouces à prix réduit',is_flash:false,detected_at:_NOW},
     {id:6,name:'Bose QuietComfort 45 Bluetooth Noir',brand:'Bose',category:'high-tech',store:'Amazon.fr',current_price:199,original_price:329,discount_pct:39,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B098FKXT8L?tag=julvox-21',image_url:'https://assets.bose.com/content/dam/cloudassets/Bose_DAM/Web/consumer_electronics/global/products/headphones/qc45/product_silo_images/QC45_BLK_hero.png/jcr:content/renditions/cq5dam.web.320.320.png',description:'Casque Bose QC45 avec réduction importante',is_flash:false,detected_at:_NOW},
     {id:7,name:'JBL Charge 5 Enceinte Portable Bluetooth',brand:'JBL',category:'high-tech',store:'Amazon.fr',current_price:129,original_price:199,discount_pct:35,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B08ZMXKXH4?tag=julvox-21',image_url:'https://www.jbl.com/dw/image/v2/AAUJ_PRD/on/demandware.static/-/Sites-masterCatalog_Harman/default/dw9e2c7a5a/JBL_Charge5_Product%20Image_Hero_Black.png?sw=400&sh=400',description:'Enceinte portable résistante à leau',is_flash:false,detected_at:_NOW},
     {id:8,name:'MacBook Air M2 13" 256Go Minuit',brand:'Apple',category:'informatique',store:'Amazon.fr',current_price:999,original_price:1299,discount_pct:23,novadeal_score:97,affiliate_url:'https://www.amazon.fr/dp/B0B3BVWJ6Y?tag=julvox-21',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=400&hei=400&fmt=jpeg&qlt=90',description:'MacBook Air M2 au meilleur prix',is_flash:false,detected_at:_NOW},
@@ -2930,8 +2945,10 @@ function showLoadingDeals() {
 }
 
 function updateStatsCounter(dealsCount, sourcesChecked) {
+  // Toujours afficher le nombre réel de deals uniques dans la DB locale
   const el = document.getElementById('statDeals');
-  if (el) el.textContent = dealsCount.toLocaleString('fr-FR');
+  const realTotal = (_DEALS_DB[''] || []).length;
+  if (el) el.textContent = realTotal.toLocaleString('fr-FR');
   const elS = document.getElementById('statSources');
   if (elS && sourcesChecked) elS.textContent = sourcesChecked;
 }
@@ -3062,14 +3079,19 @@ function renderDeals(deals) {
   grid.innerHTML = sorted.map(function(d) { return dealCard(d); }).join('');
   var countEl = document.getElementById('dealCount');
   if (countEl) countEl.textContent = deals.length + ' deals vérifiés ✓';
-  // Mettre à jour les stats sans appeler le backend mort
+  // Mettre à jour les stats sans appeler le backend mort — utiliser le vrai total de deals uniques
+  var totalUnique = (_DEALS_DB[''] || []).length;
   var statD = document.getElementById('statDeals');
-  if (statD) statD.textContent = deals.length;
+  if (statD) statD.textContent = totalUnique;
   var statS = document.getElementById('statSources');
   if (statS) statS.textContent = new Set(deals.map(function(d){return d.store;})).size;
   var statR = document.getElementById('statDiscount');
-  if (statR && deals.length > 0) {
-    var avg = Math.round(deals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/deals.length);
+  if (statR) {
+    // Calculer la réduction moyenne sur TOUS les deals uniques (pas seulement ceux affichés)
+    var uniqueDeals = _DEALS_DB[''] || [];
+    var avg = uniqueDeals.length > 0
+      ? Math.round(uniqueDeals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/uniqueDeals.length)
+      : 0;
     statR.textContent = avg + '%';
   }
 }
@@ -5116,15 +5138,21 @@ async function runDealAnalysis() {
 }
 
 function generateSimulatedHistory(current, original) {
-  // Generate realistic 90-day history
+  // Generate realistic 90-day history with real dates for slider display
   const base = original || current * 1.3;
   const history = [];
+  const today = new Date();
   for (let i = 90; i >= 0; i--) {
     const noise = (Math.random() - 0.5) * base * 0.08;
     const trend = i > 14 ? base : base * (0.9 + Math.random() * 0.2);
-    history.push(Math.round((trend + noise) * 100) / 100);
+    const price = Math.round((trend + noise) * 100) / 100;
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'});
+    history.push({ price: price, date: dateStr });
   }
-  history.push(current);
+  // Dernier point = prix actuel avec date aujourd'hui
+  history.push({ price: current, date: "Auj." });
   return history;
 }
 
