@@ -2700,6 +2700,20 @@ function buildFlashPrompt() {
 
 // ── BASE DE DONNÉES LOCALE — vrais produits français, liens directs ──
 const _TAG = 'julvox-21';
+// Injecte automatiquement le tag Amazon associé sur tous les liens amazon.fr
+function buildAffiliateUrl(url) {
+  if (!url || url === '#') return url || '#';
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('amazon.fr') || u.hostname.includes('amazon.com')) {
+      const p = new URLSearchParams(u.search);
+      p.set('tag', _TAG);
+      u.search = p.toString();
+      return u.toString();
+    }
+  } catch(e) {}
+  return url;
+}
 const _NOW = new Date().toISOString();
 const _DEALS_DB = {
   '': [
@@ -2707,7 +2721,7 @@ const _DEALS_DB = {
     {id:2,name:'Samsung Galaxy S24 128Go Noir',brand:'Samsung',category:'high-tech',store:'Amazon.fr',current_price:499,original_price:759,discount_pct:34,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B0CMDJL1GW',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/2401/gallery/fr-galaxy-s24-s921-sm-s921bzkdeub-thumb-539694961?$413_413_PNG$',description:'Le flagship Samsung à prix réduit',is_flash:false,detected_at:_NOW},
     {id:3,name:'Apple Watch Series 9 41mm GPS Minuit',brand:'Apple',category:'high-tech',store:'Darty.com',current_price:319,original_price:449,discount_pct:29,novadeal_score:96,affiliate_url:'https://www.darty.com/nav/achat/montres_connectees/apple-watch-s9-41.html',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQDY3ref_VW_34FR+watch-45-alum-midnight-nc-s9_VW_34FR_WF_CO?wid=400&hei=400&fmt=jpeg',description:'Apple Watch S9 au meilleur prix chez Darty',is_flash:false,detected_at:_NOW},
     {id:4,name:'Sony WH-1000XM5 Casque Bluetooth ANC',brand:'Sony',category:'high-tech',store:'Darty.com',current_price:279,original_price:399,discount_pct:30,novadeal_score:94,affiliate_url:'https://www.darty.com/nav/achat/son/casque_audio/sony-wh1000xm5b.html',image_url:'https://www.sony.fr/image/5d02da5df552836db8bb2d375467f945?fmt=pjpeg&bgcolor=FFFFFF&bgc=FFFFFF&wid=400&hei=400',description:'Meilleur casque ANC du marché en promo',is_flash:false,detected_at:_NOW},
-    {id:5,name:'Samsung TV QLED 55" 4K QE55Q60C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:549,original_price:799,discount_pct:31,novadeal_score:92,affiliate_url:'https://www.boulanger.com/ref/1209165',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/qe55q60cauxxc/gallery/fr-qled-q60c-qe55q60cauxxc-thumb-535811655?$413_413_PNG$',description:'TV QLED 4K 55 pouces à prix réduit',is_flash:false,detected_at:_NOW},
+    {id:5,name:'Samsung TV QLED 55" 4K QE55Q60C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:549,original_price:799,discount_pct:31,novadeal_score:92,affiliate_url:'https://www.boulanger.com/rechercher/samsung+qe55q60c',image_url:'https://images.samsung.com/is/image/samsung/p6pim/fr/qe55q60cauxxc/gallery/fr-qled-q60c-qe55q60cauxxc-thumb-535811655?$413_413_PNG$',description:'TV QLED 4K 55 pouces à prix réduit',is_flash:false,detected_at:_NOW},
     {id:6,name:'Bose QuietComfort 45 Bluetooth Noir',brand:'Bose',category:'high-tech',store:'Amazon.fr',current_price:199,original_price:329,discount_pct:39,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B098FKXT8L',image_url:'https://assets.bose.com/content/dam/cloudassets/Bose_DAM/Web/consumer_electronics/global/products/headphones/qc45/product_silo_images/QC45_BLK_hero.png/jcr:content/renditions/cq5dam.web.320.320.png',description:'Casque Bose QC45 avec réduction importante',is_flash:false,detected_at:_NOW},
     {id:7,name:'JBL Charge 5 Enceinte Portable Bluetooth',brand:'JBL',category:'high-tech',store:'Amazon.fr',current_price:129,original_price:199,discount_pct:35,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B08ZMXKXH4',image_url:'https://www.jbl.com/dw/image/v2/AAUJ_PRD/on/demandware.static/-/Sites-masterCatalog_Harman/default/dw9e2c7a5a/JBL_Charge5_Product%20Image_Hero_Black.png?sw=400&sh=400',description:'Enceinte portable résistante à leau',is_flash:false,detected_at:_NOW},
     {id:8,name:'MacBook Air M2 13" 256Go Minuit',brand:'Apple',category:'informatique',store:'Amazon.fr',current_price:999,original_price:1299,discount_pct:23,novadeal_score:97,affiliate_url:'https://www.amazon.fr/dp/B0B3BVWJ6Y',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=400&hei=400&fmt=jpeg&qlt=90',description:'MacBook Air M2 au meilleur prix',is_flash:false,detected_at:_NOW},
@@ -2739,8 +2753,8 @@ const _DEALS_DB = {
     {id:34,name:'Withings ScanWatch Horizon 43mm',brand:'Withings',category:'sante',store:'Amazon.fr',current_price:199,original_price:299,discount_pct:33,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B087N5DKQK',image_url:'https://www.withings.com/cdn-cgi/image/w=400,h=400,fit=pad,background=white/imgs/product/scanwatch-horizon/front/scanwatch-horizon-43mm-silver-front.jpg',description:'Montre santé Withings en promo',is_flash:false,detected_at:_NOW},
     {id:35,name:'LEGO Technic Ferrari Daytona SP3 42143',brand:'LEGO',category:'gaming',store:'Amazon.fr',current_price:299,original_price:449,discount_pct:33,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B09Y2V5J6F',image_url:'https://www.lego.com/cdn/cs/set/assets/blt10deb985a74606cd/42143.jpg?fit=bounds&format=jpg&quality=80&width=400&height=400&dpr=1',description:'LEGO Ferrari Daytona collector -33%',is_flash:false,detected_at:_NOW},
     {id:36,name:'LEGO Harry Potter Château de Poudlard 71043',brand:'LEGO',category:'gaming',store:'Fnac.com',current_price:349,original_price:499,discount_pct:30,novadeal_score:95,affiliate_url:'https://www.fnac.com/Lego-Harry-Potter-Chateau-de-Poudlard-71043/a10893112',image_url:'https://www.lego.com/cdn/cs/set/assets/blt77bd61c3ac436ea3/71043.jpg?fit=bounds&format=jpg&quality=80&width=400&height=400&dpr=1',description:'Set LEGO iconic Harry Potter -30%',is_flash:false,detected_at:_NOW},
-    {id:37,name:'Back Market iPhone 13 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:679,discount_pct:41,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B09LNW3CY2',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-blue-select-2021?wid=400&hei=400&fmt=jpeg&qlt=90',description:'iPhone 13 reconditionné certifié -41%',is_flash:false,detected_at:_NOW},
-    {id:38,name:'ManoMano Perceuse Bosch PSB 1800 LI-2',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:89,original_price:149,discount_pct:40,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B00CQLPVFE',image_url:'https://www.bosch-professional.com/binary/ocsmedia/optimized/800x800/p_PSB_1800_LI-2_2607010917_010018_900x900_1.jpg',description:'Perceuse sans fil Bosch -40%',is_flash:false,detected_at:_NOW},
+    {id:37,name:'Back Market iPhone 13 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:679,discount_pct:41,novadeal_score:91,affiliate_url:'https://www.backmarket.fr/fr-fr/search?q=iphone+13+128+go',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-blue-select-2021?wid=400&hei=400&fmt=jpeg&qlt=90',description:'iPhone 13 reconditionné certifié -41%',is_flash:false,detected_at:_NOW},
+    {id:38,name:'ManoMano Perceuse Bosch PSB 1800 LI-2',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:89,original_price:149,discount_pct:40,novadeal_score:88,affiliate_url:'https://www.manomano.fr/recherche/perceuse+bosch+psb+1800',image_url:'https://www.bosch-professional.com/binary/ocsmedia/optimized/800x800/p_PSB_1800_LI-2_2607010917_010018_900x900_1.jpg',description:'Perceuse sans fil Bosch -40%',is_flash:false,detected_at:_NOW},
     {id:39,name:'Vans Old Skool Noir/Blanc',brand:'Vans',category:'mode',store:'Zalando.fr',current_price:59,original_price:89,discount_pct:34,novadeal_score:92,affiliate_url:'https://www.zalando.fr/vans-old-skool-baskets-basses-black-va111s09f-q11.html',image_url:'https://images.vans.com/is/image/Vans/D3HY28-HERO?$PDP_OVERLAY$',description:'Vans Old Skool classic -34%',is_flash:false,detected_at:_NOW},
     {id:40,name:'Crucial RAM 32Go DDR5-5600 SO-DIMM',brand:'Crucial',category:'informatique',store:'Amazon.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B0BC5FK63K',image_url:'https://www.crucial.fr/content/dam/crucial/dram-products/sodimm/images/in-use/Crucial-DDR5-SODIMM-image.psd.transform/medium-png/img.png',description:'RAM DDR5 haute performance -36%',is_flash:false,detected_at:_NOW},
   ],
@@ -2840,7 +2854,7 @@ async function fetchDealsFromClaude(category, minScore) {
         id: d.id || (Date.now() + i),
         detected_at: d.detected_at || new Date().toISOString(),
         novadeal_score: Math.min(100, Math.max(0, d.novadeal_score || 70)),
-        discount_pct: d.discount_pct || (d.original_price > d.current_price ? Math.round((1 - d.current_price/d.original_price) * 100) : 0),
+        discount_pct: (d.original_price > 0 && d.current_price > 0 && d.original_price > d.current_price) ? Math.round((1 - d.current_price/d.original_price) * 100) : (d.discount_pct || 0),
       });
     }).filter(function(d){ return d.current_price > 0 && d.name && d.affiliate_url; });
     DS_TOTAL_FOUND += parsed.total_analyzed || deals.length * 3;
@@ -2891,7 +2905,7 @@ function showLoadingDeals() {
 
 function updateStatsCounter(dealsCount, sourcesChecked) {
   const el = document.getElementById('statDeals');
-  if (el) el.textContent = (DS_TOTAL_FOUND + dealsCount).toLocaleString('fr-FR');
+  if (el) el.textContent = dealsCount.toLocaleString('fr-FR');
 }
 
 async function loadDeals(cat, minSc) {
@@ -2940,7 +2954,7 @@ function renderFlashLive(flashDeals) {
   row.innerHTML = flashDeals.map(function(f, i) {
     const img = f.image_url || CAT_IMG[f.cat] || CAT_IMG.default;
     const pct = f.discount_pct ? Math.round(f.discount_pct) : 0;
-    return '<div class="flash-card" onclick="window.open(\'' + (f.url||'#') + '\',\'_blank\');showToast(\'✅ Ouverture...\')">' +
+    return '<div class="flash-card" onclick="window.open(buildAffiliateUrl(\'' + (f.url||'#') + '\'),\'_blank\');showToast(\'✅ Ouverture...\')">' +
       '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.src=\'' + (CAT_IMG[f.cat]||CAT_IMG.default) + '\'"/>' +
       '<div class="flash-badge">' + (pct > 0 ? '-'+pct+'%' : 'Flash') + '</div>' +
       '<div class="flash-nm">' + escHtml(f.name) + '</div>' +
@@ -3152,7 +3166,7 @@ async function openDeal(id) {
       </div>
     </div>
 
-    <a class="cta-main" href="${deal.affiliate_url||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
+    <a class="cta-main" href="${buildAffiliateUrl(deal.affiliate_url)||'#'}" target="_blank" onclick="showToast('✅ Redirection...')">🛒 Voir l'offre sur ${escHtml(deal.store)} →</a>
     <button class="cta-sec" onclick="createAlert('${escHtml(deal.name)}',${deal.current_price})">🔔 Créer une alerte prix</button>
   `;
   document.getElementById('modalOverlay').classList.add('open');
@@ -3675,7 +3689,7 @@ function runCompare() {
           <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700">${formatPrice(d.current_price)}</div>
           ${d.original_price?`<div style="font-size:12px;color:var(--txt3);text-decoration:line-through">${formatPrice(d.original_price)}</div>`:''}
           ${d.discount_pct?`<div style="background:var(--accent);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;align-self:flex-start">−${Math.round(d.discount_pct)}%</div>`:''}
-          <a style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--txt2);font-size:13px;text-align:center;margin-top:4px;transition:var(--trans)" href="${d.affiliate_url||'#'}" target="_blank">Voir l'offre →</a>
+          <a style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--txt2);font-size:13px;text-align:center;margin-top:4px;transition:var(--trans)" href="${buildAffiliateUrl(d.affiliate_url)||'#'}" target="_blank">Voir l'offre →</a>
         </div>`).join('')}
     </div>`;
 }
@@ -5056,15 +5070,19 @@ async function runDealAnalysis() {
 }
 
 function generateSimulatedHistory(current, original) {
-  // Generate realistic 90-day history
+  // Generate realistic 90-day history with date labels
   const base = original || current * 1.3;
   const history = [];
   for (let i = 90; i >= 0; i--) {
     const noise = (Math.random() - 0.5) * base * 0.08;
     const trend = i > 14 ? base : base * (0.9 + Math.random() * 0.2);
-    history.push(Math.round((trend + noise) * 100) / 100);
+    const price = Math.round((trend + noise) * 100) / 100;
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    history.push({ price: price, date: d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) });
   }
-  history.push(current);
+  const lastD = new Date();
+  history.push({ price: current, date: lastD.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) });
   return history;
 }
 
@@ -7922,39 +7940,127 @@ function renderDarkPatternResults(data, el) {
 // ── PRICE HISTORY CHART (SVG mini-chart) ─────────────────────
 function renderPriceHistoryChart(history, containerEl) {
   if (!history || history.length < 2) return;
-  const prices  = history.map(h => h.price || h);
-  const dates   = history.map((h, i) => h.date || i);
-  const minP    = Math.min(...prices) * 0.98;
-  const maxP    = Math.max(...prices) * 1.02;
-  const range   = maxP - minP;
-  const w = 320, h = 80, pad = 10;
 
-  const points  = prices.map((p, i) => {
-    const x = pad + (i / (prices.length - 1)) * (w - pad * 2);
-    const y = pad + ((maxP - p) / range) * (h - pad * 2);
-    return `${x},${y}`;
-  }).join(' ');
+  const prices = history.map(h => typeof h === 'object' ? (h.price || h) : h);
+  const dates  = history.map(function(h, i) {
+    if (typeof h === 'object' && h.date) return h.date;
+    var d = new Date();
+    d.setDate(d.getDate() - (history.length - 1 - i));
+    return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'});
+  });
 
-  const currentColor = prices[prices.length-1] <= Math.min(...prices)*1.05 ? '#00D084' : '#FF5C2B';
+  const minP = Math.min.apply(null, prices);
+  const maxP = Math.max.apply(null, prices);
+  const range = maxP - minP || 1;
+  const lastP = prices[prices.length - 1];
+  const currentColor = lastP <= minP * 1.05 ? '#00D084' : '#FF5C2B';
+  const chartId = 'pch_' + Math.random().toString(36).slice(2, 9);
 
-  containerEl.innerHTML = `
-    <div style="font-size:11px;color:var(--txt3);margin-bottom:6px;display:flex;justify-content:space-between">
-      <span>Min: ${Math.min(...prices).toFixed(2)}€</span>
-      <span style="color:${currentColor};font-weight:600">Actuel: ${prices[prices.length-1].toFixed(2)}€</span>
-      <span>Max: ${Math.max(...prices).toFixed(2)}€</span>
-    </div>
-    <svg viewBox="0 0 ${w} ${h}" class="chart-svg">
-      <defs>
-        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${currentColor}" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="${currentColor}" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <polyline points="${points}" fill="none" stroke="${currentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="${pad + (w-pad*2)}" cy="${pad + ((maxP - prices[prices.length-1]) / range) * (h-pad*2)}" r="4" fill="${currentColor}"/>
-    </svg>
-  `;
+  containerEl.innerHTML =
+    '<div style="font-size:11px;color:var(--txt3);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">' +
+      '<span>Min: <b>' + minP.toFixed(2) + '€</b></span>' +
+      '<span id="' + chartId + '_tip" style="color:' + currentColor + ';font-weight:700">Actuel: ' + lastP.toFixed(2) + '€</span>' +
+      '<span>Max: <b>' + maxP.toFixed(2) + '€</b></span>' +
+    '</div>' +
+    '<div id="' + chartId + '_wrap" style="position:relative;cursor:crosshair;touch-action:none;user-select:none">' +
+      '<canvas id="' + chartId + '" style="width:100%;height:80px;display:block;border-radius:6px"></canvas>' +
+      '<div id="' + chartId + '_cur" style="position:absolute;top:0;bottom:0;width:1px;background:var(--txt2);opacity:0.6;display:none;pointer-events:none"></div>' +
+      '<div id="' + chartId + '_dot" style="position:absolute;width:10px;height:10px;border-radius:50%;background:' + currentColor + ';border:2px solid #fff;transform:translate(-50%,-50%);display:none;pointer-events:none;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-top:3px">' +
+      '<span>' + dates[0] + '</span><span>' + dates[Math.floor(dates.length/2)] + '</span><span>' + dates[dates.length-1] + '</span>' +
+    '</div>';
+
+  var canvas = document.getElementById(chartId);
+  var W = 320, H = 80;
+  canvas.width = W; canvas.height = H;
+
+  var pad = 12;
+  var pts = prices.map(function(p, i) {
+    return {
+      x: pad + (i / (prices.length - 1)) * (W - pad * 2),
+      y: pad + ((maxP - p) / range) * (H - pad * 2)
+    };
+  });
+
+  function draw(hiIdx) {
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    // Gradient fill under line
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, currentColor + '55');
+    grad.addColorStop(1, currentColor + '00');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, H);
+    ctx.lineTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.lineTo(pts[pts.length-1].x, H);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Main line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var j = 1; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Highlighted point
+    var hi = (hiIdx !== undefined) ? hiIdx : pts.length - 1;
+    ctx.beginPath();
+    ctx.arc(pts[hi].x, pts[hi].y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = currentColor;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  draw();
+
+  var wrap = document.getElementById(chartId + '_wrap');
+  var cursor = document.getElementById(chartId + '_cur');
+  var dot = document.getElementById(chartId + '_dot');
+  var tip = document.getElementById(chartId + '_tip');
+
+  function onInteract(clientX) {
+    var rect = wrap.getBoundingClientRect();
+    var relX = (clientX - rect.left) / rect.width;
+    relX = Math.max(0, Math.min(1, relX));
+    var idx = Math.round(relX * (prices.length - 1));
+    draw(idx);
+    var px = pts[idx].x / W * 100;
+    var py = pts[idx].y / H * 100;
+    cursor.style.left = px + '%';
+    cursor.style.display = 'block';
+    dot.style.left = px + '%';
+    dot.style.top  = py + '%';
+    dot.style.background = currentColor;
+    dot.style.display = 'block';
+    var pColor = prices[idx] <= minP * 1.05 ? '#00D084' : (prices[idx] >= maxP * 0.95 ? '#FF5C2B' : 'var(--txt2)');
+    tip.style.color = pColor;
+    tip.textContent = dates[idx] + ' · ' + prices[idx].toFixed(2) + '€';
+  }
+
+  function onLeave() {
+    cursor.style.display = 'none';
+    dot.style.display = 'none';
+    draw();
+    tip.style.color = currentColor;
+    tip.textContent = 'Actuel: ' + lastP.toFixed(2) + '€';
+  }
+
+  wrap.addEventListener('mousemove', function(e) { onInteract(e.clientX); });
+  wrap.addEventListener('touchmove', function(e) { e.preventDefault(); onInteract(e.touches[0].clientX); }, {passive: false});
+  wrap.addEventListener('mouseleave', onLeave);
+  wrap.addEventListener('touchend', onLeave);
 }
+
 
 
 
