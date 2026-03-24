@@ -1008,7 +1008,7 @@ a{text-decoration:none}
   <div class="hero-stats" style="margin-top:14px">
     <div class="hstat"><div class="hstat-v" id="statDeals">—</div><div class="hstat-l">Deals actifs</div></div>
     <div class="hstat"><div class="hstat-v">47%</div><div class="hstat-l">Réduction moy.</div></div>
-    <div class="hstat"><div class="hstat-v">52K+</div><div class="hstat-l">Sources</div></div>
+    <div class="hstat"><div class="hstat-v" id="statSources">16</div><div class="hstat-l">Sources</div></div>
   </div>
 </div>
 
@@ -2739,8 +2739,8 @@ const _DEALS_DB = {
     {id:34,name:'Withings ScanWatch Horizon 43mm',brand:'Withings',category:'sante',store:'Amazon.fr',current_price:199,original_price:299,discount_pct:33,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B087N5DKQK?tag='+_TAG,image_url:'https://www.withings.com/cdn-cgi/image/w=400,h=400,fit=pad,background=white/imgs/product/scanwatch-horizon/front/scanwatch-horizon-43mm-silver-front.jpg',description:'Montre santé Withings en promo',is_flash:false,detected_at:_NOW},
     {id:35,name:'LEGO Technic Ferrari Daytona SP3 42143',brand:'LEGO',category:'gaming',store:'Amazon.fr',current_price:299,original_price:449,discount_pct:33,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B09Y2V5J6F?tag='+_TAG,image_url:'https://www.lego.com/cdn/cs/set/assets/blt10deb985a74606cd/42143.jpg?fit=bounds&format=jpg&quality=80&width=400&height=400&dpr=1',description:'LEGO Ferrari Daytona collector -33%',is_flash:false,detected_at:_NOW},
     {id:36,name:'LEGO Harry Potter Château de Poudlard 71043',brand:'LEGO',category:'gaming',store:'Fnac.com',current_price:349,original_price:499,discount_pct:30,novadeal_score:95,affiliate_url:'https://www.fnac.com/Lego-Harry-Potter-Chateau-de-Poudlard-71043/a10893112',image_url:'https://www.lego.com/cdn/cs/set/assets/blt77bd61c3ac436ea3/71043.jpg?fit=bounds&format=jpg&quality=80&width=400&height=400&dpr=1',description:'Set LEGO iconic Harry Potter -30%',is_flash:false,detected_at:_NOW},
-    {id:37,name:'Back Market iPhone 13 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:679,discount_pct:41,novadeal_score:91,affiliate_url:'https://www.backmarket.fr/fr-fr/p/iphone-13/8822',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-blue-select-2021?wid=400&hei=400&fmt=jpeg&qlt=90',description:'iPhone 13 reconditionné certifié -41%',is_flash:false,detected_at:_NOW},
-    {id:38,name:'ManoMano Perceuse Bosch PSB 1800 LI-2',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:89,original_price:149,discount_pct:40,novadeal_score:88,affiliate_url:'https://www.manomano.fr/p/perceuse-bosch-psb-1800-li-2',image_url:'https://www.bosch-professional.com/binary/ocsmedia/optimized/800x800/p_PSB_1800_LI-2_2607010917_010018_900x900_1.jpg',description:'Perceuse sans fil Bosch -40%',is_flash:false,detected_at:_NOW},
+    {id:37,name:'Back Market iPhone 13 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:679,discount_pct:41,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B09LNW3CY2?tag=julvox-21',image_url:'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-blue-select-2021?wid=400&hei=400&fmt=jpeg&qlt=90',description:'iPhone 13 reconditionné certifié -41%',is_flash:false,detected_at:_NOW},
+    {id:38,name:'ManoMano Perceuse Bosch PSB 1800 LI-2',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:89,original_price:149,discount_pct:40,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B00CQLPVFE?tag=julvox-21',image_url:'https://www.bosch-professional.com/binary/ocsmedia/optimized/800x800/p_PSB_1800_LI-2_2607010917_010018_900x900_1.jpg',description:'Perceuse sans fil Bosch -40%',is_flash:false,detected_at:_NOW},
     {id:39,name:'Vans Old Skool Noir/Blanc',brand:'Vans',category:'mode',store:'Zalando.fr',current_price:59,original_price:89,discount_pct:34,novadeal_score:92,affiliate_url:'https://www.zalando.fr/vans-old-skool-baskets-basses-black-va111s09f-q11.html',image_url:'https://images.vans.com/is/image/Vans/D3HY28-HERO?$PDP_OVERLAY$',description:'Vans Old Skool classic -34%',is_flash:false,detected_at:_NOW},
     {id:40,name:'Crucial RAM 32Go DDR5-5600 SO-DIMM',brand:'Crucial',category:'informatique',store:'Amazon.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B0BC5FK63K?tag='+_TAG,image_url:'https://www.crucial.fr/content/dam/crucial/dram-products/sodimm/images/in-use/Crucial-DDR5-SODIMM-image.psd.transform/medium-png/img.png',description:'RAM DDR5 haute performance -36%',is_flash:false,detected_at:_NOW},
   ],
@@ -3023,6 +3023,16 @@ function renderDeals(deals) {
   grid.innerHTML = sorted.map(function(d) { return dealCard(d); }).join('');
   var countEl = document.getElementById('dealCount');
   if (countEl) countEl.textContent = deals.length + ' deals vérifiés ✓';
+  // Mettre à jour les stats sans appeler le backend mort
+  var statD = document.getElementById('statDeals');
+  if (statD) statD.textContent = deals.length;
+  var statS = document.getElementById('statSources');
+  if (statS) statS.textContent = new Set(deals.map(function(d){return d.store;})).size;
+  var statR = document.querySelectorAll('.hstat-v')[1];
+  if (statR && deals.length > 0) {
+    var avg = Math.round(deals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/deals.length);
+    statR.textContent = avg + '%';
+  }
 }
 
 function dealCard(d) {
@@ -6580,7 +6590,7 @@ function updateMetaTags(deal) {
 
 
 // ══════════════════════════════════════════════════════════════
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══ */
 
 // BLOC 3 — Scanner, TikTok, PWA Install, SEO, Deal of Day
 // ══════════════════════════════════════════════════════════════
@@ -7949,7 +7959,7 @@ function renderPriceHistoryChart(history, containerEl) {
 
 
 // ══════════════════════════════════════════════════════════════
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══ */
 
 // BLOC 5 — Assistant IA & ML Recommandations
 // ══════════════════════════════════════════════════════════════
@@ -8449,7 +8459,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 
-══ FIN ATTENTE ══ */
+// ══ FIN ATTENTE ══ */
 
 
 // ── NEWSLETTER ────────────────────────────────────────────────
@@ -8529,13 +8539,20 @@ async function subscribeNewsletter() {
   const btn       = document.querySelector('#nlStep2 .newsletter-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ …'; }
 
+  // Sauvegarde locale immédiate (fonctionne sans backend)
+  try {
+    const subs = JSON.parse(localStorage.getItem('ds_nl_subscribers') || '[]');
+    if (!subs.includes(email)) subs.push(email);
+    localStorage.setItem('ds_nl_subscribers', JSON.stringify(subs));
+  } catch(e) {}
+  // Tentative envoi backend (silencieux si indisponible)
   try {
     await fetch(`${API}/newsletter/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, frequency, source: 'homepage_footer' }),
     });
-  } catch(e) { /* fallback silencieux */ }
+  } catch(e) { /* backend indisponible — inscription sauvegardée localement */ }
 
   // Confirmation UX
   document.getElementById('nlStep2').style.display = 'none';
@@ -8774,6 +8791,6 @@ async function unsubscribeNewsletter() {
 
 </script>
 
-<script src="/enhancements.js"></script>
+<!-- enhancements.js désactivé : appelle le backend Railway mort et override openDeal -->
 </body>
 </html>
