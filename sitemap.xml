@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://julvox.com/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>
+<!--
+  CORRECTIF #14 : Le sitemap statique ne contenait qu'une seule URL (page d'accueil).
+  Le backend génère un sitemap dynamique complet via GET /sitemap.xml.
+  Ce fichier statique redirige les crawlers vers le sitemap backend via sitemapindex.
+  Vérifier que Vercel ne sert pas ce fichier en priorité sur le backend :
+  ajouter une rewrite dans vercel.json si nécessaire :
+    { "source": "/sitemap.xml", "destination": "https://<backend>/sitemap.xml" }
+-->
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://julvox-dealscan-backend-production.up.railway.app/sitemap.xml</loc>
+    <lastmod>2026-03-24</lastmod>
+  </sitemap>
+</sitemapindex>

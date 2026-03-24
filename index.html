@@ -2535,6 +2535,19 @@ function renderDealOfDay(deal, el) {
 let favorites = new Set();
 try { favorites = new Set(JSON.parse(localStorage.getItem('ds_favs') || '[]')); } catch(e) {}
 let currentUser = null;
+
+/**
+ * CORRECTIF #8 : décode le sub (firebase_uid) depuis le payload JWT.
+ * Le backend attend un firebase_uid court dans l'URL /alerts/{user_id},
+ * pas le token JWT complet.
+ * Pas besoin de vérifier la signature côté client — on lit juste le payload.
+ */
+function getUidFromToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch(e) { return null; }
+}
 try {
   const s = localStorage.getItem('ds_user');
   if (s) {
@@ -4424,7 +4437,10 @@ async function openAccountPage() {
   // Charger alertes
   let alerts = [];
   try {
-    const r = await fetch(`${API}/alerts/${encodeURIComponent(currentUser.token)}`, {
+    // CORRECTIF #8 : l'URL passait le JWT complet au lieu du firebase_uid.
+    // On décode le sub du token pour obtenir l'uid attendu par le backend.
+    const alertsUid = getUidFromToken(currentUser.token) || '';
+    const r = await fetch(`${API}/alerts/${encodeURIComponent(alertsUid)}`, {
       headers: {'Authorization': `Bearer ${currentUser.token}`}
     });
     if (r.ok) { const d = await r.json(); alerts = d.alerts || []; }

@@ -1,5 +1,5 @@
 // ============================================================
-//  DealScan — Service Worker v6 PWA
+//  DealScan — Service Worker v7 PWA
 //  Cache offline-first + Push Notifications par catégorie
 // ============================================================
 
