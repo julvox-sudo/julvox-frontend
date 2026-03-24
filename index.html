@@ -2879,7 +2879,8 @@ async function callClaudeAI(prompt, maxTokens) {
 }
 
 function safeParseJSON(text) {
-  let clean = text.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+  var BT3 = String.fromCharCode(96,96,96);
+  let clean = text.replace(new RegExp('^' + BT3 + 'json\\s*'), '').replace(new RegExp('^' + BT3 + '\\s*'), '').replace(new RegExp(BT3 + '\\s*$'), '').trim();
   const start = Math.min(clean.indexOf('{') >= 0 ? clean.indexOf('{') : Infinity, clean.indexOf('[') >= 0 ? clean.indexOf('[') : Infinity);
   if (start === Infinity) throw new Error('No JSON');
   clean = clean.slice(start);
@@ -8885,4 +8886,14 @@ async function saveNewsletterPrefs() {
       showToast('✅ Préférences enregistrées !');
       closePage('newsletterPrefsPage');
     } else {
- 
+       showToast('❌ Erreur lors de la sauvegarde');
+    }
+  } catch(e) {
+    showToast('❌ Erreur réseau');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Enregistrer'; }
+  }
+}
+</script>
+</body>
+</html>
