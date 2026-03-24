@@ -2590,6 +2590,13 @@ const PROMO_CODES = [];  // populated by fetchPromoCodes() via Claude AI
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // Vider l'ancien cache deals (données potentiellement corrompues)
+  try {
+    Object.keys(localStorage).forEach(function(k){
+      if (k.startsWith('ds_live_deals_') || k.startsWith('ds_cached_')) localStorage.removeItem(k);
+    });
+  } catch(e) {}
+
   startAutoRefresh();
   renderFlash();
   await loadDeals();
@@ -2600,6 +2607,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCookieBanner();
   initOfflineDetection();
   initA11y();
+
   // Vérifier URL params
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
@@ -2607,6 +2615,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (params.get('premium') === 'success') {
     showToast('🎉 Premium activé ! Bienvenue !');
     if (currentUser) { currentUser.is_premium = true; try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {} updateNavForUser(); }
+  }
+  // Ouvrir un deal directement depuis l'URL (?deal=ID)
+  const dealId = params.get('deal');
+  if (dealId) {
+    const id = parseInt(dealId);
+    if (!isNaN(id)) setTimeout(function(){ openDeal(id); }, 400);
   }
 });
 
@@ -2927,37 +2941,34 @@ async function loadDeals(cat, minSc) {
   minSc = minSc || 0;
   const countEl = document.getElementById('dealCount');
   currentCat = cat;
-  showLoadingDeals();
-  if (countEl) countEl.textContent = 'Recherche en cours...';
-  try {
-    const cacheKey = 'ds_live_deals_' + (cat || 'all');
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      const obj = JSON.parse(cached);
-      if (Date.now() - obj.ts < DS_CACHE.DEALS_TTL) {
-        allDeals = minSc > 0 ? obj.data.filter(function(d){return d.novadeal_score >= minSc;}) : obj.data;
-        renderDeals(allDeals);
-        if (countEl) countEl.textContent = allDeals.length + ' deals vérifiés';
-      }
-    }
-  } catch(e) {}
-  const deals = await fetchDealsFromClaude(cat, minSc);
-  if (deals.length > 0) {
-    allDeals = deals;
+
+  // ── CHARGEMENT IMMÉDIAT depuis la base locale ──────────────
+  const pool = (_DEALS_DB[cat] && _DEALS_DB[cat].length > 0) ? _DEALS_DB[cat] : _DEALS_DB[''];
+  let localDeals = pool.slice().sort(function(){ return Math.random() - 0.5; });
+  if (minSc > 0) localDeals = localDeals.filter(function(d){ return (d.novadeal_score||0) >= minSc; });
+
+  if (localDeals.length > 0) {
+    allDeals = localDeals;
     renderDeals(allDeals);
-    if (countEl) countEl.textContent = deals.length + ' deals vérifiés ✓';
-    try {
-      const cacheKey = 'ds_live_deals_' + (cat || 'all');
-      localStorage.setItem(cacheKey, JSON.stringify({ data: deals, ts: Date.now() }));
-    } catch(e) {}
+    if (countEl) countEl.textContent = allDeals.length + ' deals vérifiés ✓';
   } else {
-    if (countEl) countEl.textContent = '0 deals trouvés';
-    const grid = document.getElementById('dealsGrid');
-    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--txt3)"><div style="font-size:40px;margin-bottom:12px">🔄</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Actualisation en cours...</div><button onclick="loadDeals(currentCat,minScore)" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:14px;cursor:pointer">Réessayer</button></div>';
+    showLoadingDeals();
+    if (countEl) countEl.textContent = 'Chargement...';
   }
-  fetchFlashDealsFromClaude().then(function(flash) {
-    if (flash.length > 0) { window._liveFlash = flash; renderFlashLive(flash); startCountdownsLive(flash); }
-  }).catch(function(){});
+
+  // ── FLASH DEALS depuis la base locale ─────────────────────
+  const flashLocal = (_FLASH_DB || []).map(function(f){
+    return Object.assign({}, f, {
+      affiliate_url: f.url || f.affiliate_url,
+      image_url: f.image_url,
+      timer: Math.round((f.timer_hours || 2) * 3600)
+    });
+  });
+  if (flashLocal.length > 0) {
+    window._liveFlash = flashLocal;
+    renderFlashLive(flashLocal);
+    startCountdownsLive(flashLocal);
+  }
 }
 
 async function _refreshDealsBackground() { /* géré par loadDeals */ }
