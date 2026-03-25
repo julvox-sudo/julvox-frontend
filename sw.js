@@ -8,8 +8,8 @@ const CACHE_NAME    = `dealscan-${CACHE_VERSION}`;
 const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
+  // index.html intentionnellement EXCLU du cache statique
+  // pour garantir que les mises à jour sont toujours visibles immédiatement
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
 ];
@@ -217,5 +217,16 @@ async function syncPendingAlerts() {
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+// ── Navigation requests : toujours network-first pour index.html ──
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  // Pour les navigations (HTML pages), toujours réseau en priorité
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
   }
 });

@@ -2,7 +2,7 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="build-version" content="1773984760"/>
+<meta name="build-version" content="1774454823"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#FF5C2B"/>
 
 <meta name="keywords" content="deals, promos, bons plans, code promo, reduction, comparateur prix, alertes prix, Black Friday, soldes, Amazon, Fnac, Darty"/>
-<meta name="robots" content="index, follow"/>
+
 <link rel="canonical" href="https://julvox.com"/>
 
 <!-- ── Open Graph (Facebook, WhatsApp, LinkedIn) ─────────── -->
@@ -77,8 +77,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="dns-prefetch" href="https://julvox-dealscan-backend-production.up.railway.app"/>
 <link rel="preconnect" href="https://julvox-dealscan-backend-production.up.railway.app" crossorigin/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <!-- Pas de preload lourd : index.html SE CHARGE EN PREMIER, tout le reste suit -->
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -2462,6 +2460,40 @@ const _lsCache = {
 
 
 const API = 'https://julvox-dealscan-backend-production.up.railway.app';
+
+// ── Gestion robuste des appels API ──────────────────────────
+// Retry automatique avec backoff exponentiel
+async function fetchWithRetry(url, options = {}, maxRetries = 2) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), options.timeout || 8000);
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timeout);
+      return res;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// Surveillance de la connectivité backend
+let _backendOnline = true;
+async function checkBackendHealth() {
+  try {
+    const r = await fetch(API + '/health', { method: 'GET', cache: 'no-store',
+      signal: AbortSignal.timeout(5000) });
+    _backendOnline = r.ok;
+  } catch { _backendOnline = false; }
+  return _backendOnline;
+}
+// Vérification toutes les 5 minutes
+setInterval(checkBackendHealth, 300000);
 let allDeals = [], currentCat = '', currentSort = 'score', minScore = 0, timers = {};
 
 async function openDealOfDay() {
@@ -4082,7 +4114,7 @@ function bnClick(el, page) {
 
 // ── ALERT ─────────────────────────────────────────────────────
 async function createAlert(name, price) {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) {
     showToast('⚠️ Connecte-toi pour créer une alerte');
     setTimeout(() => document.getElementById('authOverlay')?.classList.add('open'), 500);
@@ -4150,7 +4182,7 @@ function requestAccountDeletion() {
   const confirmed = confirm(msg);
   if (!confirmed) return;
 
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) {
     // Pas connecté : envoi par email
     window.location.href = 'mailto:contact@julvox.com?subject=Demande suppression compte RGPD&body=Bonjour, je souhaite supprimer mon compte DealScan et toutes mes données personnelles conformément au RGPD (droit à l\'effacement - Art. 17).';
@@ -4287,7 +4319,8 @@ function loginSuccess(data,email) {
     showToast('❌ Données de connexion invalides, réessaie.');
     return;
   }
-  const forceAdmin = safeEmail && ADMIN_EMAILS.includes(safeEmail.toLowerCase());
+  // is_owner et is_premium viennent du JWT signé côté serveur — plus fiable que ADMIN_EMAILS
+  const forceAdmin = data.is_owner || false;
   const finalName = safeName || 'Utilisateur';
   currentUser={email:safeEmail,name:finalName,token:data.token,is_premium:data.is_premium||forceAdmin||false,is_owner:forceAdmin||false};
   try{localStorage.setItem('ds_user',JSON.stringify(currentUser));}catch(e){}
@@ -4487,7 +4520,9 @@ async function submitNewPassword() {
 // ── GOOGLE OAUTH ──────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '541770126176-gq0e58g2gbkeh7qg5iqpeci1jbvdsrer.apps.googleusercontent.com';
 // Emails admin - toujours premium côté frontend
-const ADMIN_EMAILS = ['contact@julvox.com', 'julvox@gmail.com']; // ← Ajoute ton email Google ici si différent
+// ADMIN_EMAILS supprimé du frontend — vérification faite côté serveur via JWT (is_owner)
+// Ne jamais mettre d'emails sensibles en clair dans le code source public
+const ADMIN_EMAILS = [];
 
 // ── Google Identity Services (popup, sans redirect) ──
 function loginWithGoogle() {
@@ -5638,7 +5673,7 @@ async function loadSwipeFeed() {
 
   try {
     const url = API + '/deals/feed/swipe?limit=20' + (cat ? '&category='+cat : '');
-    const token = localStorage.getItem('token');
+    const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
     const res = await fetch(url, token ? {headers:{'Authorization':'Bearer '+token}} : {});
     const data = await res.json();
     swipeDeals = data.deals || [];
@@ -5779,7 +5814,7 @@ function swipeCard(direction) {
     // Add to favorites
     addToFav(deal.id, true);
     // Record swipe
-    const token = localStorage.getItem('token');
+    const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
     if (token) fetch(API+'/deals/'+deal.id+'/swipe', {method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify({direction:'right'})}).catch(()=>{});
   }
 }
@@ -6092,7 +6127,7 @@ async function registerServiceWorkerPush() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
-    const token = localStorage.getItem('token');
+    const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
     if (token) {
       await fetch(API + '/push/subscribe', {
         method: 'POST',
@@ -6160,7 +6195,7 @@ function renderLeaderboard(data, el) {
 }
 
 async function loadMyReputation() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   const el    = document.getElementById('myReputationBlock');
   if (!token) {
     el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;font-size:13px;color:var(--txt2)">
@@ -6887,7 +6922,7 @@ function copyToClipboard(text) {
 }
 
 async function joinSquad() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) { showToast('⚠️ Connecte-toi pour rejoindre un squad'); return; }
   const code = document.getElementById('joinSquadCode')?.value?.trim().toUpperCase();
   if (!code) { showToast('⚠️ Entre un code Squad'); return; }
@@ -7577,7 +7612,7 @@ async function openWishlist() {
 }
 
 async function loadWishlistItems() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   const el    = document.getElementById('wishlistItems');
   if (!token) {
     el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3)">Connecte-toi pour utiliser la wishlist</div>';
@@ -7623,7 +7658,7 @@ function renderWishlistItems(items, el) {
 }
 
 async function addToWishlist() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) { showToast('⚠️ Connecte-toi pour utiliser la wishlist'); return; }
   const name  = document.getElementById('wishName')?.value?.trim();
   const curr  = parseFloat(document.getElementById('wishCurrentPrice')?.value) || null;
@@ -7643,7 +7678,7 @@ async function addToWishlist() {
 }
 
 async function removeFromWishlist(id) {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) return;
   try {
     await fetch(API + '/wishlist/' + id, { method: 'DELETE', headers: {'Authorization':'Bearer '+token} });
@@ -7823,7 +7858,7 @@ function toggleObNotif(el, type) {
 }
 
 async function completeOnboarding() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   try {
     if (token) {
       await fetch(API + '/onboarding/complete', {
@@ -7903,7 +7938,7 @@ function openAddWishlist() {
 }
 
 async function loadWishlist() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   const el    = document.getElementById('wishlistContent');
   if (!token) {
     el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)">Connecte-toi pour voir ta wishlist</div>';
@@ -7989,7 +8024,7 @@ async function loadGamification() {
 }
 
 async function loadDailyMissions() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   const el    = document.getElementById('dailyMissionsList');
   try {
     const headers = token ? {'Authorization':'Bearer '+token} : {};
@@ -8035,7 +8070,7 @@ function renderDailyMissions(data, el) {
 }
 
 async function loadAchievements() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   const el    = document.getElementById('achievementsGrid');
   try {
     const headers = token ? {'Authorization':'Bearer '+token} : {};
@@ -8077,7 +8112,7 @@ function renderAchievements(data, el) {
 }
 
 async function unlockAchievement(id) {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) return;
   try {
     const res  = await fetch(API + '/achievements/unlock/' + id, {
@@ -8090,7 +8125,7 @@ async function unlockAchievement(id) {
 }
 
 async function trackMission(missionId, increment = 1) {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) return;
   try {
     const res  = await fetch(API + '/missions/progress/' + missionId, {
@@ -8450,7 +8485,7 @@ function getLocalAIResponse(msg) {
 async function openRecoPage() {
   openPage('recoPage');
   const el    = document.getElementById('recoContent');
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
 
   // Track interaction for ML
   if (token) {
@@ -8537,7 +8572,7 @@ window.openDeal = function(deal) {
   // SEO meta update
   if (typeof deal === 'object') updateSEOMeta(deal);
   // ML tracking
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (token) {
     fetch(API + '/ml/track', {
       method: 'POST',
@@ -8549,7 +8584,7 @@ window.openDeal = function(deal) {
 
 // Smart alert depuis la modale
 async function createSmartAlertForDeal(dealName, currentPrice) {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) { showToast('⚠️ Connecte-toi pour créer une alerte'); return; }
 
   try {
@@ -8583,7 +8618,7 @@ async function openCashback() {
 }
 
 async function loadCashbackBalance() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) return;
   try {
     const res  = await fetch(API + '/cashback/my-earnings', { headers: {'Authorization':'Bearer '+token} });
@@ -8659,7 +8694,7 @@ async function simulateCashback() {
 
 // ── ANALYTICS ─────────────────────────────────────────────────
 async function openAnalytics() {
-  const token = localStorage.getItem('token');
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
   if (!token) { showToast('⚠️ Réservé au propriétaire'); return; }
   openPage('analyticsPage');
   const el = document.getElementById('analyticsContent');
@@ -9157,5 +9192,6 @@ async function saveNewsletterPrefs() {
   }
 }
 </script>
+<script src="/enhancements_v3.js" defer></script>
 </body>
 </html>
