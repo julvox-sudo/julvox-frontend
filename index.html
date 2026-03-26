@@ -2681,39 +2681,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── STATS ─────────────────────────────────────────────────────
 async function loadStats() {
-  // Calculer les vraies stats depuis la DB locale — utiliser UNIQUEMENT le tableau principal '' pour éviter les doublons
-  const allDbDeals = _DEALS_DB[''] || [];
-  const totalDeals = allDbDeals.length;
-  const avgDisc = allDbDeals.length > 0
-    ? Math.round(allDbDeals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/allDbDeals.length)
-    : 0;
-  const totalSources = new Set(allDbDeals.map(function(d){return d.store;})).size;
-
-  const elDeals = document.getElementById('statDeals');
+  const elDeals    = document.getElementById('statDeals');
   const elDiscount = document.getElementById('statDiscount');
-  const elSources = document.getElementById('statSources');
+  const elSources  = document.getElementById('statSources');
 
-  // Afficher les stats locales immédiatement
-  if (elDeals) elDeals.textContent = totalDeals.toLocaleString('fr-FR');
-  if (elDiscount) elDiscount.textContent = avgDisc + '%';
-  // Sources = nombre de marchands uniques dans toute la DB
-  const realSources = new Set((_DEALS_DB[''] || []).map(function(d){return d.store;})).size;
-  if (elSources) elSources.textContent = realSources;
+  // Afficher les valeurs cachées pendant le chargement
+  const cachedDeals = (() => { try { return localStorage.getItem('ds_cached_deals'); } catch(e) { return null; } })();
+  if (elDeals && cachedDeals) elDeals.textContent = parseInt(cachedDeals).toLocaleString('fr-FR');
 
-  // Tenter de récupérer les stats backend (optionnel)
+  // Récupérer les vraies stats depuis le backend
   try {
-    const r = await fetch(API + '/stats');
-    if (!r.ok) throw new Error('stats_error');
+    const r = await fetch(API + '/stats', { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) throw new Error('stats_' + r.status);
     const d = await r.json();
+
+    // Deals actifs réels
     if (elDeals && d.total_deals > 0) {
       elDeals.textContent = d.total_deals.toLocaleString('fr-FR');
       try { localStorage.setItem('ds_cached_deals', d.total_deals); } catch(e) {}
     }
-    if (elDiscount && d.avg_discount) {
+    // Remise moyenne réelle
+    if (elDiscount && d.avg_discount > 0) {
       elDiscount.textContent = Math.round(d.avg_discount) + '%';
     }
+    // Marchands uniques réels
+    if (elSources && d.total_sources > 0) {
+      elSources.textContent = d.total_sources;
+    }
   } catch(e) {
-    // Stats locales déjà affichées — pas d'action nécessaire
+    // Fallback : calculer depuis les deals démo locaux
+    const allDbDeals = _DEALS_DB[''] || [];
+    if (allDbDeals.length > 0) {
+      const avgDisc = Math.round(allDbDeals.reduce(function(s,d){return s+(d.discount_pct||0);},0)/allDbDeals.length);
+      const uniqStores = new Set(allDbDeals.map(function(d){return d.store;})).size;
+      if (elDeals && !cachedDeals) elDeals.textContent = allDbDeals.length.toLocaleString('fr-FR');
+      if (elDiscount) elDiscount.textContent = avgDisc + '%';
+      if (elSources) elSources.textContent = uniqStores;
+    }
   }
 }
 
@@ -2793,25 +2797,40 @@ const _NOW = new Date().toISOString();
 // ══════════════════════════════════════════════════════════════
 
 function buildSmartUrl(deal) {
-  // Si l'URL stockée est une URL de recherche valide, la retourner directement
   var url = deal.affiliate_url || deal.url || '';
   var name = deal.name || '';
   var store = (deal.store || '').toLowerCase();
   var tag = _TAG;
-
-  // Encodage du nom pour les recherches
   var q = encodeURIComponent(name);
-  var qDash = name.replace(/['"]/g,'').replace(/\s+/g,'-').toLowerCase();
-  var qPlus = name.replace(/['"]/g,'').replace(/\s+/g,'+');
 
-  // ── Amazon (toujours via recherche → jamais de page introuvable)
-  if (store.includes('amazon')) {
-    // Si on a déjà un ASIN valide (format /dp/XXXXXXXXXX), l'utiliser
-    var asinMatch = url.match(/\/dp\/([A-Z0-9]{10})/);
-    if (asinMatch) {
-      return 'https://www.amazon.fr/dp/' + asinMatch[1] + '?tag=' + tag;
+  // ── Priorité 1 : URL directe stockée valide (pas une recherche)
+  if (url && url.startsWith('http')) {
+    // Vérifier si c'est une vraie URL produit (pas juste une page d'accueil ou recherche générique)
+    var isProductUrl = url.length > 30 && (
+      url.includes('/dp/') || url.includes('/p/') || url.includes('/produit/') ||
+      url.includes('/product/') || url.includes('/sku/') || url.includes('/ref=') ||
+      url.includes('/gp/product/') || url.match(/\/[a-z0-9-]{10,}(\?|$)/i)
+    );
+    var isSearchUrl = url.includes('/s?') || url.includes('/search') || url.includes('/SearchResult') ||
+                      url.includes('/recherche') || url.includes('/categorie/search') ||
+                      url.includes('/w?q=') || url.includes('?q=') || url.includes('?text=') ||
+                      url.includes('/nav/') || (url.split('/').length <= 4 && !url.includes('/dp/'));
+
+    if (!isSearchUrl || isProductUrl) {
+      // Injecter le tag affilié Amazon si absent
+      if (store.includes('amazon') && !url.includes('tag=')) {
+        var sep = url.includes('?') ? '&' : '?';
+        return url + sep + 'tag=' + tag;
+      }
+      return url;
     }
-    // Sinon → recherche Amazon avec le nom du produit
+  }
+
+  // ── Fallback : construire la meilleure URL possible par marchand
+  // ── Amazon
+  if (store.includes('amazon')) {
+    var asinMatch = url.match(/\/dp\/([A-Z0-9]{10})/);
+    if (asinMatch) return 'https://www.amazon.fr/dp/' + asinMatch[1] + '?tag=' + tag;
     return 'https://www.amazon.fr/s?k=' + q + '&tag=' + tag;
   }
 
@@ -3395,7 +3414,7 @@ function dealCard(d) {
   const score  = d.novadeal_score || 50;
   const pct    = d.discount_pct || 0;
   const cat    = d.category || 'default';
-  const img    = d.image_url || CAT_IMG[cat] || CAT_IMG.default;
+  const img    = getProductImage(d);
   const scCls  = score >= 90 ? 'sp-fire' : score >= 75 ? 'sp-green' : 'sp-gold';
   const isFav  = favorites.has(d.id);
   const pNew   = formatPrice(d.current_price);
@@ -3463,7 +3482,7 @@ async function openDeal(id) {
   if (!deal) return;
   const score = deal.novadeal_score || 50;
   const cat   = deal.category || 'default';
-  const img   = deal.image_url || CAT_IMG[cat] || CAT_IMG.default;
+  const img   = getProductImage(deal);
   const pct   = deal.discount_pct || 0;
   const saved = deal.original_price ? (deal.original_price - deal.current_price).toFixed(2) : 0;
   const v     = getVerdict(score);
@@ -3484,6 +3503,11 @@ async function openDeal(id) {
       <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${v.emoji} ${v.text}</div><div style="font-size:12px;color:var(--txt3)">${v.detail}</div></div>
     </div>
     ${renderTrustDetail(deal)}
+    ${deal.description ? `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.55;color:var(--txt2)">
+      <span style="font-weight:600;color:var(--txt);font-size:12px;text-transform:uppercase;letter-spacing:.04em">📋 Description</span>
+      <div style="margin-top:5px">${escHtml(deal.description)}</div>
+    </div>` : ''}
     <div id="priceChartSlot_${deal.id}" style="margin-bottom:12px"></div>
     <div class="vote-row" id="voteRow_${deal.id}">
       <button class="vote-btn up" id="voteUp_${deal.id}" onclick="voteDeal(${deal.id},'up')">👍 Bon deal <span id="voteUpN_${deal.id}">—</span></button>
@@ -3513,28 +3537,8 @@ async function openDeal(id) {
   `;
   document.getElementById('modalOverlay').classList.add('open');
   loadDealVotes(deal.id);
-  // Render price history chart — double RAF garantit que le DOM est peint
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      var chartSlot = document.getElementById('priceChartSlot_' + deal.id);
-      if (!chartSlot) {
-        // Fallback si RAF trop rapide
-        setTimeout(function() {
-          var slot = document.getElementById('priceChartSlot_' + deal.id);
-          if (!slot) return;
-          var hist = deal.price_history && deal.price_history.length >= 2
-            ? deal.price_history
-            : generateSimulatedHistory(deal.current_price, deal.original_price);
-          if (hist && hist.length >= 2) renderPriceHistoryChart(hist, slot);
-        }, 200);
-        return;
-      }
-      var hist = deal.price_history && deal.price_history.length >= 2
-        ? deal.price_history
-        : generateSimulatedHistory(deal.current_price, deal.original_price);
-      if (hist && hist.length >= 2) renderPriceHistoryChart(hist, chartSlot);
-    });
-  });
+  // Charger l'historique des prix depuis l'API puis afficher le graphique
+  _loadAndRenderPriceChart(deal);
   // Enrichissement NovaDeal v2 en arrière-plan (non bloquant)
   // _enrichDealModal(deal); // désactivé — géré par enhancements.js
 }
@@ -4061,7 +4065,7 @@ function openFlashPage() {
   }
 
   document.getElementById('flashGrid').innerHTML = flashData.map(function(f, i) {
-    const img = f.image_url || CAT_IMG[f.cat||f.category] || CAT_IMG.default;
+    const img = getProductImage(Object.assign({},f,{category:f.cat||f.category}));
     const url = buildAffiliateUrl(f.affiliate_url || f.url || '#');
     const price = f.current_price ? f.current_price.toFixed(2) + '€' : (f.price || '');
     const oldPrice = f.original_price ? f.original_price.toFixed(2) + '€' : (f.original_price || '');
@@ -5739,6 +5743,47 @@ function buildSwipeCard(deal, isTop) {
     </div>
   `;
   return card;
+}
+
+// ── Résolution intelligente d'image produit ─────────────────
+// Retourne la meilleure URL image disponible pour un deal
+function getProductImage(deal) {
+  var img = deal.image_url || '';
+  // Si c'est une vraie URL image, l'utiliser directement
+  if (img && img.startsWith('http') && (
+    img.includes('.jpg') || img.includes('.jpeg') || img.includes('.png') ||
+    img.includes('.webp') || img.includes('/images/') || img.includes('media-amazon') ||
+    img.includes('static.nike') || img.includes('fnac') || img.includes('darty') ||
+    img.includes('boulanger') || img.includes('cdiscount') || img.includes('unsplash')
+  )) {
+    return img;
+  }
+
+  // Si image_url est un emoji, chercher une image de catégorie
+  var cat = deal.category || '';
+  var store = (deal.store || '').toLowerCase();
+  var name = (deal.name || '').toLowerCase();
+
+  // Images de haute qualité par catégorie (Unsplash)
+  var CAT_PHOTOS = {
+    'high-tech':    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
+    'informatique': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
+    'gaming':       'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&q=80',
+    'mode':         'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    'maison':       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
+    'alimentaire':  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
+    'restauration': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    'sport':        'https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?w=400&q=80',
+    'beaute':       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',
+    'voyages':      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
+    'sante':        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80',
+    'auto':         'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=80',
+    'animaux':      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80',
+    'bebe':         'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&q=80',
+    'jardinage':    'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80',
+    'librairie':    'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80',
+  };
+  return CAT_PHOTOS[cat] || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80';
 }
 
 function getCatEmoji(cat) {
@@ -8320,6 +8365,51 @@ function renderDarkPatternResults(data, el) {
 }
 
 // ── PRICE HISTORY CHART (SVG interactif avec curseur) ─────────
+// ── Chargement asynchrone de l'historique des prix ───────────
+async function _loadAndRenderPriceChart(deal) {
+  var slot = document.getElementById('priceChartSlot_' + deal.id);
+  if (!slot) return;
+
+  // Afficher placeholder pendant le chargement
+  slot.innerHTML = '<div style="height:60px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:12px">📈 Chargement historique…</div>';
+
+  var hist = null;
+
+  // 1) Si le deal a déjà un historique (vient de /deals/{id})
+  if (deal.price_history && deal.price_history.length >= 2) {
+    hist = deal.price_history;
+  }
+
+  // 2) Sinon, charger depuis /deals/{id} qui retourne l'historique complet
+  if (!hist) {
+    try {
+      var r = await fetch(API + '/deals/' + deal.id, {signal: AbortSignal.timeout(6000)});
+      if (r.ok) {
+        var data = await r.json();
+        if (data.price_history && data.price_history.length >= 2) {
+          hist = data.price_history;
+          // Enrichir le deal local avec les données fraîches
+          deal.price_history = hist;
+          if (data.description && !deal.description) deal.description = data.description;
+        }
+      }
+    } catch(e) { /* silencieux */ }
+  }
+
+  // 3) Fallback : historique simulé réaliste
+  if (!hist || hist.length < 2) {
+    hist = generateSimulatedHistory(deal.current_price, deal.original_price);
+  }
+
+  // Attendre que le DOM soit peint
+  requestAnimationFrame(function() {
+    var s = document.getElementById('priceChartSlot_' + deal.id);
+    if (!s) return;
+    if (hist && hist.length >= 2) renderPriceHistoryChart(hist, s);
+    else s.innerHTML = '';
+  });
+}
+
 function renderPriceHistoryChart(history, containerEl) {
   if (!history || history.length < 2) return;
   const prices  = history.map(h => typeof h === 'object' ? (h.price || 0) : h);
