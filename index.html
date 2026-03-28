@@ -2829,25 +2829,23 @@ function buildSmartUrl(deal) {
   var tag = _TAG;
   var q = encodeURIComponent(name);
 
-  // ── Priorité 1 : URL directe stockée valide (pas une recherche)
+  // ── Priorité 1 : URL directe stockée valide
   if (url && url.startsWith('http')) {
-    // Vérifier si c'est une vraie URL produit (pas juste une page d'accueil ou recherche générique)
-    var isProductUrl = url.length > 30 && (
-      url.includes('/dp/') || url.includes('/p/') || url.includes('/produit/') ||
-      url.includes('/product/') || url.includes('/sku/') || url.includes('/ref=') ||
-      url.includes('/gp/product/') || url.match(/\/[a-z0-9-]{10,}(\?|$)/i)
-    );
-    var isSearchUrl = url.includes('/s?k=') || url.includes('/s?') ||
-                      url.includes('/search') || url.includes('/SearchResult') ||
-                      url.includes('/recherche') || url.includes('/categorie/search') ||
-                      url.includes('/w?q=') || url.includes('?q=') || url.includes('?text=') ||
-                      url.includes('?Search=') || url.includes('/nav/') ||
-                      (url.split('/').length <= 4 && !url.includes('/dp/'));
 
-    // URL directe = pas une recherche OU contient des indicateurs de fiche produit
-    if (!isSearchUrl || isProductUrl) {
+    // URLs qui sont clairement des recherches → NE PAS utiliser
+    var isSearchUrl = url.includes('/s?k=') || url.includes('/s?') ||
+                      url.includes('/search?') || url.includes('/SearchResult') ||
+                      url.includes('/recherche?') || url.includes('?Search=') ||
+                      url.includes('/w?q=') || url.includes('?q=') ||
+                      url.includes('?text=') || url.includes('?kw=') ||
+                      url.includes('?Ntt=') || url.includes('/search/10/') ||
+                      url.includes('tbm=shop') || url.includes('SearchText=') ||
+                      // Pages d'accueil pures (sans chemin produit)
+                      (url.match(/^https?:\/\/[^\/]+\/?$/) && !url.includes('/dp/'));
+
+    if (!isSearchUrl) {
       // Injecter le tag affilié Amazon si absent
-      if (store.includes('amazon') && !url.includes('tag=')) {
+      if ((store.includes('amazon') || url.includes('amazon.fr')) && !url.includes('tag=')) {
         var sep = url.includes('?') ? '&' : '?';
         return url + sep + 'tag=' + tag;
       }
@@ -8426,14 +8424,13 @@ async function _loadAndRenderPriceChart(deal) {
 
   // 1) Si le deal a déjà un historique valide → afficher immédiatement
   if (deal.price_history && deal.price_history.length >= 2) {
-    setTimeout(function(){ doRender(deal.price_history); }, 50);
+    setTimeout(function(){ doRender(deal.price_history); }, 150);
     return;
   }
 
-  // 2) Afficher l'historique simulé IMMÉDIATEMENT (pas d'attente)
-  //    pendant que l'API charge en fond
+  // 2) Afficher l'historique simulé pendant que l'API charge en fond
   var simHist = generateSimulatedHistory(deal.current_price, deal.original_price);
-  setTimeout(function(){ doRender(simHist); }, 50);
+  setTimeout(function(){ doRender(simHist); }, 150);
 
   // 3) Charger le vrai historique depuis l'API en fond
   //    S'il arrive → remplacer le graphique simulé
