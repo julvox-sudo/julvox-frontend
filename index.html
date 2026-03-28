@@ -3441,10 +3441,11 @@ function dealCard(d) {
   const tLbl   = trust >= 95 ? `✓${trust}%` : trust >= 88 ? `~${trust}%` : `?${trust}%`;
   const mins   = Math.floor(Math.random() * 58 + 1);
   const ok     = score >= 70;
+  const fallbackImg = getProductImage({category: cat, image_url: ''});
   return `
   <div class="deal" onclick="openDeal(${d.id})">
     <div class="deal-img-wrap">
-      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImg}'"/>
       <div class="deal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
       ${pct > 0 ? `<div class="deal-pct${score>=90?'':' gold'}">−${Math.round(pct)}%</div>` : ''}
       <button class="deal-fav" onclick="event.stopPropagation();toggleFav(${d.id})">${isFav?'❤️':'🤍'}</button>
@@ -3505,9 +3506,9 @@ async function openDeal(id) {
   const v     = getVerdict(score);
   const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
 
+  const fallbackImg = getProductImage({category: cat, image_url: ''});
   document.getElementById('modalBody').innerHTML = `
-    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-    <div class="modal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
+    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.onerror=null;this.src='${fallbackImg}'"/>
     <div class="modal-name">${escHtml(deal.name)}</div>
     <div class="modal-sub">${escHtml(deal.brand || deal.store)} · ${escHtml(deal.category || '')}</div>
     <div class="modal-prices">
@@ -5781,22 +5782,17 @@ function buildSwipeCard(deal, isTop) {
 // Retourne la meilleure URL image disponible pour un deal
 function getProductImage(deal) {
   var img = deal.image_url || '';
-  // Si c'est une vraie URL image, l'utiliser directement
-  if (img && img.startsWith('http') && (
-    img.includes('.jpg') || img.includes('.jpeg') || img.includes('.png') ||
-    img.includes('.webp') || img.includes('/images/') || img.includes('media-amazon') ||
-    img.includes('static.nike') || img.includes('fnac') || img.includes('darty') ||
-    img.includes('boulanger') || img.includes('cdiscount') || img.includes('unsplash')
-  )) {
+
+  // Si c'est une vraie URL image HTTPS → l'utiliser directement
+  // On accepte toute URL https valide pointant vers une image ou un CDN connu
+  if (img && img.startsWith('https://') && img.length > 20 &&
+      !img.includes(' ') && !img.match(/^https:\/\/.{0,5}$/)
+  ) {
     return img;
   }
 
-  // Si image_url est un emoji, chercher une image de catégorie
+  // Fallback par catégorie — images Unsplash haute qualité
   var cat = deal.category || '';
-  var store = (deal.store || '').toLowerCase();
-  var name = (deal.name || '').toLowerCase();
-
-  // Images de haute qualité par catégorie (Unsplash)
   var CAT_PHOTOS = {
     'high-tech':    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
     'informatique': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
