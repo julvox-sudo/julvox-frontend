@@ -52,8 +52,11 @@ self.addEventListener('fetch', event => {
   }
 
   // Navigation HTML → Network first avec fallback offline
+  // (géré ici, pas dans un second listener séparé)
   if (event.request.mode === 'navigate') {
-    event.respondWith(networkFirst(event.request, CACHE_STATIC, 300));
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
     return;
   }
 
@@ -217,16 +220,5 @@ async function syncPendingAlerts() {
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
-  }
-});
-
-// ── Navigation requests : toujours network-first pour index.html ──
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  // Pour les navigations (HTML pages), toujours réseau en priorité
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
-    );
   }
 });

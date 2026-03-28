@@ -2586,11 +2586,6 @@ try {
     const _u = JSON.parse(s);
     // Rejeter les comptes corrompus (email manquant/undefined/null)
     if (_u && _u.email && _u.email !== 'undefined' && _u.email !== 'null' && _u.token) {
-      // Force admin premium on reload
-      if (_u.email && ['contact@julvox.com','julvox@gmail.com'].includes(_u.email.toLowerCase())) {
-        _u.is_premium = true;
-        _u.is_owner = true;
-      }
       currentUser = _u;
     } else {
       localStorage.removeItem('ds_user'); // nettoyer le compte fantôme
@@ -2658,8 +2653,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ref = params.get('ref');
   if (ref && currentUser) setTimeout(() => applyReferralCode(ref), 1000);
   if (params.get('premium') === 'success') {
-    showToast('🎉 Premium activé ! Bienvenue !');
-    if (currentUser) { currentUser.is_premium = true; try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {} updateNavForUser(); }
+    showToast('🎉 Paiement reçu ! Vérification en cours…');
+    // Vérification côté serveur — on ne fait pas confiance au paramètre URL
+    if (currentUser && currentUser.token) {
+      setTimeout(async () => {
+        try {
+          const r = await fetch(`${API}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+          });
+          if (r.ok) {
+            const d = await r.json();
+            currentUser.token = d.token;
+            currentUser.is_premium = d.is_premium;
+            try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {}
+            updateNavForUser();
+            if (d.is_premium) showToast('🎉 Premium activé ! Bienvenue !');
+          }
+        } catch(e) {}
+      }, 2000); // Délai pour laisser le webhook Stripe/PayPal arriver
+    }
   }
   // Ouvrir un deal directement depuis l'URL (?deal=ID)
   const dealId = params.get('deal');
@@ -5034,7 +5047,7 @@ async function applyReferralCode(code) {
     if (r.ok) {
       const d = await r.json();
       showToast(`🎁 ${d.message}`);
-      currentUser.is_premium = true;
+      if (d.is_premium !== undefined) currentUser.is_premium = d.is_premium;
       try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {}
       updateNavForUser();
     }
@@ -5046,9 +5059,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const ref = new URLSearchParams(window.location.search).get('ref');
   if (ref && currentUser) setTimeout(() => applyReferralCode(ref), 1000);
   const premium = new URLSearchParams(window.location.search).get('premium');
-  if (premium === 'success') {
-    showToast('🎉 Paiement réussi ! Premium activé !');
-    if (currentUser) { currentUser.is_premium = true; try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {} updateNavForUser(); }
+  if (premium === 'success' && currentUser && currentUser.token) {
+    // Vérification côté serveur — on ne fait pas confiance au paramètre URL
+    setTimeout(async () => {
+      try {
+        const r = await fetch(`${API}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        if (r.ok) {
+          const d = await r.json();
+          currentUser.token = d.token;
+          currentUser.is_premium = d.is_premium;
+          try { localStorage.setItem('ds_user', JSON.stringify(currentUser)); } catch(e) {}
+          updateNavForUser();
+          if (d.is_premium) showToast('🎉 Paiement réussi ! Premium activé !');
+        }
+      } catch(e) {}
+    }, 2000);
   }
 });
 
