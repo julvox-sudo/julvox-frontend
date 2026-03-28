@@ -108,8 +108,8 @@ self.addEventListener('push', event => {
 
   const notifOptions = {
     body:    data.body    || 'Un nouveau deal vous attend !',
-    icon:    data.icon    || '/icon-192.png',
-    badge:   '/badge-72.png',
+    icon:    data.icon    || '/icons/icon-192.png',
+    badge:   '/icons/icon-192.png',
     image:   data.image   || undefined,
     tag:     data.tag     || `dealscan-${notifType}`,
     data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },

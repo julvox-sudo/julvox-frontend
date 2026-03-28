@@ -2502,10 +2502,11 @@ async function openDealOfDay() {
   try {
     const res  = await fetch(API + '/deals?min_score=90&limit=1');
     const data = await res.json();
-    const deal = (data.deals || [])[0] || getDemoDeals()[0];
-    renderDealOfDay(deal, el);
+    const deal = (data.deals || [])[0];
+    if (deal) renderDealOfDay(deal, el);
+    else el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)"><div style="font-size:36px;margin-bottom:12px">🔍</div><div style="font-size:15px;font-weight:600">Aucun deal exceptionnel aujourd\'hui</div><div style="font-size:13px;margin-top:8px;opacity:.7">Reviens dans quelques instants</div></div>';
   } catch(e) {
-    renderDealOfDay(getDemoDeals()[0], el);
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)"><div style="font-size:36px;margin-bottom:12px">⚡</div><div style="font-size:15px;font-weight:600">Connexion au serveur impossible</div><div style="font-size:13px;margin-top:8px;opacity:.7">Vérifie ta connexion internet</div></div>';
   }
 }
 
@@ -3388,17 +3389,6 @@ function startAutoRefresh() {
   }, 20 * 60 * 1000);
 }
 
-function getDemoDeals(cat) {
-  var cacheKey = 'ds_live_deals_' + (cat || 'all');
-  try {
-    var cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      var obj = JSON.parse(cached);
-      return cat ? obj.data.filter(function(d){ return d.category === cat; }) : obj.data;
-    }
-  } catch(e) {}
-  return [];
-}
 
 
 const STORE_TRUST = {'Amazon.fr':98,'Fnac.com':97,'Darty.com':96,'Boulanger.com':95,'Cdiscount.com':92,'Zalando.fr':94,'Nike.com':96,'Lidl.fr':93,'Carrefour':91,'IKEA.com':95,'Too Good To Go':97,'Sephora.fr':95,'Leroy Merlin':93};
@@ -5724,7 +5714,7 @@ async function loadSwipeFeed() {
     const data = await res.json();
     swipeDeals = data.deals || [];
   } catch(e) {
-    swipeDeals = getDemoDeals(cat).slice(0, 15);
+    swipeDeals = [];
   }
 
   if (!swipeDeals.length) {
@@ -7468,7 +7458,12 @@ async function generateTikTokContent(format) {
     const data = await res.json();
     deals = data.deals || [];
   } catch(e) {
-    deals = getDemoDeals().slice(0, 5);
+    deals = [];
+  }
+
+  if (!deals.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de charger les deals.<br>Vérifie ta connexion et réessaie.</div></div>';
+    return;
   }
 
   if (format === 'top3') renderTikTokTop3(deals.slice(0,3), el);
@@ -7641,20 +7636,9 @@ async function runBudgetOptimize() {
     const data = await res.json();
     renderBudgetResults(data, el);
   } catch(e) {
-    renderBudgetResults(getDemoBudgetResult(budget), el);
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de charger l\'optimisation.<br>Vérifie ta connexion et réessaie.</div></div>';
   }
 }
-
-function getDemoBudgetResult(budget) {
-  const demos = getDemoDeals().filter(d => d.current_price <= budget);
-  let remaining = budget, selected = [], saved = 0;
-  for (const d of demos.sort((a,b) => b.novadeal_score - a.novadeal_score)) {
-    if (d.current_price <= remaining && selected.length < 4) {
-      selected.push(d); remaining -= d.current_price;
-      saved += (d.original_price || d.current_price * 1.3) - d.current_price;
-    }
-  }
-  return { budget, total_price: budget - remaining, remaining: Math.round(remaining), total_saved: Math.round(saved), deals_count: selected.length, deals: selected, efficiency: Math.round(saved/(budget-remaining)*100) };
 }
 
 function renderBudgetResults(data, el) {
@@ -7785,11 +7769,21 @@ async function openDealById(dealId) {
 // ── SOCIAL CONTENT ────────────────────────────────────────────
 async function openSocialPage() {
   openPage('socialPage');
-  // Populate deal selector
   const sel = document.getElementById('socialDealSelect');
-  const deals = getDemoDeals();
-  sel.innerHTML = '<option value="">Choisir un deal…</option>' +
-    deals.map(d => `<option value="${d.id}">${d.name} — ${d.current_price}€</option>`).join('');
+  sel.innerHTML = '<option value="">Chargement des deals…</option>';
+  try {
+    const res   = await fetch(API + '/deals?limit=20&min_score=75');
+    const data  = await res.json();
+    const deals = data.deals || [];
+    if (deals.length) {
+      sel.innerHTML = '<option value="">Choisir un deal…</option>' +
+        deals.map(d => `<option value="${d.id}">${escHtml(d.name)} — ${d.current_price}€</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="">Aucun deal disponible</option>';
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Erreur de chargement</option>';
+  }
   loadWeeklyPlanning();
 }
 
@@ -7805,40 +7799,8 @@ async function loadSocialContent() {
     const data = await res.json();
     renderSocialContent(data, el);
   } catch(e) {
-    renderSocialContent(getDemoSocialContent(dealId), el);
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de générer le contenu.<br>Vérifie ta connexion et réessaie.</div></div>';
   }
-}
-
-function getDemoSocialContent(dealId) {
-  const d = getDemoDeals().find(x => x.id == dealId) || getDemoDeals()[0];
-  return {
-    platforms: {
-      tiktok:    { caption: `🔥 ${d.name} à ${d.current_price}€ (-${Math.round(d.discount_pct||30)}%)
-
-Score NovaDeal™ : ${d.novadeal_score}/100 ✅
-
-Lien en bio → julvox.com
-
-#deals #bonplan #dealscan`, hook: `POV : tu viens de trouver ${d.name} à ${d.current_price}€ 🤯` },
-      instagram: { caption: `🔥 Deal du jour : ${d.name}
-
-💰 ${d.current_price}€ au lieu de ${d.original_price||Math.round(d.current_price*1.3)}€
-⭐ Score NovaDeal™ : ${d.novadeal_score}/100
-
-Lien en bio ✅
-
-#deals #bonplan #dealscan #julvox` },
-      twitter:   { tweet: `🔥 ${d.name} à ${d.current_price}€ (-${Math.round(d.discount_pct||30)}%)
-
-Score NovaDeal™ : ${d.novadeal_score}/100 ✅
-
-julvox.com
-
-#deals #bonplan` },
-    },
-    hashtags: '#deals #bonplan #promo #dealscan #julvox #novadeal',
-    best_time_to_post: { instagram: '18h-21h', tiktok: '19h-22h', twitter: '12h-14h' },
-  };
 }
 
 function renderSocialContent(data, el) {
@@ -7874,21 +7836,8 @@ async function loadWeeklyPlanning() {
     const data = await res.json();
     renderWeeklyPlanning(data.planning || [], el);
   } catch(e) {
-    renderWeeklyPlanning(getDemoWeeklyPlanning(), el);
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">📡 Planning indisponible — connexion au serveur impossible</div>';
   }
-}
-
-function getDemoWeeklyPlanning() {
-  const days   = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
-  const deals  = getDemoDeals();
-  return days.map((day, i) => ({
-    day, deal_id: deals[i%deals.length].id,
-    product: deals[i%deals.length].name,
-    price:   deals[i%deals.length].current_price,
-    tiktok_hook: `POV : ${deals[i%deals.length].name} à ${deals[i%deals.length].current_price}€ 🤯`,
-    best_time: '19h-21h',
-    format: i%2===0?'Reel/TikTok 15-30s':'Post + Stories',
-  }));
 }
 
 function renderWeeklyPlanning(planning, el) {
@@ -7985,7 +7934,7 @@ async function loadTrending(period, btn) {
     const data = await res.json();
     renderTrending(data.deals || [], el);
   } catch(e) {
-    renderTrending(getDemoDeals().slice(0,8), el);
+    renderTrending([], el);
   }
 }
 
@@ -8098,7 +8047,7 @@ async function optimizeBudget() {
     const data = await res.json();
     renderBudgetResults(data, el);
   } catch(e) {
-    renderBudgetResults(getDemoBudgetResult(budget), el);
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de charger l\'optimisation.<br>Vérifie ta connexion et réessaie.</div></div>';
   }
   trackMission('view_3_deals');
   unlockAchievement('budget_optimizer');
@@ -8119,19 +8068,8 @@ async function loadDailyMissions() {
     const data = await res.json();
     renderDailyMissions(data, el);
   } catch(e) {
-    renderDailyMissions(getDemoMissions(), el);
+    renderDailyMissions({missions: [], earned_pts: 0, max_pts: 0}, el);
   }
-}
-
-function getDemoMissions() {
-  return {
-    missions: [
-      {id:'view_3_deals', desc:'Voir 3 deals', target:3, progress:1, done:false, reward_pts:5},
-      {id:'analyze_deal', desc:'Analyser 1 deal', target:1, progress:0, done:false, reward_pts:10},
-      {id:'swipe_5', desc:'Swiper 5 deals', target:5, progress:3, done:false, reward_pts:8},
-    ],
-    earned_pts: 0, max_pts: 23,
-  };
 }
 
 function renderDailyMissions(data, el) {
@@ -8245,44 +8183,8 @@ async function loadTikTokScript() {
     const data = await res.json();
     renderTikTokScript(data, el);
   } catch(e) {
-    renderTikTokScript(getDemoTikTokScript(category), el);
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de générer le script.<br>Vérifie ta connexion et réessaie.</div></div>';
   }
-}
-
-function getDemoTikTokScript(cat) {
-  const deal = getDemoDeals(cat)[0];
-  return {
-    scripts: [{
-      product: deal.name,
-      price: deal.current_price,
-      score: deal.novadeal_score,
-      script: `🎬 SCRIPT TIKTOK — Style Énergique
-
-⏱️ 0-3s  : "STOP ! Tu vas manquer le deal du siècle 🔥"
-⏱️ 3-8s  : "${deal.name} — normalement ${deal.original_price||Math.round(deal.current_price*1.4)}€"
-⏱️ 8-15s : "Aujourd'hui : ${deal.current_price}€ ! -${Math.round(deal.discount_pct||30)}% 🤯"
-⏱️ 15-22s: "Score NovaDeal™ : ${deal.novadeal_score}/100 — Vraie bonne affaire ✅"
-⏱️ 22-28s: "Lien en bio pour saisir l'offre ⬆️"
-
-📝 LÉGENDE :
-🔥 ${deal.name} à -${Math.round(deal.discount_pct||30)}% ! Score NovaDeal™ ${deal.novadeal_score}/100
-
-🏷️ HASHTAGS :
-#dealscan #bonplan #promo #deals #bonplanfrance #julvox`,
-      duration: '15-30s',
-    }],
-    posting_tips: [
-      '📅 Postez mardi et jeudi entre 18h-21h',
-      '🎵 Utilisez une musique tendance (CapCut trends)',
-      '💬 Répondez aux commentaires dans la 1ère heure',
-      '📌 Épinglez votre meilleur commentaire avec le lien',
-    ],
-    content_ideas: [
-      '🎯 Top 3 deals du jour',
-      '🔍 Analyse NovaDeal™ en live',
-      '⚠️ Fausses promos détectées cette semaine',
-    ],
-  };
 }
 
 function renderTikTokScript(data, el) {
@@ -8635,20 +8537,8 @@ async function openRecoPage() {
     const data = await res.json();
     renderMLRecommendations(data, el);
   } catch(e) {
-    renderMLRecommendations(getDemoMLRecos(), el);
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">🧠</div><div style="font-size:14px">Recommandations indisponibles.<br>Interagis avec des deals pour personnaliser ton feed.</div></div>';
   }
-}
-
-function getDemoMLRecos() {
-  const deals = getDemoDeals();
-  return {
-    recommendations: deals.map((d,i) => ({
-      ...d,
-      recommendation_reason: i===0?'Basé sur votre intérêt pour high-tech':i===1?'Découverte — score exceptionnel':'Score NovaDeal™ élevé'
-    })),
-    profile: {favorite_categories:['high-tech','gaming'], score_preference:85, personalized:true},
-    total: deals.length,
-  };
 }
 
 function renderMLRecommendations(data, el) {
