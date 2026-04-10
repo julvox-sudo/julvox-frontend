@@ -1,43 +1,38 @@
-# 🌐 DealScan Frontend — julvox-frontend-main
+# DealScan — Frontend
 
-## Qu'est-ce que c'est ?
-Le site web DealScan hébergé sur **Vercel**. C'est une application monopage (SPA) entièrement contenue dans `index.html`.
+Agrégateur de deals France — julvox.com
 
-## Structure des fichiers
+## Stack
+- **Hébergement** : Vercel (CDN mondial, HTTPS automatique)
+- **Architecture** : SPA (`index.html`) + Service Worker PWA
+- **Offline** : `sw.js` avec stratégie cache-first
+
+## Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `index.html` | Application complète (16 000+ lignes, tout-en-un) |
+| `enhancements_v3.js` | Modules JS additionnels (ticker, swipe feed, dark mode) |
+| `sw.js` | Service Worker — cache offline + push notifications |
+| `manifest.json` | Métadonnées PWA (nom, icônes, raccourcis Android) |
+| `vercel.json` | Config Vercel — headers CSP, rewrites API |
+| `robots.txt` | Directives crawlers SEO |
+
+## Icônes PWA (distinctes par raccourci)
+
+| Fichier | Couleur | Usage |
+|---|---|---|
+| `icons/icon-192.png` | 🟠 Orange `#FF5C2B` | Icône principale 192px |
+| `icons/icon-512.png` | 🟠 Orange `#FF5C2B` | Icône principale 512px |
+| `icons/shortcut-deals.png` | 🟠 Orange | Raccourci → Deals |
+| `icons/shortcut-flash.png` | 🟡 Jaune `#FFB800` | Raccourci → Flash deals |
+| `icons/shortcut-promos.png` | 🟣 Violet `#A13DFF` | Raccourci → Promos |
+| `icons/shortcut-alerts.png` | 🟢 Vert `#00D084` | Raccourci → Alertes |
+
+## Déploiement Vercel
+```bash
+git push origin main  # déploiement automatique via GitHub
 ```
-julvox-frontend-main/
-├── index.html        ← L'application complète (HTML + CSS + JS en un fichier)
-├── sw.js             ← Service Worker (cache offline + notifications push)
-├── manifest.json     ← Manifeste PWA (installation sur l'écran d'accueil)
-├── enhancements.js   ← Graphiques historique de prix (chargé après index.html)
-├── vercel.json       ← Configuration Vercel (headers sécurité, redirections)
-├── robots.txt        ← Instructions pour les moteurs de recherche
-└── sitemap.xml       ← Plan du site pour Google
-```
 
-## Comment déployer
-1. Pousse le dossier sur GitHub
-2. Connecte le repo à Vercel (vercel.com)
-3. Chaque push sur `main` redéploie automatiquement en 30 secondes
-
-## Comment modifier
-- Toutes les modifications se font dans `index.html`
-- Le site est découpé en sections commentées (`<!-- ══ NOM ══ -->`)
-- Le JS commence à la ligne ~2280 (chercher `<script>`)
-- Les styles CSS sont dans le `<head>` (chercher `<style>`)
-
-## Variables d'environnement
-Aucune — l'URL du backend est dans `index.html` :
-```javascript
-const API = 'https://julvox-dealscan-backend-production.up.railway.app';
-```
-Modifier cette ligne si l'URL Railway change.
-
-## PWA — Installation mobile
-L'application est installable sur Android (Chrome) et iOS (Safari) directement depuis le site.
-Le `manifest.json` définit les raccourcis écran d'accueil (Flash, Promos, Alertes, Top Deals).
-
-## Maintenance régulière
-- Mettre à jour `sitemap.xml` quand de nouvelles pages sont ajoutées
-- Incrémenter `CACHE_VERSION` dans `sw.js` après chaque grosse mise à jour (force le rechargement du cache)
-- Vérifier Google Search Console pour détecter les erreurs d'indexation
+## Variables d'environnement (vercel.json)
+Aucune variable côté frontend — l'API backend est configurée dans `vercel.json`.

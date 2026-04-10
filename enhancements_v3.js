@@ -81,7 +81,6 @@ async function loadDynamicFlashDeals() {
           : (CAT_IMG[d.category] || CAT_IMG.default);
         const pct = Math.round(d.discount_pct || 0);
         const url = d.affiliate_url || d.url || '#';
-        const endSecs = 3600 * (1 + (i % 5));
         return `
           <a class="flash-card" href="${escHtml(url)}" target="_blank" rel="noopener"
              style="cursor:pointer;text-decoration:none">
@@ -116,6 +115,10 @@ async function loadDynamicFlashDeals() {
    TICKER DE DEALS EN TEMPS RÉEL (barre du bas)
    ───────────────────────────────────────────────────────────── */
 function initDealTicker() {
+  // Ne pas initialiser sur mobile — le ticker est masqué par CSS sous 768px,
+  // inutile de créer le DOM, lancer les requêtes API et les setInterval
+  if (window.innerWidth < 768) return;
+
   // Créer l'élément ticker s'il n'existe pas
   if (document.getElementById('dealTickerBar')) return;
 
@@ -252,7 +255,6 @@ async function updateTickerContent() {
    BADGE "NOUVEAU DEAL" ANIMÉ
    ───────────────────────────────────────────────────────────── */
 let _lastDealCount = 0;
-let _newDealsQueue = [];
 
 function checkNewDeals(deals) {
   if (!deals || !deals.length) return;
@@ -363,11 +365,12 @@ function startRefreshCountdown() {
     }
     if (_nextRefreshIn <= 0) {
       _nextRefreshIn = 30;
-      // Déclencher un refresh silencieux
-      if (typeof _refreshDealsBackground === 'function') {
-        _refreshDealsBackground().then(deals => {
-          if (deals) checkNewDeals(deals);
-        }).catch(() => {});
+      // Déclencher un refresh silencieux via loadDeals (source unique de vérité)
+      if (typeof loadDeals === 'function') {
+        loadDeals(
+          typeof currentCat !== 'undefined' ? currentCat : '',
+          typeof minScore  !== 'undefined' ? minScore  : 0
+        );
       }
     }
   }, 1000);
@@ -515,20 +518,15 @@ function getSourceLogo(store) {
 
 
 /* ─────────────────────────────────────────────────────────────
-   STATS LIVE : pulse des nouvelles sources
+   STATS LIVE : dernière mise à jour
    ───────────────────────────────────────────────────────────── */
 function updateLiveSourceStats() {
   const statsBar = document.getElementById('liveSourceStats');
   if (!statsBar) return;
 
-  const sources = ['Dealabs', 'Amazon', 'Fnac', 'Cdiscount', 'Rakuten', 'Veepee', 'Lidl', 'Decathlon'];
-  const randomSource = sources[Math.floor(Math.random() * sources.length)];
-  const randomCount = Math.floor(Math.random() * 15) + 1;
-
   statsBar.innerHTML = `
     <span style="color:rgba(255,255,255,0.3);font-size:11px">
-      ↺ ${randomCount} nouveau${randomCount > 1 ? 'x' : ''} deal${randomCount > 1 ? 's' : ''} depuis <strong style="color:rgba(255,255,255,0.6)">${randomSource}</strong>
-      — ${new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+      ↺ Dernière vérification : <strong style="color:rgba(255,255,255,0.6)">${new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</strong>
     </span>`;
 }
 
@@ -566,15 +564,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 7. Monkeypatch renderDeals pour déclencher checkNewDeals
-    const _origRenderDeals = window.renderDeals;
-    if (_origRenderDeals) {
-      window.renderDeals = function(deals) {
-        _origRenderDeals(deals);
-        checkNewDeals(deals);
-        // Mettre à jour les filtres par source
-        setTimeout(renderSourceFilters, 200);
-      };
-    }
+    // Retry jusqu'à 20 fois (toutes les 100ms) pour ne pas rater l'init
+    // même sur les connexions lentes
+    (function patchRenderDeals(attempts) {
+      if (typeof window.renderDeals === 'function') {
+        const _origRenderDeals = window.renderDeals;
+        window.renderDeals = function(deals) {
+          _origRenderDeals(deals);
+          checkNewDeals(deals);
+          setTimeout(renderSourceFilters, 200);
+        };
+      } else if (attempts > 0) {
+        setTimeout(function() { patchRenderDeals(attempts - 1); }, 100);
+      }
+    })(20);
 
     // 8. CSS additionnel pour les améliorations
     const style = document.createElement('style');
@@ -634,6 +637,5 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(style);
 
-    console.log('✅ DealScan Enhancements v3 chargé — 29 sources, ticker live, deals enrichis');
   }, 500);
 });

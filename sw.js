@@ -60,9 +60,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Reste → Network with cache fallback
+  // Reste (images, scripts, etc.) → Network only, pas de fallback HTML
+  // Retourner /index.html pour des ressources statiques provoquerait des erreurs de parsing
   event.respondWith(
-    fetch(event.request).catch(() => caches.match('/index.html'))
+    fetch(event.request).catch(() => new Response('', { status: 503 }))
   );
 });
 
@@ -72,11 +73,30 @@ async function networkFirst(request, cacheName, ttl = 60) {
     if (res.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, res.clone());
+      // Stocker le timestamp pour vérification TTL en mode offline
+      cache.put(
+        new Request(request.url + '__ts'),
+        new Response(String(Date.now()), { headers: { 'Content-Type': 'text/plain' } })
+      );
     }
     return res;
   } catch(e) {
-    const cached = await caches.match(request);
-    if (cached) return cached;
+    const cache  = await caches.open(cacheName);
+    const cached = await cache.match(request);
+    if (cached) {
+      // Vérifier que le cache n'est pas trop vieux (TTL en minutes)
+      const tsRes = await cache.match(new Request(request.url + '__ts'));
+      if (tsRes) {
+        const ts  = parseInt(await tsRes.text(), 10);
+        const age = (Date.now() - ts) / 60000;
+        if (age > ttl) {
+          return new Response(JSON.stringify({ error: 'offline_stale', deals: [] }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
+      return cached;
+    }
     return new Response(JSON.stringify({ error: 'offline', deals: [] }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -160,14 +180,21 @@ self.addEventListener('notificationclick', event => {
   let url = notifData.url || 'https://julvox.com';
 
   // Snooze : re-notify dans 1h
+  // ⚠️  setTimeout dans un Service Worker est non fiable — le navigateur peut
+  // terminer le SW avant l'expiration. Solution définitive : utiliser un
+  // endpoint backend qui planifie une push notification côté serveur.
+  // En attendant, on tente le best-effort côté client.
   if (event.action === 'snooze') {
     const data = event.notification.data;
+    // data contient { url, type, dealId } — pas de champ "tag"
+    // On utilise dealId pour construire un tag unique et éviter les doublons
+    const snoozeTag = data.dealId ? `snooze-deal-${data.dealId}` : 'snooze-generic';
     setTimeout(() => {
       self.registration.showNotification(event.notification.title, {
         body: event.notification.body,
         icon: event.notification.icon,
         data,
-        tag: (data.tag || 'snooze') + '-snoozed',
+        tag: snoozeTag,
       });
     }, 3600000);
     return;
@@ -213,7 +240,8 @@ async function syncPendingVotes() {
 }
 
 async function syncPendingAlerts() {
-  // Idem pour les alertes
+  // Intentionnellement vide — les alertes prix sont gérées côté serveur (Railway cron).
+  // Cette fonction est réservée pour une future implémentation de sync offline.
 }
 
 // ── Message from page ─────────────────────────────────────────

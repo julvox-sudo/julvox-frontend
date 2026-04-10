@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /auth/
+
+# Les routes sensibles (/admin/, /auth/, /payments/) sont sur le backend Railway
+# (julvox-dealscan-backend-production.up.railway.app) qui dispose de sa propre
+# politique d'accès. Ce robots.txt couvre uniquement le frontend julvox.com (Vercel).
+Disallow: /cdn-cgi/
 
 Sitemap: https://julvox.com/sitemap.xml
 
