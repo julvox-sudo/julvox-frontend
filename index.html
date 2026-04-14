@@ -2836,6 +2836,7 @@ function buildSmartUrl(deal) {
     // Blacklist stricte : patterns qui indiquent une page de recherche
     var SEARCH_PATTERNS = [
       '/s?k=', '?Search=', '/SearchResult', '/recherche?', '/search?',
+      '/catalogues.html', '/s.html?', 'search.php',
       '?Ntt=', '/search/10/', 'SearchText=', '?q=', '/catalogues.html',
       'tbm=shop', '/w?q=', '?kw=', '/wholesale?', 'asos.com/fr/recherche',
       'rueducommerce.fr/r/', '?KEYWORD=', '/nav/recherche'
@@ -2880,7 +2881,7 @@ const _DEALS_DB = {
     {id:1,name:'Apple AirPods Pro 2 (USB-C)',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:219,original_price:279,discount_pct:22,novadeal_score:97,affiliate_url:'https://www.amazon.fr/dp/B0CHWRXH8B?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61f1YDUvsGL._AC_SL1500_.jpg',description:'AirPods Pro 2 USB-C avec ANC adaptatif'},
     {id:2,name:'Samsung Galaxy S25 256Go Gris',brand:'Samsung',category:'high-tech',store:'Amazon.fr',current_price:799,original_price:999,discount_pct:20,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B0DS36FBYK?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71HgGx7WLHL._AC_SL1500_.jpg',description:'Dernier flagship Samsung Galaxy S25'},
     {id:3,name:'Apple Watch Series 10 42mm GPS',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:349,original_price:449,discount_pct:22,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0DGJHK3Q4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71Q0OGqBe+L._AC_SL1500_.jpg',description:'Apple Watch Series 10 — meilleure montre Apple'},
-    {id:4,name:'Sony WH-1000XM5 Casque Bluetooth',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:279,original_price:419,discount_pct:33,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B09XS7JWHH?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61VZBHK0eML._AC_SL1500_.jpg',description:'Meilleur casque ANC du marché -33%'},
+    {id:4,name:'Sony WH-1000XM5 Casque Bluetooth',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:279,original_price:419,discount_pct:33,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0C2TVXFX4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg',description:'Meilleur casque ANC du marché -33%'},
     {id:5,name:'Samsung TV 55" QLED 4K Q70C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:649,original_price:999,discount_pct:35,novadeal_score:94,affiliate_url:'https://www.boulanger.com/ref/870555',image_url:'https://m.media-amazon.com/images/I/71y9I0BKTWL._AC_SL1500_.jpg',description:'TV QLED 55 pouces 4K HDR en promo'},
     {id:6,name:'Bose QuietComfort Ultra Earbuds',brand:'Bose',category:'high-tech',store:'Amazon.fr',current_price:229,original_price:329,discount_pct:30,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0CD2FSRDD?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/51yl3OEWPBL._AC_SL1500_.jpg',description:'Meilleurs earbuds ANC Bose -30%'},
     {id:7,name:'JBL Charge 5 Enceinte Bluetooth',brand:'JBL',category:'high-tech',store:'Amazon.fr',current_price:119,original_price:199,discount_pct:40,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B08ZMXKXH4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71ATkp5NsGL._AC_SL1500_.jpg',description:'Enceinte portable waterproof JBL -40%'},
@@ -2905,7 +2906,7 @@ const _DEALS_DB = {
     {id:24,name:'FIFA 25 / EA Sports FC 25 PS5',brand:'EA Sports',category:'gaming',store:'Amazon.fr',current_price:29,original_price:79,discount_pct:63,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0D4CCZV9D?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/81NBIS7YXZL._AC_SL1500_.jpg',description:'EA FC 25 PS5 — prix historique -63%'},
     // ── MODE ──────────────────────────────────────────────────────────────
     {id:25,name:'Nike Air Force 1 07 Blanc',brand:'Nike',category:'mode',store:'Nike.com',current_price:79,original_price:109,discount_pct:28,novadeal_score:92,affiliate_url:'https://www.nike.com/fr/t/chaussure-air-force-1-07-pour-FV0383-100',image_url:'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/4f37fca8-6bce-43e7-ad07-f57ae3c13142/chaussure-air-force-1-07-pour-FV0383-100.png',description:'Nike Air Force 1 blanc iconique -28%'},
-    {id:26,name:'Adidas Samba OG Blanc/Noir',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:89,original_price:110,discount_pct:19,novadeal_score:93,affiliate_url:'https://www.zalando.fr/adidas-originals-samba-og-baskets-basses-footwear-white-core-black-ad112o1mr-a11.html',image_url:'https://m.media-amazon.com/images/I/61mFBBGX0tL._AC_SL1500_.jpg',description:'Adidas Samba OG — la sneaker tendance 2026'},
+    {id:26,name:'Adidas Samba OG Blanc/Noir',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:89,original_price:110,discount_pct:19,novadeal_score:93,affiliate_url:'https://www.zalando.fr/adidas-originals-samba-og-baskets-basses-ad112o1mr-a11.html',image_url:'https://m.media-amazon.com/images/I/61mFBBGX0tL._AC_SL1500_.jpg',description:'Adidas Samba OG — la sneaker tendance 2026'},
     {id:27,name:'New Balance 574 Gris Marine',brand:'New Balance',category:'mode',store:'Zalando.fr',current_price:65,original_price:105,discount_pct:38,novadeal_score:91,affiliate_url:'https://www.zalando.fr/new-balance-574-baskets-basses-nb112o04b-c11.html',image_url:'https://m.media-amazon.com/images/I/71bEjH7qpQL._AC_SL1500_.jpg',description:'New Balance 574 classique -38%'},
     {id:28,name:'Vans Old Skool Noir/Blanc',brand:'Vans',category:'mode',store:'Zalando.fr',current_price:55,original_price:89,discount_pct:38,novadeal_score:91,affiliate_url:'https://www.zalando.fr/vans-old-skool-baskets-basses-black-white-va211a01l-b11.html',image_url:'https://m.media-amazon.com/images/I/61LQNB2P2VL._AC_SL1500_.jpg',description:'Vans Old Skool classic -38%'},
     {id:29,name:'Ralph Lauren Polo Shirt Classique',brand:'Ralph Lauren',category:'mode',store:'Zalando.fr',current_price:59,original_price:99,discount_pct:40,novadeal_score:89,affiliate_url:'https://www.zalando.fr/polo-ralph-lauren-polo-slim-fit-polo-shirt-white-po222d02w-a11.html',image_url:'https://m.media-amazon.com/images/I/71dBiGSiMvL._AC_SL1500_.jpg',description:'Polo Ralph Lauren -40% chez Zalando'},
@@ -2969,12 +2970,12 @@ const _DEALS_DB = {
     {id:74,name:'The North Face Doudoune 700 Fill',brand:'The North Face',category:'mode',store:'Amazon.fr',current_price:149,original_price:269,discount_pct:45,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0BG2TBVLH?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71UBM0T3ULL._AC_SL1500_.jpg',description:'Doudoune TNF 700 fill -45%'},
     {id:75,name:'Lacoste Polo Homme L.12.12 Blanc',brand:'Lacoste',category:'mode',store:'Amazon.fr',current_price:69,original_price:99,discount_pct:30,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B083GKXLHM?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61mT5JuSwqL._AC_UX569_.jpg',description:'Polo Lacoste L.12.12 -30%'},
     {id:76,name:'Hugo Boss Parfum Bottled 100ml',brand:'Hugo Boss',category:'beaute',store:'Amazon.fr',current_price:49,original_price:89,discount_pct:45,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B001GVZAL2?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/41s1bZQCXWL._AC_SL1000_.jpg',description:'Hugo Boss Bottled EDT 100ml -45%'},
-    {id:77,name:"Chanel Chance Eau Tendre 100ml",brand:'Chanel',category:'beaute',store:'Sephora.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:92,affiliate_url:'https://www.sephora.fr/p/chance-eau-tendre---eau-de-parfum-P10017782.html',image_url:'https://m.media-amazon.com/images/I/51GXw3WTjZL._AC_SL1000_.jpg',description:'Chanel Chance Eau Tendre 100ml -36%'},
+    {id:77,name:"Chanel Chance Eau Tendre 100ml",brand:'Chanel',category:'beaute',store:'Sephora.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:92,affiliate_url:'https://www.sephora.fr/marques/chanel/parfums/',image_url:'https://m.media-amazon.com/images/I/51GXw3WTjZL._AC_SL1000_.jpg',description:'Chanel Chance Eau Tendre 100ml -36%'},
     {id:78,name:'Back Market iPhone 14 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:449,original_price:869,discount_pct:48,novadeal_score:93,affiliate_url:'https://www.backmarket.fr/fr-fr/p/iphone-14-128-go-minuit/b6ba12e6-5a28-4b39-9b8d-1f3dff6a2e5a',image_url:'https://m.media-amazon.com/images/I/617p0l4XEKL._AC_SL1000_.jpg',description:'iPhone 14 reconditionné B/M certifié -48%'},
     {id:79,name:'Stabilo Boss Original Lot 10',brand:'Stabilo',category:'bureau',store:'Amazon.fr',current_price:7,original_price:14,discount_pct:50,novadeal_score:85,affiliate_url:'https://www.amazon.fr/dp/B000KKZ6GO?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/81gBhYrLsML._AC_SL1500_.jpg',description:'Pack 10 surligneurs Stabilo -50%'},
     {id:80,name:'Sony ZV-E10 Appareil Photo Vlogging',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:399,original_price:699,discount_pct:43,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B09BBGPTFP?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71Ni7RBFblL._AC_SL1500_.jpg',description:'Sony ZV-E10 vlogging APS-C -43%'},
     // ── SITES INTERNATIONAUX LIVRANT EN FRANCE ─────────────────────────────
-    {id:81,name:'iPhone 14 Pro 128Go Space Black',brand:'Apple',category:'high-tech',store:'eBay France',current_price:399,original_price:1129,discount_pct:65,novadeal_score:92,affiliate_url:'https://www.ebay.fr/sch/i.html?_nkw=iPhone+14+Pro+128Go+d%27occasion&LH_ItemCondition=3000',image_url:'https://m.media-amazon.com/images/I/61nzPMNY8zL._AC_SL1000_.jpg',description:'iPhone 14 Pro reconditionné -65% sur eBay'},
+    {id:81,name:'iPhone 14 Pro 128Go Space Black',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:1129,discount_pct:65,novadeal_score:89,affiliate_url:'https://www.backmarket.fr/fr-fr/p/iphone-14-pro-128-go/7f1b9b9e-6c6e-4f8e-9c6e-1f2b3c4d5e6f',image_url:'https://m.media-amazon.com/images/I/61nzPMNY8zL._AC_SL1000_.jpg',description:'iPhone 14 Pro reconditionné -65% sur eBay'},
     {id:82,name:'Samsung Galaxy Tab S9 256Go WiFi',brand:'Samsung',category:'high-tech',store:'Rakuten France',current_price:499,original_price:849,discount_pct:41,novadeal_score:90,affiliate_url:'https://fr.shopping.rakuten.com/offer/buy/3890512961/samsung-galaxy-tab-s9.html',image_url:'https://m.media-amazon.com/images/I/71F+YilRHcL._AC_SL1500_.jpg',description:'Galaxy Tab S9 reconditionné sur Rakuten -41%'},
     {id:83,name:'Casque Sony WH-CH720N ANC Légèreté',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:49,original_price:99,discount_pct:51,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B0BNX5B7D1?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61CGHv6kmWL._AC_SL1500_.jpg',description:'Casque Sony WH-CH720N ANC ultra-léger -51%'},
     {id:84,name:'Bosch Serie 2 Perceuse-visseuse 18V',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:90,affiliate_url:'https://www.manomano.fr/p/bosch-perceuse-visseuse-sans-fil-18v-2ah-gsb-18v-21-3165140957793-82002791',image_url:'https://m.media-amazon.com/images/I/41bXLxCktyL._AC_SL1000_.jpg',description:'Perceuse Bosch 18V sans fil -47%'},
@@ -3173,8 +3174,15 @@ function renderFlashLive(flashDeals) {
   row.innerHTML = flashDeals.map(function(f, i) {
     const img = f.image_url || CAT_IMG[f.cat] || CAT_IMG.default;
     const pct = f.discount_pct ? Math.round(f.discount_pct) : 0;
-    return '<div class="flash-card" onclick="window.open(buildSmartUrl(f),\'_blank\');showToast(\'✅ Ouverture...\')">' +
-      '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.src=\'' + (CAT_IMG[f.cat]||CAT_IMG.default) + '\'"/>' +
+    // FIX: précomputer l'URL au moment du rendu — f n'est pas dans le scope onclick
+    const rawUrl = f.affiliate_url || f.url || '';
+    const url = (rawUrl && rawUrl.startsWith('http')) ? rawUrl.replace(/'/g, '%27') : '';
+    const onclickJs = url
+      ? "window.open('" + url + "','_blank');showToast('✅ Ouverture...')"
+      : "showToast('🔗 Lien indisponible')";
+    const fallbackImg = (CAT_IMG[f.cat]||CAT_IMG.default).replace(/'/g, '%27');
+    return '<div class="flash-card" onclick="' + onclickJs + '">' +
+      '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + fallbackImg + '\'"/>' +
       '<div class="flash-badge">' + (pct > 0 ? '-'+pct+'%' : 'Flash') + '</div>' +
       '<div class="flash-nm">' + escHtml(f.name) + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);margin-bottom:2px">' + escHtml(f.store||'') + '</div>' +
@@ -3280,7 +3288,7 @@ function dealCard(d) {
   return `
   <div class="deal" onclick="openDeal(${d.id})">
     <div class="deal-img-wrap">
-      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImg}'"/>
+      <img class="deal-img" src="${img}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImg}';this.addEventListener('error',function(){this.style.display='none';var p=this.nextElementSibling;if(p)p.style.display='flex';})"/>
       <div class="deal-img-placeholder" style="display:none">${CAT_EMOJI[cat]||'🏷️'}</div>
       ${pct > 0 ? `<div class="deal-pct${score>=90?'':' gold'}">−${Math.round(pct)}%</div>` : ''}
       <button class="deal-fav" onclick="event.stopPropagation();toggleFav(${d.id})">${isFav?'❤️':'🤍'}</button>
@@ -3304,13 +3312,18 @@ function dealCard(d) {
 
 // ── FLASH ─────────────────────────────────────────────────────
 function renderFlash() {
+  // Cette fonction est un fallback — renderFlashLive() est utilisée normalement
+  const data = (window._liveFlash && window._liveFlash.length > 0) ? window._liveFlash : (_FLASH_DB || []);
+  if (data.length > 0) { renderFlashLive(data); return; }
   document.getElementById('flashRow').innerHTML = FLASH_DEALS.map((f, i) => {
     const img = CAT_IMG[f.cat] || CAT_IMG.default;
+    const url = (f.affiliate_url || f.url || '').replace(/'/g, '%27');
+    const onclick = url ? `window.open('${url}','_blank');showToast('✅ Ouverture...')` : `openFlashPage()`;
     return `
-    <div class="flash-card" onclick="showToast('🔗 Redirection...')">
-      <img class="flash-img" src="${img}" alt="${f.name}" loading="lazy"/>
+    <div class="flash-card" onclick="${onclick}">
+      <img class="flash-img" src="${img}" alt="${escHtml(f.name)}" loading="lazy" onerror="this.onerror=null;this.src='${img}'"/>
       <div class="flash-badge">Flash</div>
-      <div class="flash-nm">${f.name}</div>
+      <div class="flash-nm">${escHtml(f.name)}</div>
       <div class="flash-price">${f.price}</div>
       <div class="flash-timer" id="timer_${i}">--:--:--</div>
     </div>`;
@@ -3342,8 +3355,13 @@ async function openDeal(id) {
   const scoreColor = (deal.novadeal_score||50) >= 75 ? 'var(--green)' : (deal.novadeal_score||50) >= 50 ? 'var(--gold)' : '#FF5C2B';
 
   const fallbackImg = getProductImage({category: cat, image_url: ''});
+  const modalEmoji = CAT_EMOJI[cat] || '🏷️';
   document.getElementById('modalBody').innerHTML = `
-    <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" onerror="this.onerror=null;this.src='${fallbackImg}'"/>
+    <div style="position:relative;width:100%;height:180px;border-radius:16px;overflow:hidden;background:var(--bg3);margin-bottom:16px">
+      <img class="modal-img" src="${img}" alt="${escHtml(deal.name)}" style="width:100%;height:180px;object-fit:cover;position:absolute;top:0;left:0"
+        onerror="this.onerror=null;this.src='${fallbackImg}';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='flex';}"/>
+      <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:64px;background:var(--bg3)">${modalEmoji}</div>
+    </div>
     <div class="modal-name">${escHtml(deal.name)}</div>
     <div class="modal-sub">${escHtml(deal.brand || deal.store)} · ${escHtml(deal.category || '')}</div>
     <div class="modal-prices">
