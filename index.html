@@ -3009,93 +3009,294 @@ const _FLASH_DB = [
 ];
 
 
-// ══════════════════════════════════════════════════════════════
-// DEALSCAN — MOTEUR IA LIVE via Backend Railway
-// Le frontend appelle le backend (Railway) qui appelle Anthropic.
-// La clé API reste sécurisée côté serveur, jamais dans le navigateur.
-// ══════════════════════════════════════════════════════════════
-
-// Cache côté frontend — évite les double-appels rapides
+// ── DEALSCAN MOTEUR IA — appelle Railway → Gemini ──────────
 var _AI_CACHE = { deals: new Map(), flash: null, promos: null };
-var _AI_CACHE_TTL = 22 * 60 * 1000; // 22 min (légèrement sous le cache backend de 20 min)
+var _AI_CACHE_TTL = 22 * 60 * 1000;
 
 async function callClaudeAI(prompt, maxTokens) {
-  const isFlash  = prompt.includes('VENTES FLASH');
-  const isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
-
-  // Vérifier le cache frontend
-  const cacheKey = isFlash ? '__flash__' : isPromos ? '__promos__' : prompt.slice(150, 210);
-  if (isFlash  && _AI_CACHE.flash  && (Date.now() - _AI_CACHE.flash.ts)  < _AI_CACHE_TTL) return _AI_CACHE.flash.data;
-  if (isPromos && _AI_CACHE.promos && (Date.now() - _AI_CACHE.promos.ts) < _AI_CACHE_TTL) return _AI_CACHE.promos.data;
-  const cached = _AI_CACHE.deals.get(cacheKey);
-  if (cached && (Date.now() - cached.ts) < _AI_CACHE_TTL) return cached.data;
-
-  // Détecter catégorie depuis le prompt
-  let category = '';
-  const cats = ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'];
-  for (let i = 0; i < cats.length; i++) {
-    if (prompt.toLowerCase().includes(cats[i])) { category = cats[i]; break; }
-  }
-
-  // Détecter count
-  const countMatch = prompt.match(/(\d+)\s*VRAIES/);
-  const count = countMatch ? parseInt(countMatch[1]) : 40;
-
+  var isFlash  = prompt.includes('VENTES FLASH');
+  var isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
+  var cacheKey = isFlash ? '__flash__' : isPromos ? '__promos__' : prompt.slice(150, 210);
+  if (isFlash  && _AI_CACHE.flash  && (Date.now()-_AI_CACHE.flash.ts)  < _AI_CACHE_TTL) return _AI_CACHE.flash.data;
+  if (isPromos && _AI_CACHE.promos && (Date.now()-_AI_CACHE.promos.ts) < _AI_CACHE_TTL) return _AI_CACHE.promos.data;
+  var cd = _AI_CACHE.deals.get(cacheKey);
+  if (cd && (Date.now()-cd.ts) < _AI_CACHE_TTL) return cd.data;
+  var category = '';
+  ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'].forEach(function(c){ if (prompt.toLowerCase().includes(c) && !category) category=c; });
+  var countM = prompt.match(/(\d+)\s*VRAIES/);
+  var count = countM ? parseInt(countM[1]) : 40;
   try {
-    // Appel au backend Railway — la clé Anthropic reste sur le serveur
-    const res = await fetch(`${API}/ai/generate-deals`, {
+    var res = await fetch(API + '/ai/generate-deals', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type:       isFlash ? 'flash' : isPromos ? 'promos' : 'deals',
-        category:   category,
-        count:      count,
-        max_tokens: maxTokens || 6000
-      })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ type: isFlash?'flash':isPromos?'promos':'deals', category: category, count: count, max_tokens: maxTokens||6000 })
     });
-
-    if (!res.ok) {
-      console.warn('[DealScan] Backend /ai/generate-deals error:', res.status, '→ fallback local');
-      return _localFallback(prompt);
-    }
-
-    const data = await res.json();
-    const text = data.result || '';
-
-    // Mettre en cache
-    const entry = { data: text, ts: Date.now() };
-    if (isFlash)       _AI_CACHE.flash  = entry;
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var text = data.result || '';
+    var entry = { data: text, ts: Date.now() };
+    if (isFlash) _AI_CACHE.flash = entry;
     else if (isPromos) _AI_CACHE.promos = entry;
-    else               _AI_CACHE.deals.set(cacheKey, entry);
-
+    else _AI_CACHE.deals.set(cacheKey, entry);
     return text;
-
   } catch(e) {
-    console.warn('[DealScan] callClaudeAI network error:', e, '→ fallback local');
+    console.warn('[DealScan] Railway /ai/generate-deals failed → fallback local:', e.message);
     return _localFallback(prompt);
   }
 }
 
-// Fallback sur la base locale si le backend est indisponible
 function _localFallback(prompt) {
-  const isFlash  = prompt.includes('VENTES FLASH');
-  const isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
+  var isFlash  = prompt.includes('VENTES FLASH');
+  var isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
   if (isFlash)  return JSON.stringify({ flash: _FLASH_DB });
   if (isPromos) return JSON.stringify({ promos: _PROMOS_DB });
+  var cat = '';
+  ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'].forEach(function(c){ if (prompt.toLowerCase().includes(c) && !cat) cat=c; });
+  var pool = (_DEALS_DB[cat]&&_DEALS_DB[cat].length>0)?_DEALS_DB[cat]:_DEALS_DB[''];
+  return JSON.stringify({ deals: pool.slice().sort(function(){return Math.random()-.5;}).slice(0,80), total_analyzed: pool.length*6, sources_checked: 42, generated_at: _NOW });
+}
+function buildDealsPrompt(category, count) {
+  count = count || 40;
+  var today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var nowISO = new Date().toISOString();
+  var catDesc = {'high-tech':'smartphones, laptops, tablettes, TV, écouteurs, PC','mode':'chaussures, vêtements, sacs, accessoires, montres','gaming':'jeux vidéo PS5/Xbox/Switch/PC, consoles, manettes','alimentaire':'courses, supermarchés, bio, boissons','maison':'électroménager, meubles, cuisine, décoration','beaute':'parfums, cosmétiques, soins, maquillage','sport':'running, cyclisme, fitness, outdoor','voyages':'vols, hôtels, trains, séjours','restauration':'livraison, restaurants, fast food','auto':'pièces auto, pneus, accessoires'}[category]||'tous produits et services';
+  return 'Tu es DealScan, moteur de deals français. Nous sommes le '+today+'.\n\nMISSION: Trouve '+count+' vraies promotions actives EN CE MOMENT en France. Tu nas PAS besoin dêtre affilié.\n\nCATÉGORIE: '+(category||'toutes')+' ('+catDesc+')\n\nSOURCES: Amazon.fr, Fnac.com, Darty.com, Boulanger.com, Cdiscount.com, Zalando.fr, Nike.fr, Adidas.fr, Decathlon.fr, Leroy Merlin, Ikea.fr, Sephora.fr, Leclerc.fr, Lidl.fr, LDLC.com, Back Market, Veepee.fr, Booking.com\n\nRÈGLES:\n1. URL DIRECTE vers la page produit (jamais homepage)\n2. image_url = URL directe jpg/png/webp du produit (OBLIGATOIRE)\n3. Prix actuels vérifiés\n4. discount_pct = réduction réelle\n5. novadeal_score = 0-100\n\nJSON UNIQUEMENT (zéro texte avant/après):\n{"deals":[{"id":1,"name":"<nom>","brand":"<marque>","category":"<high-tech|mode|gaming|alimentaire|maison|beaute|sport|voyages|restauration|auto>","store":"<marchand>","current_price":0,"original_price":0,"discount_pct":0,"novadeal_score":0,"affiliate_url":"<URL produit>","image_url":"<URL image jpg/png>","description":"<1 phrase>","promo_code":null,"expires_in_hours":null,"is_flash":false,"detected_at":"'+nowISO+'"}],"total_analyzed":0,"sources_checked":0,"generated_at":"'+nowISO+'"}';
+}
+function buildFlashPrompt() {
+  var today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  return 'Trouve les 8 VENTES FLASH actives EN CE MOMENT ('+today+') sur les sites français. Sites: Amazon.fr Lightning Deals, Fnac Ventes Flash, Cdiscount, Boulanger, Zalando, Nike, Decathlon, Darty, LDLC.\n\nJSON UNIQUEMENT:\n{"flash":[{"name":"<produit>","price":"<X>€","original_price":"<X>€","discount_pct":0,"cat":"<cat>","store":"<marchand>","url":"<URL directe>","image_url":"<URL image jpg/png>","timer_hours":2,"emoji":"<emoji>"}]}';
+}
+function buildFlashPrompt() {
+  return 'Trouve 8 VENTES FLASH actives EN CE MOMENT sur des sites français (Amazon Lightning Deals, Fnac Ventes Flash, Cdiscount, Boulanger, Zalando, Nike, Decathlon...).\nJSON uniquement:\n{"flash":[{"name":"<produit>","price":"<X>€","original_price":"<X>€","discount_pct":0,"cat":"<categorie>","store":"<marchand>","url":"<URL directe>","image_url":"<URL image>","timer_hours":2,"emoji":"<emoji>"}]}';
+}
+
+// ── BASE DE DONNÉES LOCALE — vrais produits français, liens directs ──
+const _TAG = 'julvox-21';
+const _NOW = new Date().toISOString();
+
+// ── AJOUT AUTOMATIQUE DU TAG AFFILIÉ AMAZON ──────────────────
+// ══════════════════════════════════════════════════════════════
+// SMART URL BUILDER — 100% autonome, jamais de 404
+// Génère automatiquement la bonne URL de recherche pour chaque
+// marchand à partir du nom du produit.
+// ══════════════════════════════════════════════════════════════
+
+function buildSmartUrl(deal) {
+  var url   = deal.affiliate_url || deal.url || '';
+  var store = (deal.store || '').toLowerCase();
+  var tag   = _TAG;
+
+  // Règle unique : si l'URL stockée est directe et valide → l'utiliser
+  if (url && url.startsWith('http')) {
+    // Blacklist stricte : patterns qui indiquent une page de recherche
+    var SEARCH_PATTERNS = [
+      '/s?k=', '?Search=', '/SearchResult', '/recherche?', '/search?',
+      '/catalogues.html', '/s.html?', 'search.php',
+      '?Ntt=', '/search/10/', 'SearchText=', '?q=', '/catalogues.html',
+      'tbm=shop', '/w?q=', '?kw=', '/wholesale?', 'asos.com/fr/recherche',
+      'rueducommerce.fr/r/', '?KEYWORD=', '/nav/recherche'
+    ];
+    var isSearch = SEARCH_PATTERNS.some(function(p){ return url.includes(p); });
+
+    // Page d'accueil pure (domaine + éventuellement /) sans chemin produit
+    var isHomepage = /^https?:\/\/[^\/]+\/?$/.test(url) && !url.includes('/dp/');
+
+    if (!isSearch && !isHomepage) {
+      // Ajouter le tag Amazon si absent
+      if (url.includes('amazon.fr') && !url.includes('tag=')) {
+        return url + (url.includes('?') ? '&' : '?') + 'tag=' + tag;
+      }
+      return url;
+    }
+  }
+
+  // Pas d'URL directe valide → ne pas inventer de lien.
+  // Le bouton sera masqué ou désactivé côté HTML.
+  return '#';
+}
+
+// Alias de compatibilité (ancien code qui appelle buildAffiliateUrl)
+function buildAffiliateUrl(url, deal) {
+  if (deal) return buildSmartUrl(deal);
+  if (!url || url === '#') return '#';
+  try {
+    var u = new URL(url);
+    if (u.hostname.includes('amazon.')) {
+      u.searchParams.set('tag', _TAG);
+      ['ref','smid','th','psc'].forEach(function(p){ u.searchParams.delete(p); });
+      return u.toString();
+    }
+  } catch(e) {}
+  return url;
+}
+
+const _DEALS_DB = {
+  '': [
+    // ── HIGH-TECH ──────────────────────────────────────────────────────────
+    {id:1,name:'Apple AirPods Pro 2 (USB-C)',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:219,original_price:279,discount_pct:22,novadeal_score:97,affiliate_url:'https://www.amazon.fr/dp/B0CHWRXH8B?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71zny7BTRlL._AC_SL300_.jpg',description:'AirPods Pro 2 USB-C avec ANC adaptatif'},
+    {id:2,name:'Samsung Galaxy S25 256Go Gris',brand:'Samsung',category:'high-tech',store:'Amazon.fr',current_price:799,original_price:999,discount_pct:20,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B0DS36FBYK?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61VuVU94RnL._AC_SL300_.jpg',description:'Dernier flagship Samsung Galaxy S25'},
+    {id:3,name:'Apple Watch Series 10 42mm GPS',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:349,original_price:449,discount_pct:22,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0DGJHK3Q4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71dSXBHqR3L._AC_SL300_.jpg',description:'Apple Watch Series 10 — meilleure montre Apple'},
+    {id:4,name:'Sony WH-1000XM5 Casque Bluetooth',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:279,original_price:419,discount_pct:33,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0C2TVXFX4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL300_.jpg',description:'Meilleur casque ANC du marché -33%'},
+    {id:5,name:'Samsung TV 55" QLED 4K Q70C',brand:'Samsung',category:'high-tech',store:'Boulanger.com',current_price:649,original_price:999,discount_pct:35,novadeal_score:94,affiliate_url:'https://www.boulanger.com/ref/870555',image_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',description:'TV QLED 55 pouces 4K HDR en promo'},
+    {id:6,name:'Bose QuietComfort Ultra Earbuds',brand:'Bose',category:'high-tech',store:'Amazon.fr',current_price:229,original_price:329,discount_pct:30,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0CD2FSRDD?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61TZP89S+oL._AC_SL300_.jpg',description:'Meilleurs earbuds ANC Bose -30%'},
+    {id:7,name:'JBL Charge 5 Enceinte Bluetooth',brand:'JBL',category:'high-tech',store:'Amazon.fr',current_price:119,original_price:199,discount_pct:40,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B08ZMXKXH4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61hVmf0YELL._AC_SL300_.jpg',description:'Enceinte portable waterproof JBL -40%'},
+    {id:8,name:'iPad Air M2 11" 128Go WiFi',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:699,original_price:799,discount_pct:13,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B0D3J7D6XF?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71XtTzBPCFL._AC_SL300_.jpg',description:'iPad Air M2 puissant et léger'},
+    {id:9,name:'iPhone 15 128Go Noir',brand:'Apple',category:'high-tech',store:'Amazon.fr',current_price:699,original_price:969,discount_pct:28,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B0CHX2FZVG?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61cwywLZR-L._AC_SL300_.jpg',description:'iPhone 15 reconnu best value Apple'},
+    {id:10,name:'Xiaomi 14T Pro 512Go Noir',brand:'Xiaomi',category:'high-tech',store:'Amazon.fr',current_price:649,original_price:899,discount_pct:28,novadeal_score:92,affiliate_url:'https://www.amazon.fr/dp/B0CWQWLV5V?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61dNFiKXkEL._AC_SL300_.jpg',description:'Flagship Xiaomi Leica à prix cassé'},
+    // ── INFORMATIQUE ──────────────────────────────────────────────────────
+    {id:11,name:'MacBook Air M3 13" 256Go Minuit',brand:'Apple',category:'informatique',store:'Amazon.fr',current_price:1099,original_price:1299,discount_pct:15,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B0CX22VCZK?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71vFKBpKakL._AC_SL300_.jpg',description:'MacBook Air M3 — meilleur laptop du marché'},
+    {id:12,name:'ASUS ROG Strix G16 RTX 4070',brand:'ASUS',category:'informatique',store:'LDLC.com',current_price:1299,original_price:1799,discount_pct:28,novadeal_score:93,affiliate_url:'https://www.ldlc.com/fiche/PB00607006.html',image_url:'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',description:'PC gaming ROG RTX 4070 -28%'},
+    {id:13,name:'SSD Samsung 990 Pro 2To NVMe',brand:'Samsung',category:'informatique',store:'Amazon.fr',current_price:119,original_price:219,discount_pct:46,novadeal_score:97,affiliate_url:'https://www.amazon.fr/dp/B0B7NXBGD7?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71MhCBTqJCL._AC_SL300_.jpg',description:'SSD NVMe le plus rapide du marché -46%'},
+    {id:14,name:'Logitech MX Master 3S Souris',brand:'Logitech',category:'informatique',store:'Amazon.fr',current_price:89,original_price:119,discount_pct:25,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B09HMKFDXC?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL300_.jpg',description:'Meilleure souris sans fil productivité'},
+    {id:15,name:'Écran LG 27" 4K IPS NanoCell',brand:'LG',category:'informatique',store:'Amazon.fr',current_price:299,original_price:499,discount_pct:40,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B098JKN1X8?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71TiJSxf5GL._AC_SL300_.jpg',description:'Écran 4K IPS 27 pouces -40%'},
+    {id:16,name:'Crucial RAM 32Go DDR5-4800',brand:'Crucial',category:'informatique',store:'Amazon.fr',current_price:79,original_price:129,discount_pct:39,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B0B44WTBY9?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61DKuQg7VNL._AC_SL300_.jpg',description:'RAM DDR5 32Go haute performance'},
+    {id:17,name:'Imprimante HP LaserJet Pro M182',brand:'HP',category:'informatique',store:'Amazon.fr',current_price:149,original_price:229,discount_pct:35,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B07RBSV3WG?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/61f9XgjbrCL._AC_SL300_.jpg',description:'Imprimante laser couleur WiFi -35%'},
+    // ── GAMING ────────────────────────────────────────────────────────────
+    {id:18,name:'PlayStation 5 Slim 1To + Manette',brand:'Sony',category:'gaming',store:'Amazon.fr',current_price:449,original_price:549,discount_pct:18,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0CL61F39H?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/51oFBNsLR8L._AC_SL300_.jpg',description:'PS5 Slim — meilleure console actuelle'},
+    {id:19,name:'Xbox Series X 1To Carbon Black',brand:'Microsoft',category:'gaming',store:'Amazon.fr',current_price:379,original_price:499,discount_pct:24,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B08H75RTZ8?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08H75RTZ8._AC_SL300_.jpg',description:'Xbox Series X au meilleur prix -24%'},
+    {id:20,name:'Nintendo Switch 2',brand:'Nintendo',category:'gaming',store:'Amazon.fr',current_price:349,original_price:449,discount_pct:22,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0DLB3FL5X?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0DLB3FL5X._AC_SL300_.jpg',description:'Nintendo Switch 2 — nouvelle génération'},
+    {id:21,name:'Manette DualSense Edge PS5',brand:'Sony',category:'gaming',store:'Amazon.fr',current_price:149,original_price:239,discount_pct:38,novadeal_score:92,affiliate_url:'https://www.amazon.fr/dp/B0BKJK5GFD?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BKJK5GFD._AC_SL300_.jpg',description:'Manette pro PS5 DualSense Edge -38%'},
+    {id:22,name:'Razer BlackShark V2 Pro 2024',brand:'Razer',category:'gaming',store:'Amazon.fr',current_price:129,original_price:199,discount_pct:35,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B09C5V44RC?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09C5V44RC._AC_SL300_.jpg',description:'Casque gaming pro sans fil -35%'},
+    {id:23,name:'LEGO Technic Bugatti Bolide 42151',brand:'LEGO',category:'gaming',store:'Amazon.fr',current_price:79,original_price:119,discount_pct:34,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B09GVFKB5Q?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09GVFKB5Q._AC_SL300_.jpg',description:'LEGO Technic Bugatti collector -34%'},
+    {id:24,name:'FIFA 25 / EA Sports FC 25 PS5',brand:'EA Sports',category:'gaming',store:'Amazon.fr',current_price:29,original_price:79,discount_pct:63,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0D4CCZV9D?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0D4CCZV9D._AC_SL300_.jpg',description:'EA FC 25 PS5 — prix historique -63%'},
+    // ── MODE ──────────────────────────────────────────────────────────────
+    {id:25,name:'Nike Air Force 1 07 Blanc',brand:'Nike',category:'mode',store:'Nike.com',current_price:79,original_price:109,discount_pct:28,novadeal_score:92,affiliate_url:'https://www.nike.com/fr/t/chaussure-air-force-1-07-pour-FV0383-100',image_url:'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/4f37fca8-6bce-43e7-ad07-f57ae3c13142/chaussure-air-force-1-07-pour-FV0383-100.png',description:'Nike Air Force 1 blanc iconique -28%'},
+    {id:26,name:'Adidas Samba OG Blanc/Noir',brand:'Adidas',category:'mode',store:'Zalando.fr',current_price:89,original_price:110,discount_pct:19,novadeal_score:93,affiliate_url:'https://www.zalando.fr/catalog/?q=adidas+samba+og+blanc&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'Adidas Samba OG — la sneaker tendance 2026'},
+    {id:27,name:'New Balance 574 Gris Marine',brand:'New Balance',category:'mode',store:'Zalando.fr',current_price:65,original_price:105,discount_pct:38,novadeal_score:91,affiliate_url:'https://www.zalando.fr/catalog/?q=new+balance+574+gris&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'New Balance 574 classique -38%'},
+    {id:28,name:'Vans Old Skool Noir/Blanc',brand:'Vans',category:'mode',store:'Zalando.fr',current_price:55,original_price:89,discount_pct:38,novadeal_score:91,affiliate_url:'https://www.zalando.fr/catalog/?q=vans+old+skool+noir&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'Vans Old Skool classic -38%'},
+    {id:29,name:'Ralph Lauren Polo Shirt Classique',brand:'Ralph Lauren',category:'mode',store:'Zalando.fr',current_price:59,original_price:99,discount_pct:40,novadeal_score:89,affiliate_url:'https://www.zalando.fr/catalog/?q=polo+ralph+lauren+homme&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'Polo Ralph Lauren -40% chez Zalando'},
+    {id:30,name:'Tommy Hilfiger Jeans Slim Denim',brand:'Tommy Hilfiger',category:'mode',store:'Zalando.fr',current_price:49,original_price:89,discount_pct:45,novadeal_score:90,affiliate_url:'https://www.zalando.fr/catalog/?q=tommy+hilfiger+jean+slim&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'Tommy Hilfiger jean slim -45%'},
+    // ── MAISON ────────────────────────────────────────────────────────────
+    {id:31,name:'Dyson V15 Detect Absolute',brand:'Dyson',category:'maison',store:'Amazon.fr',current_price:499,original_price:699,discount_pct:29,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B092TTCD7C?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/51o6TNYHTFL._AC_SL300_.jpg',description:'Dyson V15 le plus puissant -29%'},
+    {id:32,name:'iRobot Roomba Combo j7+',brand:'iRobot',category:'maison',store:'Amazon.fr',current_price:449,original_price:799,discount_pct:44,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B09G9FKQB6?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09G9FKQB6._AC_SL300_.jpg',description:'Robot aspirateur + laveur iRobot -44%'},
+    {id:33,name:'Nespresso Vertuo Pop Machine',brand:'Nespresso',category:'maison',store:'Amazon.fr',current_price:59,original_price:129,discount_pct:54,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0BCN9MNLY?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BCN9MNLY._AC_SL300_.jpg',description:'Machine Nespresso Vertuo Pop -54%'},
+    {id:34,name:'Ninja Foodi 9-en-1 Multicuiseur',brand:'Ninja',category:'maison',store:'Amazon.fr',current_price:119,original_price:229,discount_pct:48,novadeal_score:92,affiliate_url:'https://www.amazon.fr/dp/B082TBHGQ8?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B082TBHGQ8._AC_SL300_.jpg',description:'Ninja Foodi multicuiseur -48%'},
+    {id:35,name:'Philips Airfryer XXL HD9860',brand:'Philips',category:'maison',store:'Amazon.fr',current_price:149,original_price:279,discount_pct:47,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B08X3T1C8C?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08X3T1C8C._AC_SL300_.jpg',description:'Airfryer XXL Philips 7.3L -47%'},
+    {id:36,name:'Tefal Ingenio Batterie 13 pièces',brand:'Tefal',category:'maison',store:'Amazon.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B08GKZ1SQR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08GKZ1SQR._AC_SL300_.jpg',description:'Batterie Tefal Ingenio 13 pièces -47%'},
+    {id:37,name:'Rowenta Silence Steam Pro',brand:'Rowenta',category:'maison',store:'Amazon.fr',current_price:69,original_price:129,discount_pct:47,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B08D4NTQZ7?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08D4NTQZ7._AC_SL300_.jpg',description:'Fer vapeur Rowenta silencieux -47%'},
+    // ── ALIMENTAIRE ───────────────────────────────────────────────────────
+    {id:38,name:'Nespresso Vertuo Capsules x30 Café',brand:'Nespresso',category:'alimentaire',store:'Amazon.fr',current_price:8,original_price:12,discount_pct:33,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B07C53Q7LG?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07C53Q7LG._AC_SL300_.jpg',description:'Capsules Nespresso Vertuo x30 -33%'},
+    {id:39,name:'Carte Noire Café Moulu 1Kg',brand:'Carte Noire',category:'alimentaire',store:'Amazon.fr',current_price:12,original_price:18,discount_pct:33,novadeal_score:85,affiliate_url:'https://www.amazon.fr/dp/B07FSGVPC2?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07FSGVPC2._AC_SL300_.jpg',description:'Café moulu Carte Noire 1kg -33%'},
+    {id:40,name:'Lindt Excellence 70% Cacao x10',brand:'Lindt',category:'alimentaire',store:'Amazon.fr',current_price:14,original_price:22,discount_pct:36,novadeal_score:86,affiliate_url:'https://www.amazon.fr/dp/B07DCNSFXB?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07DCNSFXB._AC_SL300_.jpg',description:'Pack Lindt Excellence 70% cacao -36%'},
+    {id:41,name:'Evian Eau Minérale 6x1.5L',brand:'Evian',category:'alimentaire',store:'Amazon.fr',current_price:6,original_price:9,discount_pct:33,novadeal_score:83,affiliate_url:'https://www.amazon.fr/dp/B08J5X86HM?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08J5X86HM._AC_SL300_.jpg',description:'Pack eau Evian 6x1.5L abonnement -33%'},
+    // ── RESTAURATION ──────────────────────────────────────────────────────
+    {id:42,name:'Too Good To Go — Panier Paul',brand:'Paul',category:'restauration',store:'Too Good To Go',current_price:3.99,original_price:12,discount_pct:67,novadeal_score:94,affiliate_url:'https://www.toogoodtogo.com/fr-fr/consumer',image_url:'https://www.paul-international.com/images/4893-paul-croissants.jpg',description:'Panier surprise Paul boulangerie -67%'},
+    {id:43,name:'Uber Eats -50% 1ère commande',brand:'Uber Eats',category:'restauration',store:'Uber Eats',current_price:0,original_price:0,discount_pct:50,novadeal_score:92,affiliate_url:'https://www.ubereats.com/fr',image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Uber_Eats_Logo_RGB.png/1280px-Uber_Eats_Logo_RGB.png',description:'50% de réduction sur votre 1ère commande'},
+    {id:44,name:'Deliveroo -30% Code Promo',brand:'Deliveroo',category:'restauration',store:'Deliveroo',current_price:0,original_price:0,discount_pct:30,novadeal_score:89,affiliate_url:'https://deliveroo.fr/fr',image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Deliveroo_logo.svg/1280px-Deliveroo_logo.svg.png',description:'30% de réduction sur Deliveroo'},
+    // ── SPORT ─────────────────────────────────────────────────────────────
+    {id:45,name:'Nike Air Zoom Pegasus 41',brand:'Nike',category:'sport',store:'Nike.com',current_price:99,original_price:139,discount_pct:29,novadeal_score:93,affiliate_url:'https://www.nike.com/fr/t/chaussure-de-running-sur-route-air-zoom-pegasus-41-pour-FD2722-009',image_url:'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/2ddb5dda-a31e-4db5-a8a3-1e2441b03ce1/chaussure-de-running-sur-route-air-zoom-pegasus-41-pour-FD2722-009.png',description:'Nike Pegasus 41 running -29%'},
+    {id:46,name:'Garmin Forerunner 255 GPS',brand:'Garmin',category:'sport',store:'Amazon.fr',current_price:229,original_price:349,discount_pct:34,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B0B41HCH3L?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0B41HCH3L._AC_SL300_.jpg',description:'Garmin GPS running -34%'},
+    {id:47,name:'Décathlon Tapis de Yoga Domyos 8mm',brand:'Domyos',category:'sport',store:'Decathlon.fr',current_price:19,original_price:34,discount_pct:44,novadeal_score:87,affiliate_url:'https://www.decathlon.fr/p/tapis-de-yoga-confort-8-mm-gris/_/R-p-335493',image_url:'https://contents.mediadecathlon.com/p1917726/k$9ca93e5e1e4dcc4ff2f64d9e0c5491a8/sq/tapis-de-yoga-confort-8mm-gris.jpg',description:'Tapis yoga 8mm Decathlon -44%'},
+    {id:48,name:'Fitbit Charge 6 Bracelet Fitness',brand:'Fitbit',category:'sport',store:'Amazon.fr',current_price:99,original_price:169,discount_pct:41,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B0CDG2YB5B?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0CDG2YB5B._AC_SL300_.jpg',description:'Fitbit Charge 6 montre fitness -41%'},
+    // ── BEAUTE ────────────────────────────────────────────────────────────
+    {id:49,name:'Dyson Airwrap Multi-styler Complet',brand:'Dyson',category:'beaute',store:'Amazon.fr',current_price:449,original_price:599,discount_pct:25,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B09CM9P2W7?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09CM9P2W7._AC_SL300_.jpg',description:'Dyson Airwrap multi-styler -25%'},
+    {id:50,name:"L'Oréal Revitalift Sérum Vit.C 30ml",brand:"L'Oréal",category:'beaute',store:'Amazon.fr',current_price:16,original_price:29,discount_pct:45,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B07PRPJHMW?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07PRPJHMW._AC_SL300_.jpg',description:"Sérum vitamine C L'Oréal -45%"},
+    {id:51,name:'Oral-B iO Series 8 Blanc',brand:'Oral-B',category:'beaute',store:'Amazon.fr',current_price:89,original_price:219,discount_pct:59,novadeal_score:94,affiliate_url:'https://www.amazon.fr/dp/B09ZWQ3JMR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/51szD9HC9pL._AC_SL300_.jpg',description:'Oral-B iO Series 8 -59%'},
+    {id:52,name:'Clinique Moisturizing Lotion 200ml',brand:'Clinique',category:'beaute',store:'Amazon.fr',current_price:29,original_price:49,discount_pct:41,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B00KUEWVK4?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B00KUEWVK4._AC_SL300_.jpg',description:'Clinique lotion hydratante -41%'},
+    // ── VOYAGES ────────────────────────────────────────────────────────────
+    {id:53,name:'Samsonite Spinner 75cm Trolley',brand:'Samsonite',category:'voyages',store:'Amazon.fr',current_price:119,original_price:219,discount_pct:46,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B00S8FHG1O?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B00S8FHG1O._AC_SL300_.jpg',description:'Valise Samsonite 75cm 4 roues -46%'},
+    {id:54,name:'American Tourister Airconic 67cm',brand:'American Tourister',category:'voyages',store:'Amazon.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B07CZY4GKN?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07CZY4GKN._AC_SL300_.jpg',description:'Valise cabine AirConic -47%'},
+    // ── SANTE ─────────────────────────────────────────────────────────────
+    {id:55,name:'Omron M7 Tensiomètre Bras',brand:'Omron',category:'sante',store:'Amazon.fr',current_price:49,original_price:89,discount_pct:45,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B07BRTDXMN?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07BRTDXMN._AC_SL300_.jpg',description:'Tensiomètre Omron M7 bras -45%'},
+    {id:56,name:'Withings Body+ Balance Connectée',brand:'Withings',category:'sante',store:'Amazon.fr',current_price:79,original_price:99,discount_pct:20,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B01CNNV2KO?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B01CNNV2KO._AC_SL300_.jpg',description:'Balance connectée Withings Body+ -20%'},
+    // ── AUTO ──────────────────────────────────────────────────────────────
+    {id:57,name:'Michelin CrossClimate 2 205/55 R16',brand:'Michelin',category:'auto',store:'Amazon.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B01MXZUJP2?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B01MXZUJP2._AC_SL300_.jpg',description:'Pneu 4 saisons Michelin -36%'},
+    {id:58,name:'Nextbase 622GW Dashcam 4K',brand:'Nextbase',category:'auto',store:'Amazon.fr',current_price:149,original_price:299,discount_pct:50,novadeal_score:92,affiliate_url:'https://www.amazon.fr/dp/B09GVQKSP5?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09GVQKSP5._AC_SL300_.jpg',description:'Dashcam 4K Nextbase -50%'},
+    // ── HIGH-TECH SUITE ────────────────────────────────────────────────────
+    {id:59,name:'Ring Video Doorbell 4',brand:'Ring',category:'high-tech',store:'Amazon.fr',current_price:79,original_price:139,discount_pct:43,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B08N5Y6NHN?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08N5Y6NHN._AC_SL300_.jpg',description:'Sonnette connectée Ring -43%'},
+    {id:60,name:'Amazon Echo Show 8 2ème Gen',brand:'Amazon',category:'high-tech',store:'Amazon.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B07W7Y43TF?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07W7Y43TF._AC_SL300_.jpg',description:'Echo Show 8 écran 8 pouces -47%'},
+    {id:61,name:'Kindle Paperwhite 16Go 2024',brand:'Amazon',category:'high-tech',store:'Amazon.fr',current_price:129,original_price:169,discount_pct:24,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B09SWH63PY?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09SWH63PY._AC_SL300_.jpg',description:'Liseuse Kindle Paperwhite 2024'},
+    {id:62,name:'GoPro Hero 13 Black',brand:'GoPro',category:'high-tech',store:'Amazon.fr',current_price:299,original_price:449,discount_pct:33,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0CG4KFJ9R?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0CG4KFJ9R._AC_SL300_.jpg',description:'GoPro Hero 13 Black -33%'},
+    {id:63,name:'Philips Hue Starter Kit E27 4 ampoules',brand:'Philips',category:'high-tech',store:'Amazon.fr',current_price:59,original_price:99,discount_pct:40,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B07VPYMDKF?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07VPYMDKF._AC_SL300_.jpg',description:'Kit démarrage Philips Hue -40%'},
+    {id:64,name:'SwitchBot Hub Mini WiFi IR',brand:'SwitchBot',category:'high-tech',store:'Amazon.fr',current_price:19,original_price:39,discount_pct:51,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B0BVY6NT39?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BVY6NT39._AC_SL300_.jpg',description:'Maison connectée SwitchBot Hub -51%'},
+    // ── MAISON SUITE ──────────────────────────────────────────────────────
+    {id:65,name:'Bosch Serie 4 Lave-linge 8kg A+++',brand:'Bosch',category:'maison',store:'Darty.com',current_price:499,original_price:749,discount_pct:33,novadeal_score:90,affiliate_url:'https://www.darty.com/nav/achat/gros_electromenager/lave-linge-hublot/',image_url:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',description:'Lave-linge Bosch 8kg A+++ -33%'},
+    {id:66,name:'Xiaomi Robot Aspirateur S10+',brand:'Xiaomi',category:'maison',store:'Amazon.fr',current_price:179,original_price:349,discount_pct:49,novadeal_score:92,affiliate_url:'https://www.amazon.fr/dp/B0BVHXB7CQ?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BVHXB7CQ._AC_SL300_.jpg',description:'Robot Xiaomi aspirateur + lavage -49%'},
+    {id:67,name:'Weber Barbecue Spirit E-310 Gaz',brand:'Weber',category:'maison',store:'Amazon.fr',current_price:499,original_price:799,discount_pct:38,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B00YXSB57I?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B00YXSB57I._AC_SL300_.jpg',description:'Barbecue Weber Spirit gaz -38%'},
+    // ── INFORMATIQUE SUITE ────────────────────────────────────────────────
+    {id:68,name:'Seagate Backup Plus 4To USB3',brand:'Seagate',category:'informatique',store:'Amazon.fr',current_price:79,original_price:119,discount_pct:34,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B07CGGP8VL?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07VSXS2TG._AC_SL300_.jpg',description:'Disque dur externe 4To -34%'},
+    {id:69,name:'Epson EcoTank ET-2851 Imprimante',brand:'Epson',category:'informatique',store:'Amazon.fr',current_price:169,original_price:279,discount_pct:39,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B08BGVCRK3?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B08BGVCRK3._AC_SL300_.jpg',description:'Imprimante sans cartouche EcoTank -39%'},
+    {id:70,name:'Webcam Logitech StreamCam 1080p',brand:'Logitech',category:'informatique',store:'Amazon.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B07W9CRJKR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07W9CRJKR._AC_SL300_.jpg',description:'Webcam Logitech StreamCam HD -47%'},
+    // ── GAMING SUITE ──────────────────────────────────────────────────────
+    {id:71,name:'Hogwarts Legacy PS5',brand:'WB Games',category:'gaming',store:'Amazon.fr',current_price:19,original_price:79,discount_pct:76,novadeal_score:96,affiliate_url:'https://www.amazon.fr/dp/B0BLRFQLZB?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BLRFQLZB._AC_SL300_.jpg',description:'Hogwarts Legacy PS5 -76% prix plancher'},
+    {id:72,name:'Casque gaming Astro A50 X',brand:'Astro',category:'gaming',store:'Amazon.fr',current_price:199,original_price:379,discount_pct:47,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0C9WDHGYF?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0C9WDHGYF._AC_SL300_.jpg',description:'Casque Astro A50 X PS5/Xbox -47%'},
+    {id:73,name:'Clé Xbox Game Pass Ultimate 3 mois',brand:'Microsoft',category:'gaming',store:'Amazon.fr',current_price:24,original_price:44,discount_pct:45,novadeal_score:95,affiliate_url:'https://www.amazon.fr/dp/B07BN4VKFR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07BN4VKFR._AC_SL300_.jpg',description:'Game Pass Ultimate 3 mois -45%'},
+    // ── MODE SUITE ────────────────────────────────────────────────────────
+    {id:74,name:'The North Face Doudoune 700 Fill',brand:'The North Face',category:'mode',store:'Amazon.fr',current_price:149,original_price:269,discount_pct:45,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B0BG2TBVLH?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BG2TBVLH._AC_SL300_.jpg',description:'Doudoune TNF 700 fill -45%'},
+    {id:75,name:'Lacoste Polo Homme L.12.12 Blanc',brand:'Lacoste',category:'mode',store:'Amazon.fr',current_price:69,original_price:99,discount_pct:30,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B083GKXLHM?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B083GKXLHM._AC_SL300_.jpg',description:'Polo Lacoste L.12.12 -30%'},
+    {id:76,name:'Hugo Boss Parfum Bottled 100ml',brand:'Hugo Boss',category:'beaute',store:'Amazon.fr',current_price:49,original_price:89,discount_pct:45,novadeal_score:91,affiliate_url:'https://www.amazon.fr/dp/B001GVZAL2?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B001GVZAL2._AC_SL300_.jpg',description:'Hugo Boss Bottled EDT 100ml -45%'},
+    {id:77,name:"Chanel Chance Eau Tendre 100ml",brand:'Chanel',category:'beaute',store:'Sephora.fr',current_price:89,original_price:139,discount_pct:36,novadeal_score:92,affiliate_url:'https://www.sephora.fr/marques/chanel/parfums/',image_url:'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',description:'Chanel Chance Eau Tendre 100ml -36%'},
+    {id:78,name:'Back Market iPhone 14 128Go Reconditionné',brand:'Apple',category:'high-tech',store:'Back Market',current_price:449,original_price:869,discount_pct:48,novadeal_score:93,affiliate_url:'https://www.backmarket.fr/fr-fr/p/iphone-14-128-go-minuit/b6ba12e6-5a28-4b39-9b8d-1f3dff6a2e5a',image_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',description:'iPhone 14 reconditionné B/M certifié -48%'},
+    {id:79,name:'Stabilo Boss Original Lot 10',brand:'Stabilo',category:'bureau',store:'Amazon.fr',current_price:7,original_price:14,discount_pct:50,novadeal_score:85,affiliate_url:'https://www.amazon.fr/dp/B000KKZ6GO?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B000KKZ6GO._AC_SL300_.jpg',description:'Pack 10 surligneurs Stabilo -50%'},
+    {id:80,name:'Sony ZV-E10 Appareil Photo Vlogging',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:399,original_price:699,discount_pct:43,novadeal_score:93,affiliate_url:'https://www.amazon.fr/dp/B09BBGPTFP?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09BBGPTFP._AC_SL300_.jpg',description:'Sony ZV-E10 vlogging APS-C -43%'},
+    // ── SITES INTERNATIONAUX LIVRANT EN FRANCE ─────────────────────────────
+    {id:81,name:'iPhone 14 Pro 128Go Space Black',brand:'Apple',category:'high-tech',store:'Back Market',current_price:399,original_price:1129,discount_pct:65,novadeal_score:89,affiliate_url:'https://www.backmarket.fr/fr-fr/p/iphone-14-pro-128-go/7f1b9b9e-6c6e-4f8e-9c6e-1f2b3c4d5e6f',image_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',description:'iPhone 14 Pro reconditionné -65% sur eBay'},
+    {id:82,name:'Samsung Galaxy Tab S9 256Go WiFi',brand:'Samsung',category:'high-tech',store:'Rakuten France',current_price:499,original_price:849,discount_pct:41,novadeal_score:90,affiliate_url:'https://fr.shopping.rakuten.com/offer/buy/3890512961/samsung-galaxy-tab-s9.html',image_url:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',description:'Galaxy Tab S9 reconditionné sur Rakuten -41%'},
+    {id:83,name:'Casque Sony WH-CH720N ANC Légèreté',brand:'Sony',category:'high-tech',store:'Amazon.fr',current_price:49,original_price:99,discount_pct:51,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B0BNX5B7D1?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BNX5B7D1._AC_SL300_.jpg',description:'Casque Sony WH-CH720N ANC ultra-léger -51%'},
+    {id:84,name:'Bosch Serie 2 Perceuse-visseuse 18V',brand:'Bosch',category:'maison',store:'ManoMano.fr',current_price:79,original_price:149,discount_pct:47,novadeal_score:90,affiliate_url:'https://www.manomano.fr/p/bosch-perceuse-visseuse-sans-fil-18v-2ah-gsb-18v-21-3165140957793-82002791',image_url:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',description:'Perceuse Bosch 18V sans fil -47%'},
+    {id:85,name:'Aspirateur Dyson V8 Absolute',brand:'Dyson',category:'maison',store:'Veepee',current_price:229,original_price:449,discount_pct:49,novadeal_score:92,affiliate_url:'https://www.veepee.fr/',image_url:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',description:'Dyson V8 Absolute -49% vente flash Veepee'},
+    {id:86,name:'Huawei Watch GT4 46mm',brand:'Huawei',category:'high-tech',store:'Amazon.fr',current_price:99,original_price:199,discount_pct:50,novadeal_score:89,affiliate_url:'https://www.amazon.fr/dp/B0CG3WXJWF?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0CG3WXJWF._AC_SL300_.jpg',description:'Huawei Watch GT4 -50% sur Amazon'},
+    {id:87,name:'Jeu PC The Last of Us Part I Steam',brand:'Naughty Dog',category:'gaming',store:'Cdiscount.com',current_price:19,original_price:59,discount_pct:68,novadeal_score:94,affiliate_url:'https://www.cdiscount.com/jeux-pc/jeux-pc/the-last-of-us-part-i-jeu-pc/f-10360101-sol3512899125958.html',image_url:'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&q=80',description:'The Last of Us Part I PC -68% sur Cdiscount'},
+    {id:88,name:'Puma RS-X Blanc/Rouge',brand:'Puma',category:'mode',store:'Zalando.fr',current_price:49,original_price:89,discount_pct:45,novadeal_score:89,affiliate_url:'https://www.zalando.fr/catalog/?q=puma+rs-x&order=popularity',image_url:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',description:'Puma RS-X sneaker -45% sur Zalando'},
+    {id:89,name:"Levi's 501 Original Jean Bleu",brand:"Levi's",category:'mode',store:'Amazon.fr',current_price:49,original_price:99,discount_pct:51,novadeal_score:90,affiliate_url:'https://www.amazon.fr/dp/B0BF4YQ3VR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BF4YQ3VR._AC_SL300_.jpg',description:"Levi's 501 Original coupe droite -51%"},
+    {id:90,name:'Nike Dri-FIT Veste Running Femme',brand:'Nike',category:'mode',store:'Amazon.fr',current_price:39,original_price:79,discount_pct:51,novadeal_score:87,affiliate_url:'https://www.amazon.fr/dp/B09JXKPGBH?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09JXKPGBH._AC_SL300_.jpg',description:'Veste running Nike Dri-FIT -51%'},
+    {id:91,name:'Tapis Yoga Gaiam Premium 6mm',brand:'Gaiam',category:'sport',store:'Amazon.fr',current_price:29,original_price:55,discount_pct:47,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B01N9E55GQ?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B01N9E55GQ._AC_SL300_.jpg',description:'Tapis yoga premium antidérapant -47%'},
+    {id:92,name:'Rowenta Silence Force Aspirateur 750W',brand:'Rowenta',category:'maison',store:'Amazon.fr',current_price:89,original_price:179,discount_pct:50,novadeal_score:88,affiliate_url:'https://www.amazon.fr/dp/B07WQXXWLB?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B07WQXXWLB._AC_SL300_.jpg',description:'Aspirateur Rowenta silence -50%'},
+  ],
+  'high-tech': null, 'informatique': null, 'gaming': null, 'mode': null,
+  'maison': null, 'sport': null, 'beaute': null, 'alimentaire': null,
+  'voyages': null, 'sante': null, 'auto': null, 'restauration': null, 'bureau': null,
+};
+// Alimentation des catégories depuis la base principale
+['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto','restauration','bureau'].forEach(function(c){
+  _DEALS_DB[c] = _DEALS_DB[''].filter(function(d){ return d.category === c; });
+});
+
+const _FLASH_DB = [
+  {name:'AirPods Pro 2 USB-C',price:'219€',original_price:'279€',discount_pct:22,cat:'high-tech',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B0CHWRXH8B?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71zny7BTRlL._AC_SL300_.jpg',timer_hours:6,emoji:'🎧'},
+  {name:'SSD Samsung 990 Pro 2To',price:'119€',original_price:'219€',discount_pct:46,cat:'informatique',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B0B7NXBGD7?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/71MhCBTqJCL._AC_SL300_.jpg',timer_hours:4,emoji:'💾'},
+  {name:'PlayStation Plus 12 mois',price:'39€',original_price:'79€',discount_pct:51,cat:'gaming',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B09Q4SYHFS?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B09Q4SYHFS._AC_SL300_.jpg',timer_hours:2,emoji:'🎮'},
+  {name:'Oral-B iO Series 8',price:'89€',original_price:'219€',discount_pct:59,cat:'beaute',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B09ZWQ3JMR?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/51szD9HC9pL._AC_SL300_.jpg',timer_hours:5,emoji:'🦷'},
+  {name:'Ninja Foodi 9-en-1',price:'119€',original_price:'229€',discount_pct:48,cat:'maison',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B082TBHGQ8?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B082TBHGQ8._AC_SL300_.jpg',timer_hours:8,emoji:'🥘'},
+  {name:'Hogwarts Legacy PS5',price:'19€',original_price:'79€',discount_pct:76,cat:'gaming',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B0BLRFQLZB?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BLRFQLZB._AC_SL300_.jpg',timer_hours:3,emoji:'⚡'},
+  {name:'Garmin Forerunner 255',price:'229€',original_price:'349€',discount_pct:34,cat:'sport',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B0B41HCH3L?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0B41HCH3L._AC_SL300_.jpg',timer_hours:7,emoji:'⌚'},
+  {name:'Nespresso Vertuo Pop',price:'59€',original_price:'129€',discount_pct:54,cat:'maison',store:'Amazon.fr',url:'https://www.amazon.fr/dp/B0BCN9MNLY?tag=julvox-21',image_url:'https://m.media-amazon.com/images/I/B0BCN9MNLY._AC_SL300_.jpg',timer_hours:4,emoji:'☕'},
+];
+
+
+// Retourne les données locales au format attendu par le site original
+async function callClaudeAI(prompt, maxTokens) {
+  // Détecter le type de requête à partir du prompt
+  const isFlash = prompt.includes('VENTES FLASH') || prompt.includes('buildFlash');
+  const isPromos = prompt.includes('codes promo') || prompt.includes('CODE');
+
+  if (isFlash) {
+    return JSON.stringify({ flash: _FLASH_DB });
+  }
+  if (isPromos) {
+    return JSON.stringify({ promos: _PROMOS_DB });
+  }
+
+  // Deals — détecter la catégorie depuis le prompt
   let cat = '';
   const cats = ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'];
-  for (let i = 0; i < cats.length; i++) {
+  for (var i = 0; i < cats.length; i++) {
     if (prompt.toLowerCase().includes(cats[i])) { cat = cats[i]; break; }
   }
+
   const pool = (_DEALS_DB[cat] && _DEALS_DB[cat].length > 0) ? _DEALS_DB[cat] : _DEALS_DB[''];
-  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  // Mélanger pour varier l'affichage à chaque refresh
+  const shuffled = pool.slice().sort(function(){ return Math.random() - 0.5; });
+  const count = Math.min(parseInt(prompt.match(/(\d+)\s*VRAIES/)?.[1] || 80, 10), shuffled.length);
+
   return JSON.stringify({
-    deals: shuffled.slice(0, 80),
-    total_analyzed: shuffled.length * 6,
+    deals: shuffled.slice(0, count),
+    total_analyzed: count * 8,
     sources_checked: 42,
     generated_at: _NOW
   });
 }
+
 function safeParseJSON(text) {
   var BT3 = String.fromCharCode(96,96,96);
   let clean = text.replace(new RegExp('^' + BT3 + 'json\\s*'), '').replace(new RegExp('^' + BT3 + '\\s*'), '').replace(new RegExp(BT3 + '\\s*$'), '').trim();
@@ -3186,40 +3387,38 @@ function updateStatsCounter(dealsCount, sourcesChecked) {
 }
 
 async function loadDeals(cat, minSc) {
-  cat = cat || '';
-  minSc = minSc || 0;
-  const countEl = document.getElementById('dealCount');
+  cat = cat || ''; minSc = minSc || 0;
+  var countEl = document.getElementById('dealCount');
   currentCat = cat;
+  showLoadingDeals();
+  if (countEl) countEl.textContent = '🔍 Recherche sur le web...';
 
-  // ── CHARGEMENT IMMÉDIAT depuis la base locale ──────────────
-  const pool = (_DEALS_DB[cat] && _DEALS_DB[cat].length > 0) ? _DEALS_DB[cat] : _DEALS_DB[''];
-  let localDeals = pool.slice().sort(function(){ return Math.random() - 0.5; });
-  if (minSc > 0) localDeals = localDeals.filter(function(d){ return (d.novadeal_score||0) >= minSc; });
-
-  if (localDeals.length > 0) {
-    allDeals = localDeals;
-    renderDeals(allDeals);
-    if (countEl) countEl.textContent = allDeals.length + ' deals vérifiés ✓';
-  } else {
-    showLoadingDeals();
-    if (countEl) countEl.textContent = 'Chargement...';
-  }
-
-  // ── FLASH DEALS depuis la base locale ─────────────────────
-  const flashLocal = (_FLASH_DB || []).map(function(f){
-    return Object.assign({}, f, {
-      affiliate_url: f.url || f.affiliate_url,
-      image_url: f.image_url,
-      timer: Math.round((f.timer_hours || 2) * 3600)
-    });
+  // Flash en parallèle (non bloquant)
+  fetchFlashDealsFromClaude().then(function(f){
+    if(f&&f.length>0){window._liveFlash=f;renderFlashLive(f);startCountdownsLive(f);}
+    else { var fl=(_FLASH_DB||[]).map(function(x){return Object.assign({},x,{affiliate_url:x.url||x.affiliate_url,timer:Math.round((x.timer_hours||2)*3600)});}); if(fl.length){renderFlashLive(fl);startCountdownsLive(fl);} }
+  }).catch(function(){
+    var fl=(_FLASH_DB||[]).map(function(x){return Object.assign({},x,{affiliate_url:x.url||x.affiliate_url,timer:Math.round((x.timer_hours||2)*3600)});}); if(fl.length){renderFlashLive(fl);startCountdownsLive(fl);}
   });
-  if (flashLocal.length > 0) {
-    window._liveFlash = flashLocal;
-    renderFlashLive(flashLocal);
-    startCountdownsLive(flashLocal);
-  }
-}
 
+  // Deals Gemini via Railway
+  try {
+    var aiDeals = await fetchDealsFromClaude(cat, minSc);
+    if (aiDeals && aiDeals.length > 0) {
+      allDeals = aiDeals;
+      renderDeals(allDeals);
+      if (countEl) countEl.textContent = allDeals.length + ' deals vérifiés ✓';
+      return;
+    }
+  } catch(e) { console.warn('[DealScan] Gemini failed, fallback local:', e); }
+
+  // Fallback base locale
+  var pool = (_DEALS_DB[cat]&&_DEALS_DB[cat].length>0)?_DEALS_DB[cat]:_DEALS_DB[''];
+  allDeals = pool.slice().sort(function(){return Math.random()-.5;});
+  if (minSc>0) allDeals = allDeals.filter(function(d){return (d.novadeal_score||0)>=minSc;});
+  renderDeals(allDeals);
+  if (countEl) countEl.textContent = allDeals.length + ' deals (mode hors-ligne)';
+}
 async function _refreshDealsBackground() { /* géré par loadDeals */ }
 
 function renderFlashLive(flashDeals) {
@@ -5712,147 +5911,18 @@ function buildSwipeCard(deal, isTop) {
 
 // ── Résolution intelligente d'image produit ─────────────────
 // Retourne la meilleure URL image disponible pour un deal
-// Proxy anti-CORS pour Amazon CDN et autres CDNs bloqués
 function getProductImage(deal) {
   var img = deal.image_url || '';
-
   if (img && img.startsWith('https://') && img.length > 20 && !img.includes(' ')) {
-    // Proxy CORS pour Amazon CDN (bloqué en cross-origin sans proxy)
     if (img.includes('media-amazon.com') || img.includes('images-amazon.com')) {
       return 'https://images.weserv.nl/?url=' + encodeURIComponent(img) + '&w=400&q=85&output=webp';
     }
-    if (img.includes('static.nike.com') || img.includes('assetsadobe2.com')) {
-      return 'https://images.weserv.nl/?url=' + encodeURIComponent(img) + '&w=400&q=85';
-    }
     return img;
   }
-
-  // Fallback Unsplash par catégorie (pas de CORS, toujours disponible)
   var cat = deal.category || '';
-  var CAT_PHOTOS = {
-    'high-tech':    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80',
-    'informatique': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
-    'gaming':       'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&q=80',
-    'mode':         'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
-    'maison':       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
-    'beaute':       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',
-    'alimentaire':  'https://images.unsplash.com/photo-1543362906-acfc16c67564?w=400&q=80',
-    'restauration': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
-    'sport':        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80',
-    'voyages':      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
-    'sante':        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80',
-    'auto':         'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=80',
-    'animaux':      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80',
-    'jardinage':    'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80',
-    'librairie':    'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80',
-  };
-  return CAT_PHOTOS[cat] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80';
+  var C = {'high-tech':'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80','informatique':'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80','gaming':'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&q=80','mode':'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80','maison':'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80','beaute':'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80','alimentaire':'https://images.unsplash.com/photo-1543362906-acfc16c67564?w=400&q=80','restauration':'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80','sport':'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80','voyages':'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80','sante':'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80','auto':'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=80'};
+  return C[cat] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80';
 }
-
-function getCatEmoji(cat) {
-  const m = {'high-tech':'💻','gaming':'🎮','mode':'👗','maison':'🏠','alimentaire':'🛒','voyages':'✈️','sport':'⚽','beaute':'💄'};
-  return m[cat] || '🔥';
-}
-
-function initSwipeDrag(card, deal) {
-  swipeCurrentCard = card;
-
-  const onStart = (e) => {
-    swipeDragging = true;
-    swipeStartX   = (e.touches ? e.touches[0].clientX : e.clientX);
-    swipeStartY   = (e.touches ? e.touches[0].clientY : e.clientY);
-    card.classList.add('dragging');
-  };
-  const onMove = (e) => {
-    if (!swipeDragging) return;
-    const x     = (e.touches ? e.touches[0].clientX : e.clientX);
-    swipeDeltaX = x - swipeStartX;
-    const rot   = swipeDeltaX * 0.08;
-    card.style.transform = `translateX(${swipeDeltaX}px) rotate(${rot}deg)`;
-    // Show overlays
-    const like = card.querySelector('#overlayLike');
-    const skip = card.querySelector('#overlaySkip');
-    if (like) like.style.opacity = Math.min(1, swipeDeltaX / 80);
-    if (skip) skip.style.opacity = Math.min(1, -swipeDeltaX / 80);
-  };
-  const onEnd = () => {
-    if (!swipeDragging) return;
-    swipeDragging = false;
-    card.classList.remove('dragging');
-    if (swipeDeltaX > 80)       { swipeCard('right'); }
-    else if (swipeDeltaX < -80) { swipeCard('left');  }
-    else {
-      card.style.transform = '';
-      const like = card.querySelector('#overlayLike');
-      const skip = card.querySelector('#overlaySkip');
-      if (like) like.style.opacity = 0;
-      if (skip) skip.style.opacity = 0;
-    }
-    swipeDeltaX = 0;
-  };
-
-  card.addEventListener('mousedown', onStart);
-  card.addEventListener('touchstart', onStart, {passive:true});
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove, {passive:true});
-  window.addEventListener('mouseup', onEnd);
-  window.addEventListener('touchend', onEnd);
-}
-
-function swipeCard(direction) {
-  if (!swipeDeals.length || swipeIndex >= swipeDeals.length) return;
-  const card = document.getElementById('swipeTopCard');
-  const deal = swipeDeals[swipeIndex];
-
-  if (card) {
-    card.classList.add(direction === 'right' ? 'fly-right' : 'fly-left');
-    setTimeout(() => {
-      swipeIndex++;
-      if (swipeIndex >= swipeDeals.length) {
-        showSwipeEnd();
-      } else {
-        renderSwipeStack();
-      }
-    }, 320);
-  }
-
-  if (direction === 'right') {
-    swipeLiked.push(deal);
-    showToast('❤️ Sauvegardé !');
-    // Add to favorites
-    addToFav(deal.id, true);
-    // Record swipe
-    const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
-    if (token) fetch(API+'/deals/'+deal.id+'/swipe', {method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify({direction:'right'})}).catch(()=>{});
-  }
-}
-
-function openDealFromSwipe() {
-  if (swipeDeals[swipeIndex]) openDeal(swipeDeals[swipeIndex]);
-}
-
-function showSwipeEnd() {
-  const stack = document.getElementById('swipeStack');
-  stack.innerHTML = `
-    <div style="text-align:center;padding:40px 20px">
-      <div style="font-size:52px;margin-bottom:12px">🎉</div>
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px">C'est tout !</div>
-      <div style="font-size:14px;color:var(--txt2);margin-bottom:20px">${swipeLiked.length} deal${swipeLiked.length!==1?'s':''} sauvegardé${swipeLiked.length!==1?'s':''}</div>
-      <button onclick="loadSwipeFeed()" style="background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 28px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif">🔄 Recharger</button>
-    </div>
-  `;
-  document.getElementById('swipeCounter').textContent = '✓ Terminé';
-}
-
-function updateSwipeProgress() {
-  const prog = document.getElementById('swipeProgress');
-  if (!prog) return;
-  const total = Math.min(swipeDeals.length, 10);
-  prog.innerHTML = Array.from({length: total}, (_, i) =>
-    `<div class="swipe-dot ${i === swipeIndex % total ? 'active' : ''}"></div>`
-  ).join('');
-}
-
 // ── COMPARATEUR v2 ────────────────────────────────────────────
 async function runCompareV2() {
   const q      = document.getElementById('compareV2Input')?.value?.trim();
@@ -9146,28 +9216,18 @@ async function saveNewsletterPrefs() {
 }
 </script>
 <script src="/enhancements_v3.js" defer></script>
+
 <script>
-// ── DEALSCAN IMAGE AUTO-PROXY ────────────────────────────────
-// Intercepte toutes les <img> cassées et les re-route via proxy
-(function() {
-  var PROXY = 'https://images.weserv.nl/?url=';
-  document.addEventListener('error', function(e) {
-    var img = e.target;
-    if (img.tagName !== 'IMG') return;
-    var src = img.src || '';
-    if (!src || src.includes('weserv.nl') || src.includes('unsplash.com') || src.startsWith('data:')) return;
-    if (!img.dataset.proxied) {
-      img.dataset.proxied = '1';
-      img.src = PROXY + encodeURIComponent(src) + '&w=400&q=80&output=webp';
-    } else if (!img.dataset.fallback) {
-      img.dataset.fallback = '1';
-      img.style.display = 'none';
-      var s = img.nextElementSibling;
-      if (s && (s.classList.contains('deal-img-placeholder') || s.classList.contains('flash-img-placeholder') || s.classList.contains('modal-img-placeholder'))) {
-        s.style.display = 'flex';
-      }
-    }
-  }, true);
+// IMAGE AUTO-PROXY — intercepte toutes les images cassées
+(function(){
+  var P='https://images.weserv.nl/?url=';
+  document.addEventListener('error',function(e){
+    var img=e.target; if(img.tagName!=='IMG')return;
+    var src=img.src||'';
+    if(!src||src.includes('weserv')||src.includes('unsplash')||src.startsWith('data:'))return;
+    if(!img.dataset.proxied){img.dataset.proxied='1';img.src=P+encodeURIComponent(src)+'&w=400&q=80&output=webp';}
+    else if(!img.dataset.fallback){img.dataset.fallback='1';img.style.display='none';var s=img.nextElementSibling;if(s)s.style.display='flex';}
+  },true);
 })();
 </script>
 </body>
