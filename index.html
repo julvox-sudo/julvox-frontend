@@ -3009,39 +3009,93 @@ const _FLASH_DB = [
 ];
 
 
-// Retourne les données locales au format attendu par le site original
+// ══════════════════════════════════════════════════════════════
+// DEALSCAN — MOTEUR IA LIVE via Backend Railway
+// Le frontend appelle le backend (Railway) qui appelle Anthropic.
+// La clé API reste sécurisée côté serveur, jamais dans le navigateur.
+// ══════════════════════════════════════════════════════════════
+
+// Cache côté frontend — évite les double-appels rapides
+var _AI_CACHE = { deals: new Map(), flash: null, promos: null };
+var _AI_CACHE_TTL = 22 * 60 * 1000; // 22 min (légèrement sous le cache backend de 20 min)
+
 async function callClaudeAI(prompt, maxTokens) {
-  // Détecter le type de requête à partir du prompt
-  const isFlash = prompt.includes('VENTES FLASH') || prompt.includes('buildFlash');
-  const isPromos = prompt.includes('codes promo') || prompt.includes('CODE');
+  const isFlash  = prompt.includes('VENTES FLASH');
+  const isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
 
-  if (isFlash) {
-    return JSON.stringify({ flash: _FLASH_DB });
-  }
-  if (isPromos) {
-    return JSON.stringify({ promos: _PROMOS_DB });
+  // Vérifier le cache frontend
+  const cacheKey = isFlash ? '__flash__' : isPromos ? '__promos__' : prompt.slice(150, 210);
+  if (isFlash  && _AI_CACHE.flash  && (Date.now() - _AI_CACHE.flash.ts)  < _AI_CACHE_TTL) return _AI_CACHE.flash.data;
+  if (isPromos && _AI_CACHE.promos && (Date.now() - _AI_CACHE.promos.ts) < _AI_CACHE_TTL) return _AI_CACHE.promos.data;
+  const cached = _AI_CACHE.deals.get(cacheKey);
+  if (cached && (Date.now() - cached.ts) < _AI_CACHE_TTL) return cached.data;
+
+  // Détecter catégorie depuis le prompt
+  let category = '';
+  const cats = ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'];
+  for (let i = 0; i < cats.length; i++) {
+    if (prompt.toLowerCase().includes(cats[i])) { category = cats[i]; break; }
   }
 
-  // Deals — détecter la catégorie depuis le prompt
+  // Détecter count
+  const countMatch = prompt.match(/(\d+)\s*VRAIES/);
+  const count = countMatch ? parseInt(countMatch[1]) : 40;
+
+  try {
+    // Appel au backend Railway — la clé Anthropic reste sur le serveur
+    const res = await fetch(`${API}/ai/generate-deals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type:       isFlash ? 'flash' : isPromos ? 'promos' : 'deals',
+        category:   category,
+        count:      count,
+        max_tokens: maxTokens || 6000
+      })
+    });
+
+    if (!res.ok) {
+      console.warn('[DealScan] Backend /ai/generate-deals error:', res.status, '→ fallback local');
+      return _localFallback(prompt);
+    }
+
+    const data = await res.json();
+    const text = data.result || '';
+
+    // Mettre en cache
+    const entry = { data: text, ts: Date.now() };
+    if (isFlash)       _AI_CACHE.flash  = entry;
+    else if (isPromos) _AI_CACHE.promos = entry;
+    else               _AI_CACHE.deals.set(cacheKey, entry);
+
+    return text;
+
+  } catch(e) {
+    console.warn('[DealScan] callClaudeAI network error:', e, '→ fallback local');
+    return _localFallback(prompt);
+  }
+}
+
+// Fallback sur la base locale si le backend est indisponible
+function _localFallback(prompt) {
+  const isFlash  = prompt.includes('VENTES FLASH');
+  const isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
+  if (isFlash)  return JSON.stringify({ flash: _FLASH_DB });
+  if (isPromos) return JSON.stringify({ promos: _PROMOS_DB });
   let cat = '';
   const cats = ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto'];
-  for (var i = 0; i < cats.length; i++) {
+  for (let i = 0; i < cats.length; i++) {
     if (prompt.toLowerCase().includes(cats[i])) { cat = cats[i]; break; }
   }
-
   const pool = (_DEALS_DB[cat] && _DEALS_DB[cat].length > 0) ? _DEALS_DB[cat] : _DEALS_DB[''];
-  // Mélanger pour varier l'affichage à chaque refresh
-  const shuffled = pool.slice().sort(function(){ return Math.random() - 0.5; });
-  const count = Math.min(parseInt(prompt.match(/(\d+)\s*VRAIES/)?.[1] || 80, 10), shuffled.length);
-
+  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
   return JSON.stringify({
-    deals: shuffled.slice(0, count),
-    total_analyzed: count * 8,
+    deals: shuffled.slice(0, 80),
+    total_analyzed: shuffled.length * 6,
     sources_checked: 42,
     generated_at: _NOW
   });
 }
-
 function safeParseJSON(text) {
   var BT3 = String.fromCharCode(96,96,96);
   let clean = text.replace(new RegExp('^' + BT3 + 'json\\s*'), '').replace(new RegExp('^' + BT3 + '\\s*'), '').replace(new RegExp(BT3 + '\\s*$'), '').trim();
@@ -5658,23 +5712,30 @@ function buildSwipeCard(deal, isTop) {
 
 // ── Résolution intelligente d'image produit ─────────────────
 // Retourne la meilleure URL image disponible pour un deal
+// Proxy anti-CORS pour Amazon CDN et autres CDNs bloqués
 function getProductImage(deal) {
   var img = deal.image_url || '';
 
-  // Si c'est une vraie URL image HTTPS → l'utiliser directement
   if (img && img.startsWith('https://') && img.length > 20 && !img.includes(' ')) {
+    // Proxy CORS pour Amazon CDN (bloqué en cross-origin sans proxy)
+    if (img.includes('media-amazon.com') || img.includes('images-amazon.com')) {
+      return 'https://images.weserv.nl/?url=' + encodeURIComponent(img) + '&w=400&q=85&output=webp';
+    }
+    if (img.includes('static.nike.com') || img.includes('assetsadobe2.com')) {
+      return 'https://images.weserv.nl/?url=' + encodeURIComponent(img) + '&w=400&q=85';
+    }
     return img;
   }
 
-  // Fallback par catégorie — images Amazon CDN (fiables, pas de CORS)
+  // Fallback Unsplash par catégorie (pas de CORS, toujours disponible)
   var cat = deal.category || '';
   var CAT_PHOTOS = {
-    'high-tech':    'https://m.media-amazon.com/images/I/71zny7BTRlL._AC_SL300_.jpg',
-    'informatique': 'https://m.media-amazon.com/images/I/71vFKBpKakL._AC_SL300_.jpg',
-    'gaming':       'https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL300_.jpg',
-    'mode':         'https://m.media-amazon.com/images/I/71ov5haJ3oL._AC_SL300_.jpg',
-    'maison':       'https://m.media-amazon.com/images/I/51o6TNYHTFL._AC_SL300_.jpg',
-    'beaute':       'https://m.media-amazon.com/images/I/51szD9HC9pL._AC_SL300_.jpg',
+    'high-tech':    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80',
+    'informatique': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
+    'gaming':       'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&q=80',
+    'mode':         'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    'maison':       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
+    'beaute':       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',
     'alimentaire':  'https://images.unsplash.com/photo-1543362906-acfc16c67564?w=400&q=80',
     'restauration': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
     'sport':        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80',
@@ -5685,7 +5746,7 @@ function getProductImage(deal) {
     'jardinage':    'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80',
     'librairie':    'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80',
   };
-  return CAT_PHOTOS[cat] || 'https://m.media-amazon.com/images/I/71MhCBTqJCL._AC_SL300_.jpg';
+  return CAT_PHOTOS[cat] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80';
 }
 
 function getCatEmoji(cat) {
@@ -9085,5 +9146,29 @@ async function saveNewsletterPrefs() {
 }
 </script>
 <script src="/enhancements_v3.js" defer></script>
+<script>
+// ── DEALSCAN IMAGE AUTO-PROXY ────────────────────────────────
+// Intercepte toutes les <img> cassées et les re-route via proxy
+(function() {
+  var PROXY = 'https://images.weserv.nl/?url=';
+  document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img.tagName !== 'IMG') return;
+    var src = img.src || '';
+    if (!src || src.includes('weserv.nl') || src.includes('unsplash.com') || src.startsWith('data:')) return;
+    if (!img.dataset.proxied) {
+      img.dataset.proxied = '1';
+      img.src = PROXY + encodeURIComponent(src) + '&w=400&q=80&output=webp';
+    } else if (!img.dataset.fallback) {
+      img.dataset.fallback = '1';
+      img.style.display = 'none';
+      var s = img.nextElementSibling;
+      if (s && (s.classList.contains('deal-img-placeholder') || s.classList.contains('flash-img-placeholder') || s.classList.contains('modal-img-placeholder'))) {
+        s.style.display = 'flex';
+      }
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>
