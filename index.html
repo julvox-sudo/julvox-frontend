@@ -2827,40 +2827,32 @@ const _NOW = new Date().toISOString();
 // ══════════════════════════════════════════════════════════════
 
 function buildSmartUrl(deal) {
-  var url   = deal.affiliate_url || deal.url || '';
-  var store = (deal.store || '').toLowerCase();
-  var tag   = _TAG;
-
-  // Règle unique : si l'URL stockée est directe et valide → l'utiliser
-  if (url && url.startsWith('http')) {
-    // Blacklist stricte : patterns qui indiquent une page de recherche
-    var SEARCH_PATTERNS = [
-      '/s?k=', '?Search=', '/SearchResult', '/recherche?', '/search?',
-      '/catalogues.html', '/s.html?', 'search.php',
-      '?Ntt=', '/search/10/', 'SearchText=', '?q=', '/catalogues.html',
-      'tbm=shop', '/w?q=', '?kw=', '/wholesale?', 'asos.com/fr/recherche',
-      'rueducommerce.fr/r/', '?KEYWORD=', '/nav/recherche'
-    ];
-    var isSearch = SEARCH_PATTERNS.some(function(p){ return url.includes(p); });
-
-    // Page d'accueil pure (domaine + éventuellement /) sans chemin produit
-    var isHomepage = /^https?:\/\/[^\/]+\/?$/.test(url) && !url.includes('/dp/');
-
-    if (!isSearch && !isHomepage) {
-      // Ajouter le tag Amazon si absent
-      if (url.includes('amazon.fr') && !url.includes('tag=')) {
-        return url + (url.includes('?') ? '&' : '?') + 'tag=' + tag;
-      }
-      return url;
+  var url  = deal.affiliate_url || deal.url || '';
+  var name = encodeURIComponent(deal.name || '');
+  var tag  = (typeof _TAG !== 'undefined' && _TAG) ? _TAG : 'julvox-21';
+  if (!url || !url.startsWith('http')) return '#';
+  if (url.includes('amazon.fr')) {
+    if (url.includes('/dp/') || url.includes('/gp/product/')) {
+      return url.includes('tag=') ? url : url + (url.includes('?') ? '&' : '?') + 'tag=' + tag;
     }
+    return 'https://www.amazon.fr/s?k=' + name + '&tag=' + tag;
   }
-
-  // Pas d'URL directe valide → ne pas inventer de lien.
-  // Le bouton sera masqué ou désactivé côté HTML.
-  return '#';
+  if (url.includes('fnac.com')) {
+    if (url.includes('SearchResult') || url.includes('ResultSet')) {
+      return 'https://www.fnac.com/s/' + name.replace(/%20/g, '+');
+    }
+    return url;
+  }
+  if (url.includes('zalando.fr')) {
+    if (url.includes('catalogues.html') || url.includes('/catalogues')) {
+      return 'https://www.zalando.fr/catalog/?q=' + name.replace(/%20/g, '+');
+    }
+    return url;
+  }
+  if (url.includes('darty.com')) return url.replace('m.darty.com', 'www.darty.com');
+  return url;
 }
 
-// Alias de compatibilité (ancien code qui appelle buildAffiliateUrl)
 function buildAffiliateUrl(url, deal) {
   if (deal) return buildSmartUrl(deal);
   if (!url || url === '#') return '#';
@@ -2875,201 +2867,89 @@ function buildAffiliateUrl(url, deal) {
   return url;
 }
 
-// ── DONNÉES SUPPRIMÉES — le frontend lit uniquement le backend Railway ──────
-// Plus de deals hardcodés. Toutes les données viennent de GET /deals
-const _DEALS_DB = { '': [] };   // vide — jamais utilisé
-const _FLASH_DB  = [];          // vide — jamais utilisé
-const _PROMOS_DB = [];          // vide — jamais utilisé
+// ── DONNÉES — uniquement depuis le backend Railway ─────────────────
+const _DEALS_DB = { '': [] };
+const _FLASH_DB  = [];
+const _PROMOS_DB = [];
+var _AI_CACHE = { flash: null, promos: null, deals: new Map() };
 
-// callClaudeAI : proxy vers Railway /ai/generate-deals (Gemini + web_search)
-// Appelé UNIQUEMENT si le backend n'a pas de deals en base
 async function callClaudeAI(prompt, maxTokens) {
   var isFlash  = prompt.includes('VENTES FLASH');
   var isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
   var cacheKey = isFlash ? '__flash__' : isPromos ? '__promos__' : prompt.slice(150, 210);
-  var _AI_CACHE_TTL = 20 * 60 * 1000;
-  if (isFlash  && _AI_CACHE.flash  && (Date.now()-_AI_CACHE.flash.ts)  < _AI_CACHE_TTL) return _AI_CACHE.flash.data;
-  if (isPromos && _AI_CACHE.promos && (Date.now()-_AI_CACHE.promos.ts) < _AI_CACHE_TTL) return _AI_CACHE.promos.data;
+  var TTL = 20 * 60 * 1000;
+  if (isFlash  && _AI_CACHE.flash  && (Date.now()-_AI_CACHE.flash.ts)  < TTL) return _AI_CACHE.flash.data;
+  if (isPromos && _AI_CACHE.promos && (Date.now()-_AI_CACHE.promos.ts) < TTL) return _AI_CACHE.promos.data;
   var cd = _AI_CACHE.deals.get(cacheKey);
-  if (cd && (Date.now()-cd.ts) < _AI_CACHE_TTL) return cd.data;
+  if (cd && (Date.now()-cd.ts) < TTL) return cd.data;
   try {
-    var category = '';
-    ['high-tech','informatique','gaming','mode','maison','sport','beaute','alimentaire','voyages','sante','auto','restauration','culture'].forEach(function(c){ if (prompt.toLowerCase().includes(c) && !category) category = c; });
-    var count = parseInt(prompt.match(/(\d+)\s*(VRAIES|deals|promotions)/i)?.[1] || 40, 10);
-    var reqType = isFlash ? 'flash' : isPromos ? 'promos' : 'deals';
+    var cat = '';
+    ['high-tech','gaming','mode','maison','sport','beaute','alimentaire','voyages','auto'].forEach(function(c){
+      if (prompt.toLowerCase().includes(c) && !cat) cat = c;
+    });
+    var cnt = parseInt((prompt.match(/(\d+)\s*(VRAIES|deals|promotions)/i)||[])[1]||40,10);
+    var type = isFlash ? 'flash' : isPromos ? 'promos' : 'deals';
     var res = await fetch(API + '/ai/generate-deals', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ type: reqType, category: category, count: Math.min(count, 60), max_tokens: maxTokens || 6000 })
+      body: JSON.stringify({ type: type, category: cat, count: Math.min(cnt,60), max_tokens: maxTokens||6000 })
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var data = await res.json();
-    var text = data.result || '';
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    var d = await res.json();
+    var text = d.result || '';
     var entry = { data: text, ts: Date.now() };
     if (isFlash) _AI_CACHE.flash = entry;
     else if (isPromos) _AI_CACHE.promos = entry;
     else _AI_CACHE.deals.set(cacheKey, entry);
     return text;
   } catch(e) {
-    console.warn('[DealScan] /ai/generate-deals échoué:', e.message);
-    // Aucun fallback local — retourner un objet vide
+    console.warn('[callClaudeAI]', e.message);
     return isFlash ? '{"flash":[]}' : isPromos ? '{"promos":[]}' : '{"deals":[]}';
   }
 }
 
-function safeParseJSON(text) {
-  var BT3 = String.fromCharCode(96,96,96);
-  let clean = text.replace(new RegExp('^' + BT3 + 'json\\s*'), '').replace(new RegExp('^' + BT3 + '\\s*'), '').replace(new RegExp(BT3 + '\\s*$'), '').trim();
-  const start = Math.min(clean.indexOf('{') >= 0 ? clean.indexOf('{') : Infinity, clean.indexOf('[') >= 0 ? clean.indexOf('[') : Infinity);
-  if (start === Infinity) throw new Error('No JSON');
-  clean = clean.slice(start);
-  const lastClose = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
-  if (lastClose < 0) throw new Error('No closing bracket');
-  return JSON.parse(clean.slice(0, lastClose + 1));
-}
-
-async function fetchDealsFromClaude(category, minScore) {
-  category = category || '';
-  minScore = minScore || 0;
-  const cacheKey = category || 'all';
-  const cached = DS_CACHE.deals.get(cacheKey);
-  if (cached && (Date.now() - cached.ts) < DS_CACHE.DEALS_TTL) {
-    let deals = cached.data;
-    if (minScore > 0) deals = deals.filter(function(d){ return (d.novadeal_score||0) >= minScore; });
-    return deals;
-  }
-  showLoadingDeals();
-  try {
-    const prompt = buildDealsPrompt(category, 80);
-    const text = await callClaudeAI(prompt, 8000);
-    const parsed = safeParseJSON(text);
-    let deals = (parsed.deals || parsed || []).map(function(d, i) {
-      return Object.assign({}, d, {
-        id: d.id || (Date.now() + i),
-        detected_at: d.detected_at || new Date().toISOString(),
-        novadeal_score: Math.min(100, Math.max(0, d.novadeal_score || 70)),
-        discount_pct: d.discount_pct || (d.original_price > d.current_price ? Math.round((1 - d.current_price/d.original_price) * 100) : 0),
-      });
-    }).filter(function(d){ return d.current_price > 0 && d.name && d.affiliate_url; });
-    DS_TOTAL_FOUND += parsed.total_analyzed || deals.length * 3;
-    updateStatsCounter(deals.length, parsed.sources_checked || 50);
-    DS_CACHE.deals.set(cacheKey, { data: deals, ts: Date.now() });
-    if (minScore > 0) deals = deals.filter(function(d){ return d.novadeal_score >= minScore; });
-    return deals;
-  } catch(e) {
-    console.error('Claude deals error:', e);
-    const stale = DS_CACHE.deals.get(cacheKey);
-    if (stale) return stale.data;
-    return [];
-  }
-}
-
-async function fetchPromosFromClaude() {
-  if (DS_CACHE.promos && (Date.now() - DS_CACHE.promos.ts) < DS_CACHE.PROMO_TTL) return DS_CACHE.promos.data;
-  try {
-    const text = await callClaudeAI(buildPromosPrompt(), 4000);
-    const parsed = safeParseJSON(text);
-    const promos = parsed.promos || [];
-    DS_CACHE.promos = { data: promos, ts: Date.now() };
-    return promos;
-  } catch(e) { console.error('Promos error:', e); return (DS_CACHE.promos && DS_CACHE.promos.data) || []; }
-}
-
-async function fetchFlashDeals() {
-  if (DS_CACHE.flash && (Date.now() - DS_CACHE.flash.ts) < DS_CACHE.FLASH_TTL) return DS_CACHE.flash.data;
-  // 1. Backend Railway
-  try {
-    var r = await fetchWithTimeout(API + '/deals?is_flash=true&limit=8', {}, 8000);
-    if (r.ok) {
-      var d = await r.json();
-      var fl = (d.deals || []).map(function(x){
-        return Object.assign({}, x, {
-          price: (x.current_price||0).toFixed(2)+'€', cat: x.category||'high-tech',
-          url: x.affiliate_url||'', timer: x.expires_in_hours ? Math.round(x.expires_in_hours*3600) : 7200
-        });
-      });
-      if (fl.length > 0) { DS_CACHE.flash = {data:fl,ts:Date.now()}; return fl; }
-    }
-  } catch(e) {}
-  // 2. Gemini fallback
-  try {
-    var text = await callClaudeAI(buildFlashPrompt(), 3000);
-    var parsed = safeParseJSON(text);
-    var flash = (parsed.flash||[]).map(function(f){ return Object.assign({},f,{timer:Math.round((f.timer_hours||2)*3600)}); });
-    if (flash.length > 0) { DS_CACHE.flash = {data:flash,ts:Date.now()}; return flash; }
-  } catch(e) {}
-  return [];
-}
-async function fetchFlashDealsFromClaude() { return fetchFlashDeals(); }
-
-function showLoadingDeals() {
-  const grid = document.getElementById('dealsGrid');
-  if (!grid) return;
-  const skels = Array(12).fill(0).map(function(){
-    return '<div class="deal"><div class="deal-img-wrap skel" style="height:140px"></div><div class="deal-body"><div class="skel" style="height:14px;border-radius:4px;margin-bottom:8px"></div><div class="skel" style="height:10px;border-radius:4px;width:60%;margin-bottom:12px"></div><div class="skel" style="height:20px;border-radius:4px;width:40%;margin-bottom:8px"></div><div class="skel" style="height:10px;border-radius:4px"></div></div></div>';
-  }).join('');
-  grid.innerHTML = '<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:12px 0;color:var(--accent);font-size:13px;font-weight:600"><span style="animation:pulse 1s infinite">🔍</span>NovaDeal™ recherche sur 200+ sites français...</div>' + skels;
-}
-
-function updateStatsCounter(dealsCount, sourcesChecked) {
-  // Toujours afficher le nombre réel de deals uniques dans la DB locale
-  const el = document.getElementById('statDeals');
-  const realTotal = (_DEALS_DB[''] || []).length;
-  if (el) el.textContent = realTotal.toLocaleString('fr-FR');
-  const elS = document.getElementById('statSources');
-  if (elS && sourcesChecked) elS.textContent = sourcesChecked;
-}
 
 async function loadDeals(cat, minSc) {
   cat = cat || ''; minSc = minSc || 0;
   var countEl = document.getElementById('dealCount');
-  currentCat = cat;
-  showLoadingDeals();
-  if (countEl) countEl.textContent = '🔍 Chargement depuis Railway...';
-
-  // ── Flash en parallèle (non bloquant) ──────────────────────
+  currentCat = cat; showLoadingDeals();
+  if (countEl) countEl.textContent = 'Chargement...';
   fetchFlashDeals().then(function(f){
-    if (f && f.length > 0) { window._liveFlash = f; renderFlashLive(f); startCountdownsLive(f); }
+    if (f&&f.length){window._liveFlash=f;renderFlashLive(f);startCountdownsLive(f);}
   }).catch(function(){});
-
-  // ── 1. Backend Railway → vraies données scrapées ───────────
   try {
     var params = 'limit=80';
     if (cat) params += '&category=' + encodeURIComponent(cat);
     if (minSc > 0) params += '&min_score=' + minSc;
-    var res = await fetchWithTimeout(API + '/deals?' + params, {}, 10000);
+    var res = await fetchWithTimeout(API + '/deals?' + params, {}, 12000);
     if (res.ok) {
       var data = await res.json();
       var deals = data.deals || [];
       if (deals.length > 0) {
-        allDeals = deals;
-        renderDeals(allDeals);
+        allDeals = deals; renderDeals(allDeals);
         if (countEl) countEl.textContent = allDeals.length + ' deals en direct ✓';
-        var statD = document.getElementById('statDeals');
-        if (statD) statD.textContent = data.total || allDeals.length;
+        var sd = document.getElementById('statDeals');
+        if (sd) sd.textContent = data.total || allDeals.length;
         return;
       }
     }
-  } catch(e) { console.warn('[DealScan] Backend /deals échoué:', e.message); }
-
-  // ── 2. Fallback Gemini (si backend vide) ───────────────────
-  if (countEl) countEl.textContent = '🤖 Recherche via IA...';
+  } catch(e) { console.warn('[loadDeals] backend:', e.message); }
   try {
+    if (countEl) countEl.textContent = 'Recherche IA...';
     var aiDeals = await fetchDealsFromClaude(cat, minSc);
     if (aiDeals && aiDeals.length > 0) {
-      allDeals = aiDeals;
-      renderDeals(allDeals);
-      if (countEl) countEl.textContent = allDeals.length + ' deals trouvés (IA) ✓';
+      allDeals = aiDeals; renderDeals(allDeals);
+      if (countEl) countEl.textContent = allDeals.length + ' deals (IA) ✓';
       return;
     }
-  } catch(e) { console.warn('[DealScan] Gemini failed:', e.message); }
-
-  // ── 3. Aucune donnée disponible ────────────────────────────
+  } catch(e) { console.warn('[loadDeals] gemini:', e.message); }
   allDeals = [];
   var grid = document.getElementById('dealsGrid');
-  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:40px;margin-bottom:12px">⏳</div><div style="font-size:16px;color:var(--txt2);font-weight:600">Scraping en cours...</div><div style="font-size:13px;color:var(--txt3);margin-top:8px">Les deals arrivent dans quelques minutes.<br>Le scraper tourne continuellement sur Railway.</div><button onclick="setTimeout(()=>loadDeals(),5000)" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:14px;cursor:pointer">Réessayer dans 5s</button></div>';
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:40px">⏳</div><div style="font-size:16px;color:var(--txt2);font-weight:600;margin-top:12px">Scraping en cours...</div><div style="font-size:13px;color:var(--txt3);margin-top:8px">Les deals arrivent dans quelques minutes.</div><button onclick="setTimeout(function(){loadDeals(cat,minSc)},8000)" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:14px;cursor:pointer">Réessayer</button></div>';
   if (countEl) countEl.textContent = 'Scraping en cours...';
 }
+
+
 async function _refreshDealsBackground() { /* géré par loadDeals */ }
 
 function renderFlashLive(flashDeals) {
@@ -8900,4 +8780,38 @@ async function saveNewsletterPrefs() {
 })();
 </script>
 </body>
-</html>
+</html
+async function fetchFlashDeals() {
+  var cache = (typeof DS_CACHE !== 'undefined') ? DS_CACHE : null;
+  if (cache && cache.flash && (Date.now()-cache.flash.ts) < 1200000) return cache.flash.data;
+  try {
+    var r = await fetchWithTimeout(API + '/deals?is_flash=true&limit=8', {}, 8000);
+    if (r.ok) {
+      var d = await r.json();
+      var fl = (d.deals||[]).map(function(x){
+        return Object.assign({},x,{
+          price:(x.current_price||0).toFixed(2)+'€',
+          cat:x.category||'high-tech', url:x.affiliate_url||'',
+          timer:x.expires_in_hours?Math.round(x.expires_in_hours*3600):7200
+        });
+      });
+      if (fl.length > 0) {
+        if (cache) cache.flash = {data:fl,ts:Date.now()};
+        return fl;
+      }
+    }
+  } catch(e) {}
+  try {
+    var text = await callClaudeAI(buildFlashPrompt(), 3000);
+    var parsed = safeParseJSON(text);
+    var flash = (parsed.flash||[]).map(function(f){return Object.assign({},f,{timer:Math.round((f.timer_hours||2)*3600)});});
+    if (flash.length > 0) {
+      if (cache) cache.flash = {data:flash,ts:Date.now()};
+      return flash;
+    }
+  } catch(e) {}
+  return [];
+}
+async function fetchFlashDealsFromClaude() { return fetchFlashDeals(); }
+
+>
