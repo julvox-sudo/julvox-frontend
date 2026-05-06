@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
-<title>DealScan — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>
+<title>DealScan v14 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>
 <meta name="description" content="DealScan analyse automatiquement des milliers de deals chaque jour. Score NovaDeal™ pour détecter les vraies promos. Alertes prix, comparateur multi-marchands, deals vérifiés sur Amazon, Fnac, Darty et 50+ marchands."/>
 <meta name="google-site-verification" content="3a92a4041aeeec5e"/>
 <meta name="author" content="Julvox — DealScan"/>
@@ -2876,37 +2876,9 @@ var _AI_CACHE = { flash: null, promos: null, deals: new Map() };
 async function callClaudeAI(prompt, maxTokens) {
   var isFlash  = prompt.includes('VENTES FLASH');
   var isPromos = prompt.includes('codes promo') || prompt.includes('"promos"');
-  var cacheKey = isFlash ? '__flash__' : isPromos ? '__promos__' : prompt.slice(150, 210);
-  var TTL = 20 * 60 * 1000;
-  if (isFlash  && _AI_CACHE.flash  && (Date.now()-_AI_CACHE.flash.ts)  < TTL) return _AI_CACHE.flash.data;
-  if (isPromos && _AI_CACHE.promos && (Date.now()-_AI_CACHE.promos.ts) < TTL) return _AI_CACHE.promos.data;
-  var cd = _AI_CACHE.deals.get(cacheKey);
-  if (cd && (Date.now()-cd.ts) < TTL) return cd.data;
-  try {
-    var cat = '';
-    ['high-tech','gaming','mode','maison','sport','beaute','alimentaire','voyages','auto'].forEach(function(c){
-      if (prompt.toLowerCase().includes(c) && !cat) cat = c;
-    });
-    var cnt = parseInt((prompt.match(/(\d+)\s*(VRAIES|deals|promotions)/i)||[])[1]||40,10);
-    var type = isFlash ? 'flash' : isPromos ? 'promos' : 'deals';
-    var res = await fetch(API + '/ai/generate-deals', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ type: type, category: cat, count: Math.min(cnt,60), max_tokens: maxTokens||6000 })
-    });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    var d = await res.json();
-    var text = d.result || '';
-    var entry = { data: text, ts: Date.now() };
-    if (isFlash) _AI_CACHE.flash = entry;
-    else if (isPromos) _AI_CACHE.promos = entry;
-    else _AI_CACHE.deals.set(cacheKey, entry);
-    return text;
-  } catch(e) {
-    console.warn('[callClaudeAI]', e.message);
-    return isFlash ? '{"flash":[]}' : isPromos ? '{"promos":[]}' : '{"deals":[]}';
-  }
+  return isFlash ? '{"flash":[]}' : isPromos ? '{"promos":[]}' : '{"deals":[]}';
 }
+
 
 
 async function loadDeals(cat, minSc) {
