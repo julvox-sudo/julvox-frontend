@@ -2912,63 +2912,83 @@ async function callClaudeAI(prompt, maxTokens) {
 async function loadDeals(cat, minSc) {
   cat = cat || ''; minSc = minSc || 0;
   var countEl = document.getElementById('dealCount');
-  currentCat = cat; showLoadingDeals();
-  if (countEl) countEl.textContent = 'Chargement...';
+  currentCat = cat;
+  showLoadingDeals();
+  if (countEl) countEl.textContent = 'Vérification des offres réelles...';
+
   fetchFlashDeals().then(function(f){
-    if (f&&f.length){window._liveFlash=f;renderFlashLive(f);startCountdownsLive(f);}
-  }).catch(function(){});
+    window._liveFlash = Array.isArray(f) ? f : [];
+    renderFlashLive(window._liveFlash);
+    startCountdownsLive(window._liveFlash);
+  }).catch(function(){ renderFlashLive([]); });
+
   try {
     var params = 'limit=80';
     if (cat) params += '&category=' + encodeURIComponent(cat);
     if (minSc > 0) params += '&min_score=' + minSc;
-    var res = await fetchWithTimeout(API + '/deals?' + params, {}, 12000);
-    if (res.ok) {
-      var data = await res.json();
-      var deals = data.deals || [];
-      if (deals.length > 0) {
-        allDeals = deals; renderDeals(allDeals);
-        if (countEl) countEl.textContent = allDeals.length + ' deals en direct ✓';
-        var sd = document.getElementById('statDeals');
-        if (sd) sd.textContent = data.total || allDeals.length;
-        return;
-      }
-    }
-  } catch(e) { console.warn('[loadDeals] backend:', e.message); }
-  // Pas de génération IA côté front : on affiche uniquement des deals issus du backend/scrapers.
+    var res = await fetchWithTimeout(API + '/deals?' + params, {}, 15000);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var deals = sanitizeRealDeals(data.deals || []);
+    allDeals = deals;
+    renderDeals(allDeals);
+    if (countEl) countEl.textContent = deals.length ? deals.length + ' deals vérifiés ✓' : 'Aucun deal vérifié';
+    var sd = document.getElementById('statDeals');
+    if (sd) sd.textContent = data.total || deals.length || '—';
+    return;
+  } catch(e) {
+    console.warn('[loadDeals] backend:', e.message);
+  }
+
   allDeals = [];
-  var grid = document.getElementById('dealsGrid');
-  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:40px">⏳</div><div style="font-size:16px;color:var(--txt2);font-weight:600;margin-top:12px">Scraping en cours...</div><div style="font-size:13px;color:var(--txt3);margin-top:8px">Les deals arrivent dans quelques minutes.</div><button onclick="setTimeout(function(){loadDeals(cat,minSc)},8000)" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:14px;cursor:pointer">Réessayer</button></div>';
-  if (countEl) countEl.textContent = 'Scraping en cours...';
+  renderDeals([]);
+  if (countEl) countEl.textContent = 'Backend indisponible';
 }
 
+function sanitizeRealDeals(deals) {
+  return (deals || []).filter(function(d){
+    var url = d.affiliate_url || d.url || '';
+    var price = Number(d.current_price || d.price || 0);
+    var name = (d.name || '').trim();
+    if (!name || !price || price <= 0) return false;
+    if (!/^https?:\/\//i.test(url)) return false;
+    if (/\/s\?|\/search|recherche|promotions?$|soldes?$|\/deals\/?$/i.test(url)) return false;
+    return true;
+  });
+}
 
 async function _refreshDealsBackground() { /* géré par loadDeals */ }
 
 function renderFlashLive(flashDeals) {
   const row = document.getElementById('flashRow');
   if (!row) return;
-  const cards = flashDeals.map(function(f, i) {
-    const img = f.image_url || CAT_IMG[f.cat] || CAT_IMG.default;
+  flashDeals = sanitizeRealDeals(flashDeals || []);
+  if (!flashDeals.length) {
+    row.innerHTML = '<div style="padding:18px 20px;color:var(--txt3);font-size:13px">Aucune vente flash vérifiée pour le moment.</div>';
+    return;
+  }
+  row.innerHTML = flashDeals.map(function(f, i) {
+    const img = f.image_url || '';
     const pct = f.discount_pct ? Math.round(f.discount_pct) : 0;
     const rawUrl = f.affiliate_url || f.url || '';
-    const fallbackImg = CAT_IMG[f.cat] || CAT_IMG.default;
-    // FIX: data-url attribut — évite tout problème d'échappement inline onclick
+    const safeImg = escHtml(img);
+    var imgHtml = safeImg
+      ? '<img class="flash-img" src="' + safeImg + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.style.display=\'none\'"/>'
+      : '<div class="flash-img" style="display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:10px">Image indisponible</div>';
     return '<div class="flash-card" data-url="' + escHtml(rawUrl) + '" style="cursor:pointer">' +
-      '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + escHtml(fallbackImg) + '\'"/>' +
-      '<div class="flash-badge">' + (pct > 0 ? '-'+pct+'%' : 'Flash') + '</div>' +
+      imgHtml +
+      '<div class="flash-badge">' + (pct > 0 ? '-' + pct + '%' : 'Flash') + '</div>' +
       '<div class="flash-nm">' + escHtml(f.name) + '</div>' +
-      '<div style="font-size:9px;color:var(--txt3);margin-bottom:2px">' + escHtml(f.store||'') + '</div>' +
-      '<div class="flash-price">' + (f.price||'') + '</div>' +
+      '<div style="font-size:9px;color:var(--txt3);margin-bottom:2px">' + escHtml(f.store || '') + '</div>' +
+      '<div class="flash-price">' + formatPrice(f.current_price || f.price || 0) + '</div>' +
       '<div class="flash-timer" id="timer_live_' + i + '">⏱ --:--:--</div>' +
       '</div>';
   }).join('');
-  row.innerHTML = cards;
-  // Attacher les clics via addEventListener — 100% fiable, pas de problème d'échappement
   row.querySelectorAll('.flash-card[data-url]').forEach(function(card) {
     card.addEventListener('click', function() {
       var url = this.getAttribute('data-url');
       if (url && url.startsWith('http')) {
-        window.open(url, '_blank', 'noopener');
+        window.open(url, '_blank', 'noopener,noreferrer');
         showToast('Ouverture en cours...');
       } else {
         showToast('Lien indisponible');
@@ -5435,34 +5455,14 @@ function buildSwipeCard(deal, isTop) {
 // ── Résolution intelligente d'image produit ─────────────────
 // Retourne la meilleure URL image disponible pour un deal
 function getProductImage(deal) {
-  var img = deal.image_url || '';
-  if (img && img.startsWith('https://') && img.length > 20 && !img.includes(' ')) {
-    // Images Amazon → proxy backend Railway (évite CORS)
+  var img = (deal && deal.image_url) ? String(deal.image_url).trim() : '';
+  if (img && /^https:\/\//i.test(img) && img.length > 20 && !img.includes(' ')) {
     if (img.includes('media-amazon.com') || img.includes('images-amazon.com')) {
       return API + '/proxy-image?url=' + encodeURIComponent(img);
     }
-    // Autres images → proxy weserv.nl comme fallback CORS
-    return 'https://images.weserv.nl/?url=' + encodeURIComponent(img) + '&w=400&q=85&output=webp';
+    return img;
   }
-  // Fallback Unsplash par catégorie
-  var cat = deal.category || '';
-  var C = {
-    'high-tech':    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80',
-    'informatique': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
-    'gaming':       'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&q=80',
-    'mode':         'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
-    'maison':       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
-    'beaute':       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',
-    'alimentaire':  'https://images.unsplash.com/photo-1543362906-acfc16c67564?w=400&q=80',
-    'restauration': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
-    'sport':        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80',
-    'voyages':      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
-    'sante':        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80',
-    'auto':         'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=80',
-    'culture':      'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=80',
-    'animaux':      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80',
-  };
-  return C[cat] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80';
+  return '';
 }
 // ── COMPARATEUR v2 ────────────────────────────────────────────
 async function runCompareV2() {
