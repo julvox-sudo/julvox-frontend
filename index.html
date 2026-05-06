@@ -2934,15 +2934,7 @@ async function loadDeals(cat, minSc) {
       }
     }
   } catch(e) { console.warn('[loadDeals] backend:', e.message); }
-  try {
-    if (countEl) countEl.textContent = 'Recherche IA...';
-    var aiDeals = await fetchDealsFromClaude(cat, minSc);
-    if (aiDeals && aiDeals.length > 0) {
-      allDeals = aiDeals; renderDeals(allDeals);
-      if (countEl) countEl.textContent = allDeals.length + ' deals (IA) ✓';
-      return;
-    }
-  } catch(e) { console.warn('[loadDeals] gemini:', e.message); }
+  // Pas de génération IA côté front : on affiche uniquement des deals issus du backend/scrapers.
   allDeals = [];
   var grid = document.getElementById('dealsGrid');
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:40px">⏳</div><div style="font-size:16px;color:var(--txt2);font-weight:600;margin-top:12px">Scraping en cours...</div><div style="font-size:13px;color:var(--txt3);margin-top:8px">Les deals arrivent dans quelques minutes.</div><button onclick="setTimeout(function(){loadDeals(cat,minSc)},8000)" style="margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 24px;font-size:14px;cursor:pointer">Réessayer</button></div>';
@@ -2962,7 +2954,7 @@ function renderFlashLive(flashDeals) {
     const fallbackImg = CAT_IMG[f.cat] || CAT_IMG.default;
     // FIX: data-url attribut — évite tout problème d'échappement inline onclick
     return '<div class="flash-card" data-url="' + escHtml(rawUrl) + '" style="cursor:pointer">' +
-      '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.onerror=null;this.src='' + escHtml(fallbackImg) + ''"/>' +
+      '<img class="flash-img" src="' + escHtml(img) + '" alt="' + escHtml(f.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + escHtml(fallbackImg) + '\'"/>' +
       '<div class="flash-badge">' + (pct > 0 ? '-'+pct+'%' : 'Flash') + '</div>' +
       '<div class="flash-nm">' + escHtml(f.name) + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);margin-bottom:2px">' + escHtml(f.store||'') + '</div>' +
@@ -7188,7 +7180,6 @@ async function runBudgetOptimize() {
     el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📡</div><div style="font-size:14px">Impossible de charger l\'optimisation.<br>Vérifie ta connexion et réessaie.</div></div>';
   }
 }
-}
 
 function renderBudgetResults(data, el) {
   if (!data.deals?.length) {
@@ -7858,49 +7849,25 @@ function renderDarkPatternResults(data, el) {
 }
 
 // ── PRICE HISTORY CHART (SVG interactif avec curseur) ─────────
-// ── Chargement asynchrone de l'historique des prix ───────────
+// Chargement robuste de l'historique des prix : affiche un historique simulé,
+// puis remplace par l'historique réel quand l'API le renvoie.
 async function _loadAndRenderPriceChart(deal) {
-  // Toujours afficher le graphique — API ou simulé
-  var dealId = deal.id;
-
-  // Fonction interne pour rendre le graphique dans le bon slot
-  function doRender(hist) {
-    // Chercher le slot même si la modal a été re-rendue
-    var s = document.getElementById('priceChartSlot_' + dealId);
-    if (!s) return;
-    if (hist && hist.length >= 2) {
-      renderPriceHistoryChart(hist, s);
+  try {
+    var dealId = deal && deal.id;
+    var slot = document.getElementById('priceChartSlot_' + dealId);
+    if (!slot || !deal) return;
+    var simulated = generateSimulatedHistory(deal.current_price, deal.original_price);
+    if (simulated && simulated.length >= 2) renderPriceHistoryChart(simulated, slot);
+    if (!dealId || typeof dealId !== 'number') return;
+    var r = await fetchWithTimeout(API + '/deals/' + dealId, {}, 5000);
+    if (!r || !r.ok) return;
+    var data = await r.json();
+    if (data.price_history && data.price_history.length >= 2) {
+      var freshSlot = document.getElementById('priceChartSlot_' + dealId);
+      if (freshSlot) renderPriceHistoryChart(data.price_history, freshSlot);
     }
-  }
-
-  // 1) Si le deal a déjà un historique valide → afficher immédiatement
-  if (deal.price_history && deal.price_history.length >= 2) {
-    setTimeout(function(){ doRender(deal.price_history); }, 150);
-    return;
-  }
-
-  // 2) Afficher l'historique simulé pendant que l'API charge en fond
-  var simHist = generateSimulatedHistory(deal.current_price, deal.original_price);
-  setTimeout(function(){ doRender(simHist); }, 150);
-
-  // 3) Charger le vrai historique depuis l'API en fond
-  //    S'il arrive → remplacer le graphique simulé
-  if (deal.id && typeof deal.id === 'number' && deal.id > 0) {
-    try {
-      var r = await fetch(API + '/deals/' + dealId, {signal: AbortSignal.timeout(5000)});
-      if (r.ok) {
-        var data = await r.json();
-        if (data.price_history && data.price_history.length >= 2) {
-          deal.price_history = data.price_history;
-          // Mettre à jour la description si disponible
-          if (data.description && !deal.description) {
-            deal.description = data.description;
-          }
-          // Remplacer le graphique simulé par le vrai
-          doRender(data.price_history);
-        }
-      }
-    } catch(e) { /* le graphique simulé reste affiché */ }
+  } catch(e) {
+    // Le graphique simulé reste affiché.
   }
 }
 
@@ -8778,9 +8745,7 @@ async function saveNewsletterPrefs() {
     else if(!img.dataset.fallback){img.dataset.fallback='1';img.style.display='none';var s=img.nextElementSibling;if(s)s.style.display='flex';}
   },true);
 })();
-</script>
-</body>
-</html
+// ── VENTES FLASH LIVE — fonction replacée dans le script principal ─────────
 async function fetchFlashDeals() {
   var cache = (typeof DS_CACHE !== 'undefined') ? DS_CACHE : null;
   if (cache && cache.flash && (Date.now()-cache.flash.ts) < 1200000) return cache.flash.data;
@@ -8801,17 +8766,12 @@ async function fetchFlashDeals() {
       }
     }
   } catch(e) {}
-  try {
-    var text = await callClaudeAI(buildFlashPrompt(), 3000);
-    var parsed = safeParseJSON(text);
-    var flash = (parsed.flash||[]).map(function(f){return Object.assign({},f,{timer:Math.round((f.timer_hours||2)*3600)});});
-    if (flash.length > 0) {
-      if (cache) cache.flash = {data:flash,ts:Date.now()};
-      return flash;
-    }
-  } catch(e) {}
   return [];
 }
 async function fetchFlashDealsFromClaude() { return fetchFlashDeals(); }
 
->
+
+</script>
+</body>
+
+</html>
