@@ -1,9 +1,9 @@
 // ============================================================
-//  DealScan — Service Worker v7 PWA
+//  DealScan — Service Worker v15 PWA
 //  Cache offline-first + Push Notifications par catégorie
 // ============================================================
 
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v15';
 const CACHE_NAME    = `dealscan-${CACHE_VERSION}`;
 const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;
 
