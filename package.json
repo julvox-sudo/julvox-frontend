@@ -1,0 +1,11 @@
+{
+  "name": "julvox-frontend",
+  "version": "17.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build-static.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

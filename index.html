@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <!-- ── SEO Core ───────────────────────────────────────────── -->
-<title>DealScan v14 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>
+<title>DealScan v17 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>
 <meta name="description" content="DealScan analyse automatiquement des milliers de deals chaque jour. Score NovaDeal™ pour détecter les vraies promos. Alertes prix, comparateur multi-marchands, deals vérifiés sur Amazon, Fnac, Darty et 50+ marchands."/>
 <meta name="google-site-verification" content="3a92a4041aeeec5e"/>
 <meta name="author" content="Julvox — DealScan"/>
@@ -2363,7 +2363,7 @@ a{text-decoration:none}
 (function clearOldDealScanCaches(){
   try {
     localStorage.removeItem('ds_deals_cache');
-    localStorage.setItem('ds_cache_ver', 'v16');
+    localStorage.setItem('ds_cache_ver', 'v17');
     if ('caches' in window) {
       caches.keys().then(keys => keys.forEach(k => {
         if (/dealscan|workbox|precache/i.test(k)) caches.delete(k);
@@ -2375,7 +2375,7 @@ a{text-decoration:none}
 // ── Service Worker (cache offline) ───────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=16', { scope: '/' }).catch(() => {});
+    navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' }).catch(() => {});
   });
 }
 
@@ -4837,7 +4837,7 @@ function initOfflineDetection() {
       // Tenter de charger depuis le cache
       if (!allDeals.length) {
         try {
-          const CACHE_VER = 'v16';
+          const CACHE_VER = 'v17';
           if (localStorage.getItem('ds_cache_ver') !== CACHE_VER) {
             localStorage.removeItem('ds_deals_cache');
             localStorage.setItem('ds_cache_ver', CACHE_VER);
@@ -5730,7 +5730,7 @@ function checkPushBanner() {
 async function registerServiceWorkerPush() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js?v=16', { scope: '/' });
+    const reg = await navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' });
     const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
     if (token) {
       await fetch(API + '/push/subscribe', {
@@ -6709,7 +6709,7 @@ function dismissInstallPrompt() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      swRegistration = await navigator.serviceWorker.register('/sw.js?v=16', { scope: '/' });
+      swRegistration = await navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' });
       console.log('✅ SW registered:', swRegistration.scope);
 
       // Écouter les messages du SW (navigation depuis notif)

@@ -1,10 +1,10 @@
-// DEPLOY_MARKER_DEALSCAN_SW_V16
+// DEPLOY_MARKER_DEALSCAN_SW_V17
 // ============================================================
-//  DealScan — Service Worker v16 PWA
+//  DealScan — Service Worker v17 PWA
 //  Cache offline-first + Push Notifications par catégorie
 // ============================================================
 
-const CACHE_VERSION = 'v16';
+const CACHE_VERSION = 'v17';
 const CACHE_NAME    = `dealscan-${CACHE_VERSION}`;
 const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;
 
