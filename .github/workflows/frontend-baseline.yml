@@ -1,0 +1,50 @@
+name: Frontend baseline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "frontend/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-baseline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify required build artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -s dist/index.html
+          test -s dist/sw.js
+
+      - name: Upload static build
+        uses: actions/upload-artifact@v4
+        with:
+          name: julvox-frontend-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
