@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "verify:source": "node scripts/verify-source.js",
-    "build": "npm run verify:source && node build-static.js && node scripts/verify-dist.js",
+    "verify:runtime": "node scripts/verify-runtime-entrypoints.js",
+    "build": "npm run verify:source && npm run verify:runtime && node build-static.js && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
