@@ -12,26 +12,28 @@ const legacyRegistration = "navigator.serviceWorker.register('/sw.js?v=17', { sc
 const marker = 'runtime-contract:pwa.service_worker_path+pwa.cache_version';
 
 const errors = [];
+const sourceOccurrences = sourceHtml.split(legacyRegistration).length - 1;
+const expectedOccurrences = distHtml.split(expectedRegistration).length - 1;
+const markerOccurrences = distHtml.split(marker).length - 1;
 
-if (!sourceHtml.includes(legacyRegistration)) {
+if (sourceOccurrences < 1) {
   errors.push('Source index.html no longer contains the expected historical service worker registration.');
 }
 
 if (distHtml.includes(legacyRegistration)) {
-  errors.push('Built index.html still contains the autonomous historical service worker registration.');
+  errors.push('Built index.html still contains an autonomous historical service worker registration.');
 }
 
 if (!distHtml.includes(expectedRegistration)) {
   errors.push(`Built index.html does not register the service worker from the contract: ${expectedUrl}`);
 }
 
-if (!distHtml.includes(marker)) {
-  errors.push('Built index.html is missing the service worker contract trace marker.');
+if (expectedOccurrences !== sourceOccurrences) {
+  errors.push(`Configured service worker registration count changed: source=${sourceOccurrences}, built=${expectedOccurrences}.`);
 }
 
-const expectedOccurrences = distHtml.split(expectedRegistration).length - 1;
-if (expectedOccurrences !== 1) {
-  errors.push(`Expected exactly one configured service worker registration, found ${expectedOccurrences}.`);
+if (markerOccurrences !== sourceOccurrences) {
+  errors.push(`Service worker trace marker count does not match the migrated registrations: expected ${sourceOccurrences}, found ${markerOccurrences}.`);
 }
 
 if (errors.length) {
@@ -40,4 +42,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Service worker contract consumption verified: ${expectedUrl}`);
+console.log(`Service worker contract consumption verified: ${expectedUrl} (${expectedOccurrences} registration(s) preserved).`);
