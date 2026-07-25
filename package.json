@@ -5,7 +5,8 @@
   "scripts": {
     "verify:source": "node scripts/verify-source.js",
     "verify:runtime": "node scripts/verify-runtime-entrypoints.js",
-    "build": "npm run verify:source && npm run verify:runtime && node build-static.js && node scripts/verify-dist.js",
+    "verify:contract": "node scripts/verify-runtime-contract.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && node build-static.js && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
