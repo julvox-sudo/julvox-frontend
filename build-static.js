@@ -43,6 +43,9 @@ function integrateRuntimeConfig() {
     ? contract.runtime.enhancements_script
     : `/${contract.runtime.enhancements_script}`;
   const configuredEnhancementsScript = `<!-- runtime-contract:runtime.enhancements_script -->\n<script src="${enhancementsScriptPath}" defer></script>`;
+  const legacyTitle = '<title>DealScan v17 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>';
+  const frontendMajorVersion = String(contract.application.frontend_version).split('.')[0];
+  const configuredTitle = `<!-- runtime-contract:application.name+application.frontend_version -->\n<title>${contract.application.name} v${frontendMajorVersion} — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>`;
 
   if (!html.includes(headClose)) throw new Error('Cannot integrate runtime config: index.html has no </head> marker');
   if (html.includes(runtimeScript)) throw new Error('Cannot integrate runtime config: script is already present in source index.html');
@@ -67,11 +70,17 @@ function integrateRuntimeConfig() {
     throw new Error(`Cannot integrate runtime config: expected exactly one legacy enhancements script declaration, found ${enhancementsScriptOccurrences}`);
   }
 
+  const titleOccurrences = html.split(legacyTitle).length - 1;
+  if (titleOccurrences !== 1) {
+    throw new Error(`Cannot integrate runtime config: expected exactly one legacy application title, found ${titleOccurrences}`);
+  }
+
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   html = html.replace(legacyApi, configuredApi);
   html = html.replace(legacyManifest, configuredManifest);
   html = html.split(legacyServiceWorker).join(configuredServiceWorker);
   html = html.replace(legacyEnhancementsScript, configuredEnhancementsScript);
+  html = html.replace(legacyTitle, configuredTitle);
   fs.writeFileSync(indexPath, html);
 }
 
