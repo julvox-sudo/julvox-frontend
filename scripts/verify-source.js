@@ -51,6 +51,7 @@ if (manifestText) {
 if (indexHtml) {
   const assetPattern = /(?:src|href)=["']([^"']+)["']/gi;
   const ignoredPrefixes = ['http://', 'https://', '//', 'data:', 'mailto:', 'tel:', 'javascript:', '#'];
+  const staticAssetExtension = /\.(?:avif|css|gif|ico|jpe?g|js|json|mjs|png|svg|webp|woff2?|ttf|otf|xml)$/i;
   const checked = new Set();
   let match;
 
@@ -62,11 +63,20 @@ if (indexHtml) {
     const cleanReference = reference.split(/[?#]/, 1)[0];
     if (!cleanReference || cleanReference === '/') continue;
 
-    const relativePath = cleanReference.replace(/^\//, '');
+    // Links can target client-side routes. Only file-like references are assets.
+    if (!staticAssetExtension.test(cleanReference)) continue;
+
+    const relativePath = cleanReference.replace(/^\.\//, '').replace(/^\//, '');
     if (!relativePath || checked.has(relativePath)) continue;
     checked.add(relativePath);
 
-    const absolutePath = path.join(root, relativePath);
+    const absolutePath = path.resolve(root, relativePath);
+    const relativeToRoot = path.relative(root, absolutePath);
+    if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) {
+      fail(`index.html references an asset outside the repository: ${reference}`);
+      continue;
+    }
+
     if (!fs.existsSync(absolutePath)) fail(`index.html references a missing local asset: ${reference}`);
   }
 }
