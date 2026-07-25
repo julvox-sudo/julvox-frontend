@@ -3,7 +3,8 @@
   "version": "17.0.0",
   "private": true,
   "scripts": {
-    "build": "node build-static.js && node scripts/verify-dist.js",
+    "verify:source": "node scripts/verify-source.js",
+    "build": "npm run verify:source && node build-static.js && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
