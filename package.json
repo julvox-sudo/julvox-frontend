@@ -15,7 +15,8 @@
     "verify:application-identity-consumption": "node scripts/verify-application-identity-contract-consumption.js",
     "verify:brand-metadata-consumption": "node scripts/verify-brand-metadata-contract-consumption.js",
     "verify:pwa-manifest-brand-consumption": "node scripts/verify-pwa-manifest-brand-contract-consumption.js",
-    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && npm run verify:brand-metadata-consumption && npm run verify:pwa-manifest-brand-consumption && node scripts/verify-dist.js",
+    "verify:backend-resource-hints-consumption": "node scripts/verify-backend-resource-hints-contract-consumption.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && npm run verify:brand-metadata-consumption && npm run verify:pwa-manifest-brand-consumption && npm run verify:backend-resource-hints-consumption && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {

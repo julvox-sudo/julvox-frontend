@@ -49,6 +49,10 @@ function integrateRuntimeConfig() {
   const runtimeScript = '<script src="/runtime-config.js"></script>';
   const legacyApi = "const API = 'https://julvox-dealscan-backend-production.up.railway.app';";
   const configuredApi = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.api_base_url || 'https://julvox-dealscan-backend-production.up.railway.app';";
+  const legacyDnsPrefetch = '<link rel="dns-prefetch" href="https://julvox-dealscan-backend-production.up.railway.app"/>';
+  const configuredDnsPrefetch = `<!-- runtime-contract:backend.api_base_url -->\n<link rel="dns-prefetch" href="${contract.backend.api_base_url}"/>`;
+  const legacyPreconnect = '<link rel="preconnect" href="https://julvox-dealscan-backend-production.up.railway.app" crossorigin/>';
+  const configuredPreconnect = `<link rel="preconnect" href="${contract.backend.api_base_url}" crossorigin/>`;
   const legacyManifest = '<link rel="manifest" href="/manifest.json"/>';
   const configuredManifest = `<!-- runtime-contract:pwa.manifest_path -->\n<link rel="manifest" href="${contract.pwa.manifest_path}"/>`;
   const legacyServiceWorker = "navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' })";
@@ -64,6 +68,8 @@ function integrateRuntimeConfig() {
   if (html.includes(runtimeScript)) throw new Error('Cannot integrate runtime config: script is already present in source index.html');
 
   html = replaceExactlyOnce(html, legacyApi, configuredApi, 'legacy API declaration');
+  html = replaceExactlyOnce(html, legacyDnsPrefetch, configuredDnsPrefetch, 'legacy backend DNS prefetch hint');
+  html = replaceExactlyOnce(html, legacyPreconnect, configuredPreconnect, 'legacy backend preconnect hint');
   html = replaceExactlyOnce(html, legacyManifest, configuredManifest, 'legacy manifest declaration');
 
   const serviceWorkerOccurrences = html.split(legacyServiceWorker).length - 1;
