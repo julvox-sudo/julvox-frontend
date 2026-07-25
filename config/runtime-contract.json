@@ -4,7 +4,8 @@
     "name": "Julvox",
     "tagline": "Achetez mieux. Décidez avec confiance.",
     "description": "Julvox analyse les offres, compare les prix et vous aide à prendre des décisions d’achat fiables, transparentes et argumentées.",
-    "frontend_version": "17.0.0"
+    "frontend_version": "17.0.0",
+    "public_base_url": "https://julvox.com"
   },
   "backend": {
     "api_base_url": "https://julvox-dealscan-backend-production.up.railway.app",
