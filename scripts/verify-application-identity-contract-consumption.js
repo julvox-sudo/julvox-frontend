@@ -8,9 +8,8 @@ const sourceHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const distHtml = fs.readFileSync(path.join(root, 'dist', 'index.html'), 'utf8');
 
 const legacyTitle = '<title>DealScan v17 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>';
-const majorVersion = String(contract.application.frontend_version).split('.')[0];
-const expectedTitle = `<title>${contract.application.name} v${majorVersion} — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>`;
-const marker = 'runtime-contract:application.name+application.frontend_version';
+const expectedTitle = `<title>${contract.application.name} — ${contract.application.tagline}</title>`;
+const marker = 'runtime-contract:application.name+application.tagline';
 
 const errors = [];
 const sourceOccurrences = sourceHtml.split(legacyTitle).length - 1;
@@ -39,4 +38,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Application identity contract consumption verified: ${contract.application.name} v${majorVersion} (${contract.application.frontend_version}).`);
+console.log(`Application identity contract consumption verified: ${contract.application.name} — ${contract.application.tagline} (${contract.application.frontend_version}).`);

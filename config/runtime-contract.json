@@ -1,7 +1,9 @@
 {
   "schema_version": 1,
   "application": {
-    "name": "DealScan",
+    "name": "Julvox",
+    "tagline": "Achetez mieux. Décidez avec confiance.",
+    "description": "Julvox analyse les offres, compare les prix et vous aide à prendre des décisions d’achat fiables, transparentes et argumentées.",
     "frontend_version": "17.0.0"
   },
   "backend": {

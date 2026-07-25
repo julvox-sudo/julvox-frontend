@@ -24,6 +24,22 @@ function readRuntimeContract() {
   return JSON.parse(fs.readFileSync(contractPath, 'utf8'));
 }
 
+function replaceExactlyOnce(html, legacy, configured, label) {
+  const occurrences = html.split(legacy).length - 1;
+  if (occurrences !== 1) {
+    throw new Error(`Cannot integrate runtime config: expected exactly one ${label}, found ${occurrences}`);
+  }
+  return html.replace(legacy, configured);
+}
+
+function replaceAllRequired(html, legacy, configured, label) {
+  const occurrences = html.split(legacy).length - 1;
+  if (occurrences < 1) {
+    throw new Error(`Cannot integrate runtime config: expected at least one ${label}, found ${occurrences}`);
+  }
+  return html.split(legacy).join(configured);
+}
+
 function integrateRuntimeConfig() {
   const indexPath = path.join(out, 'index.html');
   let html = fs.readFileSync(indexPath, 'utf8');
@@ -43,44 +59,87 @@ function integrateRuntimeConfig() {
     ? contract.runtime.enhancements_script
     : `/${contract.runtime.enhancements_script}`;
   const configuredEnhancementsScript = `<!-- runtime-contract:runtime.enhancements_script -->\n<script src="${enhancementsScriptPath}" defer></script>`;
-  const legacyTitle = '<title>DealScan v17 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>';
-  const frontendMajorVersion = String(contract.application.frontend_version).split('.')[0];
-  const configuredTitle = `<!-- runtime-contract:application.name+application.frontend_version -->\n<title>${contract.application.name} v${frontendMajorVersion} — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>`;
 
   if (!html.includes(headClose)) throw new Error('Cannot integrate runtime config: index.html has no </head> marker');
   if (html.includes(runtimeScript)) throw new Error('Cannot integrate runtime config: script is already present in source index.html');
 
-  const apiOccurrences = html.split(legacyApi).length - 1;
-  if (apiOccurrences !== 1) {
-    throw new Error(`Cannot integrate runtime config: expected exactly one legacy API declaration, found ${apiOccurrences}`);
-  }
-
-  const manifestOccurrences = html.split(legacyManifest).length - 1;
-  if (manifestOccurrences !== 1) {
-    throw new Error(`Cannot integrate runtime config: expected exactly one legacy manifest declaration, found ${manifestOccurrences}`);
-  }
+  html = replaceExactlyOnce(html, legacyApi, configuredApi, 'legacy API declaration');
+  html = replaceExactlyOnce(html, legacyManifest, configuredManifest, 'legacy manifest declaration');
 
   const serviceWorkerOccurrences = html.split(legacyServiceWorker).length - 1;
   if (serviceWorkerOccurrences < 1) {
     throw new Error('Cannot integrate runtime config: no historical service worker registration found');
   }
+  html = html.split(legacyServiceWorker).join(configuredServiceWorker);
 
-  const enhancementsScriptOccurrences = html.split(legacyEnhancementsScript).length - 1;
-  if (enhancementsScriptOccurrences !== 1) {
-    throw new Error(`Cannot integrate runtime config: expected exactly one legacy enhancements script declaration, found ${enhancementsScriptOccurrences}`);
+  html = replaceExactlyOnce(html, legacyEnhancementsScript, configuredEnhancementsScript, 'legacy enhancements script declaration');
+
+  const brandReplacements = [
+    [
+      '<title>DealScan v17 — Meilleurs Deals & Promos vérifiés par NovaDeal™ | julvox.com</title>',
+      `<!-- runtime-contract:application.name+application.tagline -->\n<title>${contract.application.name} — ${contract.application.tagline}</title>`,
+      'historical application title',
+    ],
+    [
+      '<meta name="description" content="DealScan analyse automatiquement des milliers de deals chaque jour. Score NovaDeal™ pour détecter les vraies promos. Alertes prix, comparateur multi-marchands, deals vérifiés sur Amazon, Fnac, Darty et 50+ marchands."/>',
+      `<!-- runtime-contract:application.description -->\n<meta name="description" content="${contract.application.description}"/>`,
+      'historical SEO description',
+    ],
+    [
+      '<meta name="author" content="Julvox — DealScan"/>',
+      `<meta name="author" content="${contract.application.name}"/>`,
+      'historical author metadata',
+    ],
+    [
+      '<meta property="og:title" content="DealScan — Deals vérifiés par NovaDeal™"/>',
+      `<meta property="og:title" content="${contract.application.name} — ${contract.application.tagline}"/>`,
+      'historical Open Graph title',
+    ],
+    [
+      '<meta property="og:description" content="Des milliers de deals analysés chaque jour. Score de confiance NovaDeal™, alertes prix automatiques, détection fausses promos."/>',
+      `<meta property="og:description" content="${contract.application.description}"/>`,
+      'historical Open Graph description',
+    ],
+    [
+      '<meta property="og:site_name" content="DealScan by Julvox"/>',
+      `<meta property="og:site_name" content="${contract.application.name}"/>`,
+      'historical Open Graph site name',
+    ],
+    [
+      '<meta name="twitter:title" content="DealScan — Deals vérifiés NovaDeal™"/>',
+      `<meta name="twitter:title" content="${contract.application.name} — ${contract.application.tagline}"/>`,
+      'historical Twitter title',
+    ],
+    [
+      '<meta name="twitter:description" content="Analyse automatique de milliers de deals. Détection fausses promos. Alertes prix gratuites."/>',
+      `<meta name="twitter:description" content="${contract.application.description}"/>`,
+      'historical Twitter description',
+    ],
+    [
+      '<meta name="apple-mobile-web-app-title" content="DealScan"/>',
+      `<meta name="apple-mobile-web-app-title" content="${contract.application.name}"/>`,
+      'historical Apple application title',
+    ],
+  ];
+
+  for (const [legacy, configured, label] of brandReplacements) {
+    html = replaceExactlyOnce(html, legacy, configured, label);
   }
 
-  const titleOccurrences = html.split(legacyTitle).length - 1;
-  if (titleOccurrences !== 1) {
-    throw new Error(`Cannot integrate runtime config: expected exactly one legacy application title, found ${titleOccurrences}`);
-  }
+  html = replaceAllRequired(
+    html,
+    '  "name": "DealScan by Julvox",',
+    `  "name": "${contract.application.name}",`,
+    'historical structured-data website name',
+  );
+  html = replaceAllRequired(
+    html,
+    '  "description": "Agrégateur de deals et promotions avec score de confiance NovaDeal™",',
+    `  "description": "${contract.application.description}",`,
+    'historical structured-data description',
+  );
 
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
-  html = html.replace(legacyApi, configuredApi);
-  html = html.replace(legacyManifest, configuredManifest);
-  html = html.split(legacyServiceWorker).join(configuredServiceWorker);
-  html = html.replace(legacyEnhancementsScript, configuredEnhancementsScript);
-  html = html.replace(legacyTitle, configuredTitle);
   fs.writeFileSync(indexPath, html);
 }
 

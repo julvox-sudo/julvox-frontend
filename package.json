@@ -13,7 +13,8 @@
     "verify:service-worker-consumption": "node scripts/verify-service-worker-contract-consumption.js",
     "verify:enhancements-script-consumption": "node scripts/verify-enhancements-script-contract-consumption.js",
     "verify:application-identity-consumption": "node scripts/verify-application-identity-contract-consumption.js",
-    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && node scripts/verify-dist.js",
+    "verify:brand-metadata-consumption": "node scripts/verify-brand-metadata-contract-consumption.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && npm run verify:brand-metadata-consumption && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
