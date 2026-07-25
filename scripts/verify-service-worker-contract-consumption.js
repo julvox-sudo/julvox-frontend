@@ -10,18 +10,16 @@ const expectedUrl = `${contract.pwa.service_worker_path}?v=${contract.pwa.cache_
 const expectedRegistration = `navigator.serviceWorker.register('${expectedUrl}', { scope: '/' })`;
 const legacyRegistration = "navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' })";
 const marker = 'runtime-contract:pwa.service_worker_path+pwa.cache_version';
+const configuredRegistration = `${expectedRegistration} /* ${marker} */`;
 
 const errors = [];
 const sourceOccurrences = sourceHtml.split(legacyRegistration).length - 1;
 const expectedOccurrences = distHtml.split(expectedRegistration).length - 1;
+const configuredOccurrences = distHtml.split(configuredRegistration).length - 1;
 const markerOccurrences = distHtml.split(marker).length - 1;
 
 if (sourceOccurrences < 1) {
   errors.push('Source index.html no longer contains the expected historical service worker registration.');
-}
-
-if (distHtml.includes(legacyRegistration)) {
-  errors.push('Built index.html still contains an autonomous historical service worker registration.');
 }
 
 if (!distHtml.includes(expectedRegistration)) {
@@ -30,6 +28,10 @@ if (!distHtml.includes(expectedRegistration)) {
 
 if (expectedOccurrences !== sourceOccurrences) {
   errors.push(`Configured service worker registration count changed: source=${sourceOccurrences}, built=${expectedOccurrences}.`);
+}
+
+if (configuredOccurrences !== sourceOccurrences) {
+  errors.push(`Not every built service worker registration is traceable to the runtime contract: expected ${sourceOccurrences}, found ${configuredOccurrences}.`);
 }
 
 if (markerOccurrences !== sourceOccurrences) {
