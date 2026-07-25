@@ -10,7 +10,8 @@
     "verify:generated-config": "node scripts/verify-generated-runtime-config.js",
     "verify:config-consumption": "node scripts/verify-runtime-config-consumption.js",
     "verify:pwa-consumption": "node scripts/verify-pwa-contract-consumption.js",
-    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && node scripts/verify-dist.js",
+    "verify:service-worker-consumption": "node scripts/verify-service-worker-contract-consumption.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
