@@ -24,26 +24,36 @@ function readRuntimeContract() {
   return JSON.parse(fs.readFileSync(contractPath, 'utf8'));
 }
 
-function replaceExactlyOnce(html, legacy, configured, label) {
-  const occurrences = html.split(legacy).length - 1;
+function replaceExactlyOnce(text, legacy, configured, label) {
+  const occurrences = text.split(legacy).length - 1;
   if (occurrences !== 1) {
     throw new Error(`Cannot integrate runtime config: expected exactly one ${label}, found ${occurrences}`);
   }
-  return html.replace(legacy, configured);
+  return text.replace(legacy, configured);
 }
 
-function replaceAllRequired(html, legacy, configured, label) {
-  const occurrences = html.split(legacy).length - 1;
+function replaceAllRequired(text, legacy, configured, label) {
+  const occurrences = text.split(legacy).length - 1;
   if (occurrences < 1) {
     throw new Error(`Cannot integrate runtime config: expected at least one ${label}, found ${occurrences}`);
   }
-  return html.split(legacy).join(configured);
+  return text.split(legacy).join(configured);
+}
+
+function readHttpUrl(value, label) {
+  const parsed = new URL(value);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Cannot integrate runtime config: ${label} must use HTTP or HTTPS`);
+  }
+  return parsed;
 }
 
 function integrateRuntimeConfig() {
   const indexPath = path.join(out, 'index.html');
   let html = fs.readFileSync(indexPath, 'utf8');
   const contract = readRuntimeContract();
+  const publicUrl = readHttpUrl(contract.application.public_base_url, 'application.public_base_url');
+  const publicBaseUrl = publicUrl.origin;
 
   const headClose = '</head>';
   const runtimeScript = '<script src="/runtime-config.js"></script>';
@@ -145,6 +155,18 @@ function integrateRuntimeConfig() {
     'historical structured-data description',
   );
 
+  const headEndIndex = html.indexOf(headClose);
+  let head = html.slice(0, headEndIndex);
+  const bodyAndClose = html.slice(headEndIndex);
+  const historicalPublicOrigin = 'https://julvox.com';
+  const publicOccurrences = head.split(historicalPublicOrigin).length - 1;
+  if (publicOccurrences < 1) {
+    throw new Error('Cannot integrate public origin: no historical public URL found in document head');
+  }
+  head = head.split(historicalPublicOrigin).join(publicBaseUrl);
+  head = `<!-- runtime-contract:application.public_base_url -->\n${head}`;
+  html = `${head}${bodyAndClose}`;
+
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   fs.writeFileSync(indexPath, html);
 }
@@ -181,11 +203,7 @@ function integrateServiceWorkerBackendDetection() {
   const serviceWorkerPath = path.join(out, 'sw.js');
   let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
   const contract = readRuntimeContract();
-  const backendUrl = new URL(contract.backend.api_base_url);
-
-  if (!['http:', 'https:'].includes(backendUrl.protocol)) {
-    throw new Error('Cannot integrate service worker backend detection: backend.api_base_url must use HTTP or HTTPS');
-  }
+  const backendUrl = readHttpUrl(contract.backend.api_base_url, 'backend.api_base_url');
 
   const legacyDetection = "  // API Railway → Network first\n  if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {";
   const configuredDetection = `  // API backend → Network first\n  const backendOrigin = '${backendUrl.origin}'; /* runtime-contract:backend.api_base_url */\n  if (url.origin === backendOrigin) {`;
@@ -200,10 +218,32 @@ function integrateServiceWorkerBackendDetection() {
   fs.writeFileSync(serviceWorkerPath, serviceWorker);
 }
 
+function integrateServiceWorkerPublicOrigin() {
+  const serviceWorkerPath = path.join(out, 'sw.js');
+  let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
+  const contract = readRuntimeContract();
+  const publicUrl = readHttpUrl(contract.application.public_base_url, 'application.public_base_url');
+  const publicOrigin = publicUrl.origin;
+
+  serviceWorker = replaceExactlyOnce(
+    serviceWorker,
+    "const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;",
+    `const CACHE_STATIC  = \`dealscan-static-\${CACHE_VERSION}\`;\nconst PUBLIC_ORIGIN = '${publicOrigin}'; /* runtime-contract:application.public_base_url */`,
+    'service worker cache declaration anchor',
+  );
+  serviceWorker = replaceExactlyOnce(serviceWorker, "data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },", "data:    { url: data.url || PUBLIC_ORIGIN, type: notifType, dealId: data.deal_id },", 'notification default public URL');
+  serviceWorker = replaceExactlyOnce(serviceWorker, "let url = notifData.url || 'https://julvox.com';", 'let url = notifData.url || PUBLIC_ORIGIN;', 'notification click default public URL');
+  serviceWorker = replaceExactlyOnce(serviceWorker, "if (notifData.dealId) url = `https://julvox.com/?deal=${notifData.dealId}`;", 'if (notifData.dealId) url = `${PUBLIC_ORIGIN}/?deal=${notifData.dealId}`;', 'notification deal public URL');
+  serviceWorker = replaceExactlyOnce(serviceWorker, "if (c.url.startsWith('https://julvox.com') && 'focus' in c) {", "if (c.url.startsWith(PUBLIC_ORIGIN) && 'focus' in c) {", 'open client public origin detection');
+
+  fs.writeFileSync(serviceWorkerPath, serviceWorker);
+}
+
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 for (const entry of fs.readdirSync(root)) copy(path.join(root, entry), path.join(out, entry));
 integrateRuntimeConfig();
 integrateManifestIdentity();
 integrateServiceWorkerBackendDetection();
+integrateServiceWorkerPublicOrigin();
 console.log('Static build complete: dist/');
