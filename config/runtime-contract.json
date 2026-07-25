@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "application": {
+    "name": "DealScan",
+    "frontend_version": "17.0.0"
+  },
+  "backend": {
+    "api_base_url": "https://julvox-dealscan-backend-production.up.railway.app",
+    "health_path": "/health"
+  },
+  "pwa": {
+    "manifest_path": "/manifest.json",
+    "service_worker_path": "/sw.js",
+    "cache_version": "v17"
+  },
+  "runtime": {
+    "enhancements_script": "enhancements_v3.js"
+  }
+}
