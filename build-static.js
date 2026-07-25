@@ -143,8 +143,37 @@ function integrateRuntimeConfig() {
   fs.writeFileSync(indexPath, html);
 }
 
+function integrateManifestIdentity() {
+  const manifestPath = path.join(out, 'manifest.json');
+  const contract = readRuntimeContract();
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+  const historical = {
+    name: 'DealScan — Deals vérifiés NovaDeal™',
+    short_name: 'DealScan',
+    description: 'Les meilleures promos analysées automatiquement. Score NovaDeal™ anti-fausses-promos.',
+    screenshot_label: 'DealScan — Feed des meilleurs deals',
+  };
+
+  if (manifest.name !== historical.name) throw new Error('Cannot integrate manifest identity: historical name changed');
+  if (manifest.short_name !== historical.short_name) throw new Error('Cannot integrate manifest identity: historical short_name changed');
+  if (manifest.description !== historical.description) throw new Error('Cannot integrate manifest identity: historical description changed');
+  if (!Array.isArray(manifest.screenshots) || manifest.screenshots[0]?.label !== historical.screenshot_label) {
+    throw new Error('Cannot integrate manifest identity: historical primary screenshot label changed');
+  }
+
+  manifest.name = `${contract.application.name} — ${contract.application.tagline}`;
+  manifest.short_name = contract.application.name;
+  manifest.description = contract.application.description;
+  manifest.screenshots[0].label = `${contract.application.name} — ${contract.application.tagline}`;
+  manifest._runtime_contract = 'application.name+application.tagline+application.description';
+
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 for (const entry of fs.readdirSync(root)) copy(path.join(root, entry), path.join(out, entry));
 integrateRuntimeConfig();
+integrateManifestIdentity();
 console.log('Static build complete: dist/');
