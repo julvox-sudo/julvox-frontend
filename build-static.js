@@ -53,14 +53,14 @@ function integrateRuntimeConfig() {
   }
 
   const serviceWorkerOccurrences = html.split(legacyServiceWorker).length - 1;
-  if (serviceWorkerOccurrences !== 1) {
-    throw new Error(`Cannot integrate runtime config: expected exactly one legacy service worker registration, found ${serviceWorkerOccurrences}`);
+  if (serviceWorkerOccurrences < 1) {
+    throw new Error('Cannot integrate runtime config: no historical service worker registration found');
   }
 
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   html = html.replace(legacyApi, configuredApi);
   html = html.replace(legacyManifest, configuredManifest);
-  html = html.replace(legacyServiceWorker, configuredServiceWorker);
+  html = html.split(legacyServiceWorker).join(configuredServiceWorker);
   fs.writeFileSync(indexPath, html);
 }
 
