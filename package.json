@@ -8,7 +8,8 @@
     "verify:contract": "node scripts/verify-runtime-contract.js",
     "generate:runtime-config": "node scripts/generate-runtime-config.js",
     "verify:generated-config": "node scripts/verify-generated-runtime-config.js",
-    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && node scripts/verify-dist.js",
+    "verify:config-consumption": "node scripts/verify-runtime-config-consumption.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run verify:config-consumption && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
