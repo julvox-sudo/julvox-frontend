@@ -6,7 +6,9 @@
     "verify:source": "node scripts/verify-source.js",
     "verify:runtime": "node scripts/verify-runtime-entrypoints.js",
     "verify:contract": "node scripts/verify-runtime-contract.js",
-    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && node build-static.js && node scripts/verify-dist.js",
+    "generate:runtime-config": "node scripts/generate-runtime-config.js",
+    "verify:generated-config": "node scripts/verify-generated-runtime-config.js",
+    "build": "npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js"
   },
   "engines": {
