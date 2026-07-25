@@ -51,6 +51,7 @@ if (manifestText) {
 if (indexHtml) {
   const assetPattern = /(?:src|href)=["']([^"']+)["']/gi;
   const ignoredPrefixes = ['http://', 'https://', '//', 'data:', 'mailto:', 'tel:', 'javascript:', '#'];
+  const ignoredPathPrefixes = ['/cdn-cgi/'];
   const staticAssetExtension = /\.(?:avif|css|gif|ico|jpe?g|js|json|mjs|png|svg|webp|woff2?|ttf|otf|xml)$/i;
   const checked = new Set();
   let match;
@@ -58,6 +59,7 @@ if (indexHtml) {
   while ((match = assetPattern.exec(indexHtml)) !== null) {
     const reference = match[1].trim();
     if (!reference || ignoredPrefixes.some((prefix) => reference.startsWith(prefix))) continue;
+    if (ignoredPathPrefixes.some((prefix) => reference.startsWith(prefix))) continue;
     if (reference.includes('${') || reference.includes('{{')) continue;
 
     const cleanReference = reference.split(/[?#]/, 1)[0];
