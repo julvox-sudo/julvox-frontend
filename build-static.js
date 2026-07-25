@@ -32,6 +32,14 @@ function replaceExactlyOnce(html, legacy, configured, label) {
   return html.replace(legacy, configured);
 }
 
+function replaceAllRequired(html, legacy, configured, label) {
+  const occurrences = html.split(legacy).length - 1;
+  if (occurrences < 1) {
+    throw new Error(`Cannot integrate runtime config: expected at least one ${label}, found ${occurrences}`);
+  }
+  return html.split(legacy).join(configured);
+}
+
 function integrateRuntimeConfig() {
   const indexPath = path.join(out, 'index.html');
   let html = fs.readFileSync(indexPath, 'utf8');
@@ -112,21 +120,24 @@ function integrateRuntimeConfig() {
       `<meta name="apple-mobile-web-app-title" content="${contract.application.name}"/>`,
       'historical Apple application title',
     ],
-    [
-      '  "name": "DealScan by Julvox",',
-      `  "name": "${contract.application.name}",`,
-      'historical structured-data website name',
-    ],
-    [
-      '  "description": "Agrégateur de deals et promotions avec score de confiance NovaDeal™",',
-      `  "description": "${contract.application.description}",`,
-      'historical structured-data description',
-    ],
   ];
 
   for (const [legacy, configured, label] of brandReplacements) {
     html = replaceExactlyOnce(html, legacy, configured, label);
   }
+
+  html = replaceAllRequired(
+    html,
+    '  "name": "DealScan by Julvox",',
+    `  "name": "${contract.application.name}",`,
+    'historical structured-data website name',
+  );
+  html = replaceAllRequired(
+    html,
+    '  "description": "Agrégateur de deals et promotions avec score de confiance NovaDeal™",',
+    `  "description": "${contract.application.description}",`,
+    'historical structured-data description',
+  );
 
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   fs.writeFileSync(indexPath, html);
