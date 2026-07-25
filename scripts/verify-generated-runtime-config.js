@@ -34,6 +34,7 @@ const expected = {
   application: {
     name: contract.application.name,
     frontendVersion: contract.application.frontend_version,
+    features: contract.application.features,
   },
   backend: {
     apiBaseUrl: contract.backend.api_base_url,
@@ -54,5 +55,7 @@ if (JSON.stringify(actual) !== JSON.stringify(expected)) {
 }
 
 if (!Object.isFrozen(actual)) fail('runtime config root object is not frozen');
+if (!Object.isFrozen(actual.application)) fail('runtime application config is not frozen');
+if (!Object.isFrozen(actual.application.features)) fail('runtime application features are not frozen');
 
 console.log('Generated runtime config verification passed.');

@@ -19,11 +19,24 @@ try {
   fail(`invalid JSON: ${error.message}`);
 }
 
+const features = contract.application?.features;
+if (!features || typeof features !== 'object' || Array.isArray(features)) {
+  fail('missing value: application.features');
+}
+
+const featureEntries = Object.entries(features);
+if (featureEntries.length === 0) fail('application.features must declare at least one capability');
+for (const [name, enabled] of featureEntries) {
+  if (!/^[a-z][a-z0-9_]*$/.test(name)) fail(`invalid application feature name: ${name}`);
+  if (typeof enabled !== 'boolean') fail(`application.features.${name} must be boolean`);
+}
+
 const config = {
   schemaVersion: contract.schema_version,
   application: {
     name: contract.application?.name,
     frontendVersion: contract.application?.frontend_version,
+    features,
   },
   backend: {
     apiBaseUrl: contract.backend?.api_base_url,
@@ -56,7 +69,13 @@ for (const [label, value] of [
 const content = `// Generated from config/runtime-contract.json. Do not edit manually.\n` +
   `(function (global) {\n` +
   `  'use strict';\n` +
-  `  const config = Object.freeze(${JSON.stringify(config, null, 2)});\n` +
+  `  function deepFreeze(value) {\n` +
+  `    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;\n` +
+  `    Object.freeze(value);\n` +
+  `    for (const nested of Object.values(value)) deepFreeze(nested);\n` +
+  `    return value;\n` +
+  `  }\n` +
+  `  const config = deepFreeze(${JSON.stringify(config, null, 2)});\n` +
   `  Object.defineProperty(global, 'JULVOX_RUNTIME_CONFIG', {\n` +
   `    value: config,\n` +
   `    writable: false,\n` +
