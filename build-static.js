@@ -35,6 +35,9 @@ function integrateRuntimeConfig() {
   const configuredApi = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.api_base_url || 'https://julvox-dealscan-backend-production.up.railway.app';";
   const legacyManifest = '<link rel="manifest" href="/manifest.json"/>';
   const configuredManifest = `<!-- runtime-contract:pwa.manifest_path -->\n<link rel="manifest" href="${contract.pwa.manifest_path}"/>`;
+  const legacyServiceWorker = "navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' })";
+  const serviceWorkerUrl = `${contract.pwa.service_worker_path}?v=${contract.pwa.cache_version.replace(/^v/, '')}`;
+  const configuredServiceWorker = `navigator.serviceWorker.register('${serviceWorkerUrl}', { scope: '/' }) /* runtime-contract:pwa.service_worker_path+pwa.cache_version */`;
 
   if (!html.includes(headClose)) throw new Error('Cannot integrate runtime config: index.html has no </head> marker');
   if (html.includes(runtimeScript)) throw new Error('Cannot integrate runtime config: script is already present in source index.html');
@@ -49,9 +52,15 @@ function integrateRuntimeConfig() {
     throw new Error(`Cannot integrate runtime config: expected exactly one legacy manifest declaration, found ${manifestOccurrences}`);
   }
 
+  const serviceWorkerOccurrences = html.split(legacyServiceWorker).length - 1;
+  if (serviceWorkerOccurrences !== 1) {
+    throw new Error(`Cannot integrate runtime config: expected exactly one legacy service worker registration, found ${serviceWorkerOccurrences}`);
+  }
+
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   html = html.replace(legacyApi, configuredApi);
   html = html.replace(legacyManifest, configuredManifest);
+  html = html.replace(legacyServiceWorker, configuredServiceWorker);
   fs.writeFileSync(indexPath, html);
 }
 
