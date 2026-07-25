@@ -38,6 +38,11 @@ function integrateRuntimeConfig() {
   const legacyServiceWorker = "navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' })";
   const serviceWorkerUrl = `${contract.pwa.service_worker_path}?v=${contract.pwa.cache_version.replace(/^v/, '')}`;
   const configuredServiceWorker = `navigator.serviceWorker.register('${serviceWorkerUrl}', { scope: '/' }) /* runtime-contract:pwa.service_worker_path+pwa.cache_version */`;
+  const legacyEnhancementsScript = '<script src="/enhancements_v3.js" defer></script>';
+  const enhancementsScriptPath = contract.runtime.enhancements_script.startsWith('/')
+    ? contract.runtime.enhancements_script
+    : `/${contract.runtime.enhancements_script}`;
+  const configuredEnhancementsScript = `<!-- runtime-contract:runtime.enhancements_script -->\n<script src="${enhancementsScriptPath}" defer></script>`;
 
   if (!html.includes(headClose)) throw new Error('Cannot integrate runtime config: index.html has no </head> marker');
   if (html.includes(runtimeScript)) throw new Error('Cannot integrate runtime config: script is already present in source index.html');
@@ -57,10 +62,16 @@ function integrateRuntimeConfig() {
     throw new Error('Cannot integrate runtime config: no historical service worker registration found');
   }
 
+  const enhancementsScriptOccurrences = html.split(legacyEnhancementsScript).length - 1;
+  if (enhancementsScriptOccurrences !== 1) {
+    throw new Error(`Cannot integrate runtime config: expected exactly one legacy enhancements script declaration, found ${enhancementsScriptOccurrences}`);
+  }
+
   html = html.replace(headClose, `${runtimeScript}\n${headClose}`);
   html = html.replace(legacyApi, configuredApi);
   html = html.replace(legacyManifest, configuredManifest);
   html = html.split(legacyServiceWorker).join(configuredServiceWorker);
+  html = html.replace(legacyEnhancementsScript, configuredEnhancementsScript);
   fs.writeFileSync(indexPath, html);
 }
 
