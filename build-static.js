@@ -177,9 +177,33 @@ function integrateManifestIdentity() {
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
+function integrateServiceWorkerBackendDetection() {
+  const serviceWorkerPath = path.join(out, 'sw.js');
+  let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
+  const contract = readRuntimeContract();
+  const backendUrl = new URL(contract.backend.api_base_url);
+
+  if (!['http:', 'https:'].includes(backendUrl.protocol)) {
+    throw new Error('Cannot integrate service worker backend detection: backend.api_base_url must use HTTP or HTTPS');
+  }
+
+  const legacyDetection = "  // API Railway → Network first\n  if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {";
+  const configuredDetection = `  // API backend → Network first\n  const backendOrigin = '${backendUrl.origin}'; /* runtime-contract:backend.api_base_url */\n  if (url.origin === backendOrigin) {`;
+
+  serviceWorker = replaceExactlyOnce(
+    serviceWorker,
+    legacyDetection,
+    configuredDetection,
+    'historical service worker backend detection',
+  );
+
+  fs.writeFileSync(serviceWorkerPath, serviceWorker);
+}
+
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 for (const entry of fs.readdirSync(root)) copy(path.join(root, entry), path.join(out, entry));
 integrateRuntimeConfig();
 integrateManifestIdentity();
+integrateServiceWorkerBackendDetection();
 console.log('Static build complete: dist/');
