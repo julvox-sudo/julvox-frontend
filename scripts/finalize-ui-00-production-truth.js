@@ -3,77 +3,29 @@ const path = require('path');
 
 const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
+const MARKER = '/* ui-00-final-product-truth:applied-v3 */';
 
 function fail(message) {
   throw new Error(`UI-00 final product truth failed: ${message}`);
 }
 
-function findMatchingBrace(source, openingIndex) {
-  let depth = 0;
-  let quote = null;
-  let escaped = false;
-  let lineComment = false;
-  let blockComment = false;
-  for (let index = openingIndex; index < source.length; index += 1) {
-    const character = source[index];
-    const next = source[index + 1];
-    if (lineComment) { if (character === '\n') lineComment = false; continue; }
-    if (blockComment) { if (character === '*' && next === '/') { blockComment = false; index += 1; } continue; }
-    if (quote) {
-      if (escaped) { escaped = false; continue; }
-      if (character === '\\') { escaped = true; continue; }
-      if (character === quote) quote = null;
-      continue;
-    }
-    if (character === '/' && next === '/') { lineComment = true; index += 1; continue; }
-    if (character === '/' && next === '*') { blockComment = true; index += 1; continue; }
-    if (character === '"' || character === "'" || character === '`') { quote = character; continue; }
-    if (character === '{') depth += 1;
-    if (character === '}') {
-      depth -= 1;
-      if (depth === 0) return index;
-    }
+function verifyFinalized(html) {
+  if (!html.includes(MARKER)) fail('final product truth marker is missing');
+  if ((html.match(/function ui00NumericScore\(/g) || []).length !== 1) fail('ui00NumericScore must be defined exactly once');
+  if ((html.match(/function ui00ScoreLabel\(/g) || []).length !== 1) fail('ui00ScoreLabel must be defined exactly once');
+  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,140}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(html)) {
+    fail('an arbitrary score fallback remains');
   }
-  return -1;
-}
-
-function replaceNamedFunction(source, name, replacement, required = true) {
-  const expression = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`);
-  const match = expression.exec(source);
-  if (!match) {
-    if (required) fail(`function ${name} not found`);
-    return source;
-  }
-  const braceStart = source.indexOf('{', match.index + match[0].length);
-  const braceEnd = findMatchingBrace(source, braceStart);
-  if (braceStart < 0 || braceEnd < 0) fail(`function ${name} is not balanced`);
-  return `${source.slice(0, match.index)}${replacement}${source.slice(braceEnd + 1)}`;
-}
-
-function replaceRequired(source, pattern, replacement, label, minimum = 1) {
-  const matches = typeof pattern === 'string'
-    ? source.split(pattern).length - 1
-    : [...source.matchAll(new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`))].length;
-  if (matches < minimum) fail(`expected ${label}, found ${matches}`);
-  return source.replace(pattern, replacement);
+  if (/Score NovaDeal™\s+\$\{(?:deal|d)\.novadeal_score\}\/100/.test(html)) fail('undefined score rendering remains');
+  return html;
 }
 
 function finalizeHtml(input) {
-  let html = input;
-
-  html = html.replace(
-    'placeholder="Ex: MacBook Air M3, Sony WH-1000XM5…"',
-    'placeholder="Rechercher un produit à comparer…"',
-  );
-
-  const helperAnchor = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl || '';";
-  const helpers = `${helperAnchor}\nfunction ui00NumericScore(value) {\n  const score = Number(value);\n  return Number.isFinite(score) ? score : null;\n}\nfunction ui00ScoreLabel(value) {\n  const score = ui00NumericScore(value);\n  return score === null ? 'Score indisponible' : score + '/100';\n}`;
-  html = replaceRequired(html, helperAnchor, helpers, 'runtime API declaration for score helpers');
-
-  html = replaceNamedFunction(html, 'injectLocalAnalysis', `function injectLocalAnalysis() {
-  const container = document.getElementById('modalExtra');
-  if (container) container.innerHTML = '';
-}`, false);
+  if (input.includes(MARKER)) return verifyFinalized(input);
+  const anchor = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl || '';";
+  const count = input.split(anchor).length - 1;
+  if (count !== 1) fail(`expected exactly one runtime API anchor, found ${count}`);
+  let html = input.replace(anchor, `${anchor}\n${MARKER}\nfunction ui00NumericScore(value) {\n  const score = Number(value);\n  return Number.isFinite(score) ? score : null;\n}\nfunction ui00ScoreLabel(value) {\n  const score = ui00NumericScore(value);\n  return score === null ? 'Score indisponible' : score + '/100';\n}`);
 
   html = html
     .replace(/const score\s*=\s*d\.novadeal_score\s*\|\|\s*50;/g, 'const score = ui00NumericScore(d.novadeal_score);')
@@ -88,33 +40,22 @@ function finalizeHtml(input) {
     .replace(/(\b(?:deal|d)\.novadeal_score\s*\?\?\s*(?:deal|d)\.score)\s*\?\?\s*(?:50|75|82)\b/g, '$1 ?? null')
     .replace(/(\b(?:deal|d)\.score\s*\?\?\s*(?:deal|d)\.novadeal_score)\s*\?\?\s*(?:50|75|82)\b/g, '$1 ?? null')
     .replace(/(\b(?:deal|d)\.novadeal_score)\s*\|\|\s*(?:50|75|82)\b/g, '$1 ?? null')
-    .replace(/(STORE_TRUST(?:_V3)?\[[^\]]+\])\s*\|\|\s*82\b/g, '$1 ?? null');
-
-  html = html.replace(
-    '<span class="score-pill ${scCls}">★ ${score}</span>',
-    "${score === null ? '<span class=\"score-pill\">Score indisponible</span>' : `<span class=\"score-pill ${scCls}\">★ ${score}</span>`}",
-  );
-  html = html.replace(
-    '<div class="score-ring"><div class="score-num">${score}</div><div class="score-sub2">/100</div></div>',
-    "${score === null ? '<div class=\"score-ring\"><div class=\"score-num\" style=\"font-size:11px\">N/D</div><div class=\"score-sub2\">indisponible</div></div>' : `<div class=\"score-ring\"><div class=\"score-num\">${score}</div><div class=\"score-sub2\">/100</div></div>`}",
-  );
-
-  html = html
+    .replace(/(STORE_TRUST(?:_V3)?\[[^\]]+\])\s*\|\|\s*82\b/g, '$1 ?? null')
+    .replace(/<span class="score-pill \$\{scCls\}">★ \$\{score\}<\/span>/g, "${score === null ? '<span class=\"score-pill\">Score indisponible</span>' : `<span class=\"score-pill ${scCls}\">★ ${score}</span>`}")
+    .replace(/<div class="score-ring"><div class="score-num">\$\{score\}<\/div><div class="score-sub2">\/100<\/div><\/div>/g, "${score === null ? '<div class=\"score-ring\"><div class=\"score-num\" style=\"font-size:11px\">N/D</div><div class=\"score-sub2\">indisponible</div></div>' : `<div class=\"score-ring\"><div class=\"score-num\">${score}</div><div class=\"score-sub2\">/100</div></div>`}")
     .replace(/Score NovaDeal™ \$\{deal\.novadeal_score\}\/100/g, 'Score NovaDeal™ ${ui00ScoreLabel(deal.novadeal_score)}')
     .replace(/★\$\{deal\.novadeal_score\|\|0\}/g, "${ui00NumericScore(deal.novadeal_score) === null ? 'Score indisponible' : '★' + ui00NumericScore(deal.novadeal_score)}")
     .replace(/★\$\{d\.novadeal_score\|\|0\}/g, "${ui00NumericScore(d.novadeal_score) === null ? 'Score indisponible' : '★' + ui00NumericScore(d.novadeal_score)}")
     .replace(/★ \$\{d\.novadeal_score\}/g, "${ui00NumericScore(d.novadeal_score) === null ? 'Score indisponible' : '★ ' + ui00NumericScore(d.novadeal_score)}")
     .replace(/\$\{deal\.novadeal_score\}\/100/g, '${ui00ScoreLabel(deal.novadeal_score)}');
 
-  return html;
+  return verifyFinalized(html);
 }
 
 if (require.main === module) {
   if (!fs.existsSync(indexPath)) fail('dist/index.html is missing');
-  const source = fs.readFileSync(indexPath, 'utf8');
-  const finalized = finalizeHtml(source);
-  fs.writeFileSync(indexPath, finalized, 'utf8');
+  fs.writeFileSync(indexPath, finalizeHtml(fs.readFileSync(indexPath, 'utf8')), 'utf8');
   console.log('UI-00 final product truth applied to dist/index.html.');
 }
 
-module.exports = { finalizeHtml };
+module.exports = { MARKER, finalizeHtml, verifyFinalized };

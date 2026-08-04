@@ -9,6 +9,7 @@
     "verify:public-manifest": "node scripts/verify-public-manifest.js",
     "generate:runtime-config": "node scripts/generate-runtime-config.js",
     "verify:generated-config": "node scripts/verify-generated-runtime-config.js",
+    "compose:ui-00-runtime": "node scripts/compose-ui-00-runtime.js",
     "verify:config-consumption": "node scripts/verify-runtime-config-consumption.js",
     "verify:pwa-consumption": "node scripts/verify-pwa-contract-consumption.js",
     "verify:service-worker-consumption": "node scripts/verify-service-worker-contract-consumption.js",
@@ -31,7 +32,7 @@
     "verify:public-artifact": "node scripts/verify-public-artifact.js",
     "verify:public-references": "node scripts/verify-public-references.js",
     "verify:public-determinism": "node scripts/verify-public-determinism.js",
-    "build": "npm run test:ui-00 && npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run verify:public-manifest && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run apply:ui-00-production-truth && npm run finalize:ui-00-production-truth && npm run finalize:ui-00-residuals && npm run integrate:frontend-version && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && npm run verify:brand-metadata-consumption && npm run verify:pwa-manifest-brand-consumption && npm run verify:backend-resource-hints-consumption && npm run verify:service-worker-backend-consumption && npm run verify:public-origin-consumption && npm run verify:frontend-version-consumption && npm run verify:application-capabilities-consumption && npm run verify:production-truth && npm run verify:dist && npm run verify:public-artifact && npm run verify:public-references",
+    "build": "npm run test:ui-00 && npm run verify:source && npm run verify:runtime && npm run verify:contract && npm run verify:public-manifest && npm run generate:runtime-config && npm run verify:generated-config && node build-static.js && npm run compose:ui-00-runtime && npm run apply:ui-00-production-truth && npm run finalize:ui-00-production-truth && npm run finalize:ui-00-residuals && npm run integrate:frontend-version && npm run verify:config-consumption && npm run verify:pwa-consumption && npm run verify:service-worker-consumption && npm run verify:enhancements-script-consumption && npm run verify:application-identity-consumption && npm run verify:brand-metadata-consumption && npm run verify:pwa-manifest-brand-consumption && npm run verify:backend-resource-hints-consumption && npm run verify:service-worker-backend-consumption && npm run verify:public-origin-consumption && npm run verify:frontend-version-consumption && npm run verify:application-capabilities-consumption && npm run verify:production-truth && npm run verify:dist && npm run verify:public-artifact && npm run verify:public-references",
     "verify:all": "npm run build && npm run verify:public-determinism"
   },
   "engines": {

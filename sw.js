@@ -1,19 +1,72 @@
 // DEPLOY_MARKER_DEALSCAN_SW_V17
 // ============================================================
-//  DealScan — Service Worker v17 PWA
-//  Cache offline-first + Push Notifications par catégorie
+//  Julvox — Service Worker v17 PWA
+//  Cache public GET uniquement + Push Notifications
 // ============================================================
 
 const CACHE_VERSION = 'v17';
-const CACHE_NAME    = `dealscan-${CACHE_VERSION}`;
-const CACHE_STATIC  = `dealscan-static-${CACHE_VERSION}`;
+const CACHE_NAME = `dealscan-public-api-${CACHE_VERSION}`;
+const CACHE_STATIC = `dealscan-static-${CACHE_VERSION}`;
+const BACKEND_ORIGIN = 'https://julvox-dealscan-backend-production.up.railway.app';
+const PUBLIC_ORIGIN = 'https://julvox.com';
 
 const STATIC_ASSETS = [
-  // index.html intentionnellement EXCLU du cache statique
-  // pour garantir que les mises à jour sont toujours visibles immédiatement
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
 ];
+
+const PUBLIC_API_PATHS = Object.freeze([
+  /^\/deals(?:\/[^/]+)?\/?$/,
+  /^\/deals\/trending\/?$/,
+  /^\/search\/compare\/?$/,
+  /^\/promos\/?$/,
+  /^\/stats\/?$/,
+  /^\/health\/?$/,
+]);
+
+function jsonError(status, error, message) {
+  return new Response(JSON.stringify({ error, message }), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+function isCacheablePublicApiRequest(request, backendOrigin = BACKEND_ORIGIN) {
+  if (!request || request.method !== 'GET') return false;
+  if (request.headers?.has?.('Authorization') || request.headers?.has?.('Cookie')) return false;
+  if (request.credentials === 'include') return false;
+  let url;
+  try { url = new URL(request.url); } catch (_) { return false; }
+  if (url.origin !== backendOrigin || url.username || url.password) return false;
+  for (const key of url.searchParams.keys()) {
+    if (/^(?:access_?token|auth|authorization|api_?key|key|jwt|password|session)$/i.test(key)) return false;
+  }
+  return PUBLIC_API_PATHS.some(pattern => pattern.test(url.pathname));
+}
+
+function isCacheablePublicResponse(response) {
+  if (!response?.ok) return false;
+  const cacheControl = response.headers?.get?.('Cache-Control') || '';
+  const vary = response.headers?.get?.('Vary') || '';
+  if (/\b(?:no-store|private)\b/i.test(cacheControl)) return false;
+  if (response.headers?.has?.('Set-Cookie')) return false;
+  if (/authorization|cookie/i.test(vary)) return false;
+  return true;
+}
+
+function safePublicUrl(value) {
+  try {
+    const candidate = new URL(String(value || ''), PUBLIC_ORIGIN);
+    return candidate.origin === PUBLIC_ORIGIN && !candidate.username && !candidate.password
+      ? candidate.href
+      : PUBLIC_ORIGIN;
+  } catch (_) {
+    return PUBLIC_ORIGIN;
+  }
+}
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -27,8 +80,8 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME && k !== CACHE_STATIC)
-            .map(k => caches.delete(k))
+        keys.filter(key => key !== CACHE_NAME && key !== CACHE_STATIC)
+          .map(key => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -37,9 +90,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // API Railway → Network first
-  if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {
-    event.respondWith(networkFirst(event.request, CACHE_NAME, 60));
+  if (url.origin === BACKEND_ORIGIN) {
+    event.respondWith(
+      isCacheablePublicApiRequest(event.request)
+        ? networkFirstPublicGet(event.request, CACHE_NAME, 60)
+        : networkOnlyApi(event.request)
+    );
     return;
   }
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
@@ -47,51 +103,60 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).catch(() => caches.match('/index.html')));
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cached = await caches.match('/index.html');
+        return cached || new Response('Application indisponible hors ligne.', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+      })
+    );
     return;
   }
   event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
 });
 
-async function networkFirst(request, cacheName, ttl = 60) {
+async function networkOnlyApi(request) {
   try {
-    const res = await fetch(request.clone());
-    if (res.ok) {
+    return await fetch(request);
+  } catch (_) {
+    return jsonError(503, 'offline', 'Le service est indisponible et cette requête ne peut pas utiliser de cache.');
+  }
+}
+
+async function networkFirstPublicGet(request, cacheName, ttlMinutes = 60) {
+  if (!isCacheablePublicApiRequest(request)) return networkOnlyApi(request);
+  try {
+    const response = await fetch(request.clone());
+    if (isCacheablePublicResponse(response)) {
       const cache = await caches.open(cacheName);
-      cache.put(request, res.clone());
-      cache.put(
-        new Request(request.url + '__ts'),
-        new Response(String(Date.now()), { headers: { 'Content-Type': 'text/plain' } })
-      );
+      const timestampRequest = new Request(`${request.url}__julvox_ts`, { method: 'GET' });
+      await Promise.all([
+        cache.put(request, response.clone()),
+        cache.put(timestampRequest, new Response(String(Date.now()), {
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        })),
+      ]);
     }
-    return res;
-  } catch(e) {
+    return response;
+  } catch (_) {
     const cache = await caches.open(cacheName);
     const cached = await cache.match(request);
-    if (cached) {
-      const tsRes = await cache.match(new Request(request.url + '__ts'));
-      if (tsRes) {
-        const ts = parseInt(await tsRes.text(), 10);
-        const age = (Date.now() - ts) / 60000;
-        if (age > ttl) {
-          return new Response(JSON.stringify({
-            error: 'offline_stale',
-            message: 'La dernière réponse disponible a expiré. Reconnectez-vous puis réessayez.'
-          }), {
-            status: 504,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-      }
-      return cached;
+    if (!cached) {
+      return jsonError(503, 'offline', 'Le service est indisponible hors ligne et aucune réponse publique en cache n’est disponible.');
     }
-    return new Response(JSON.stringify({
-      error: 'offline',
-      message: 'Le service est indisponible hors ligne et aucune réponse en cache n’est disponible.'
-    }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const timestampRequest = new Request(`${request.url}__julvox_ts`, { method: 'GET' });
+    const timestampResponse = await cache.match(timestampRequest);
+    if (!timestampResponse) {
+      return jsonError(504, 'offline_stale', 'L’âge de la dernière réponse publique ne peut pas être vérifié.');
+    }
+    const timestamp = Number.parseInt(await timestampResponse.text(), 10);
+    const ageMinutes = (Date.now() - timestamp) / 60_000;
+    if (!Number.isFinite(timestamp) || ageMinutes > ttlMinutes) {
+      return jsonError(504, 'offline_stale', 'La dernière réponse publique disponible a expiré. Reconnectez-vous puis réessayez.');
+    }
+    return cached;
   }
 }
 
@@ -99,10 +164,10 @@ async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
   try {
-    const res = await fetch(request);
-    if (res.ok) (await caches.open(cacheName)).put(request, res.clone());
-    return res;
-  } catch(e) {
+    const response = await fetch(request);
+    if (response.ok && request.method === 'GET') await (await caches.open(cacheName)).put(request, response.clone());
+    return response;
+  } catch (_) {
     return new Response('', { status: 503 });
   }
 }
@@ -111,42 +176,42 @@ self.addEventListener('push', event => {
   if (!event.data) return;
   let data;
   try { data = event.data.json(); }
-  catch(e) { data = { title: '🔥 DealScan', body: event.data.text(), type: 'general' }; }
-  const notifType = data.type || 'general';
-  const notifOptions = {
-    body: data.body || 'Un nouveau deal vous attend !',
+  catch (_) { data = { title: '🔥 Julvox', body: event.data.text(), type: 'general' }; }
+  const notificationType = data.type || 'general';
+  const options = {
+    body: data.body || 'Une nouvelle offre vous attend.',
     icon: data.icon || '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     image: data.image || undefined,
-    tag: data.tag || `dealscan-${notifType}`,
-    data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
+    tag: data.tag || `julvox-${notificationType}`,
+    data: { url: safePublicUrl(data.url), type: notificationType, dealId: data.deal_id },
     vibrate: [200, 100, 200],
-    requireInteraction: notifType === 'alert_price',
-    actions: _getActions(notifType),
+    requireInteraction: notificationType === 'alert_price',
+    actions: getActions(notificationType),
   };
-  event.waitUntil(self.registration.showNotification(data.title || _getTitle(notifType), notifOptions));
+  event.waitUntil(self.registration.showNotification(data.title || getTitle(notificationType), options));
 });
 
-function _getTitle(type) {
+function getTitle(type) {
   const titles = {
-    deal_score90: '🏆 Deal exceptionnel',
+    deal_score90: '🏆 Offre exceptionnelle',
     alert_price: '🎯 Alerte prix déclenchée !',
     flash_deal: '⚡ Vente Flash',
-    newsletter: '📬 Tes deals du jour',
-    new_feature: '✨ Nouveauté DealScan',
+    newsletter: '📬 Vos offres du jour',
+    new_feature: '✨ Nouveauté Julvox',
     community: '🤝 Communauté',
   };
-  return titles[type] || '🔥 DealScan';
+  return titles[type] || '🔥 Julvox';
 }
 
-function _getActions(type) {
+function getActions(type) {
   if (type === 'alert_price') return [
-    { action: 'view', title: '🛒 Voir le deal' },
+    { action: 'view', title: '🛒 Voir l’offre' },
     { action: 'snooze', title: '⏰ Rappel +1h' },
     { action: 'dismiss', title: '✕ Ignorer' },
   ];
   if (type === 'flash_deal') return [
-    { action: 'view', title: '⚡ Saisir l\'offre' },
+    { action: 'view', title: '⚡ Voir l’offre' },
     { action: 'dismiss', title: '✕' },
   ];
   return [
@@ -158,28 +223,27 @@ function _getActions(type) {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'dismiss') return;
-  const notifData = event.notification.data || {};
-  let url = notifData.url || 'https://julvox.com';
+  const data = event.notification.data || {};
+  let url = safePublicUrl(data.url);
   if (event.action === 'snooze') {
-    const data = event.notification.data;
-    const snoozeTag = data.dealId ? `snooze-deal-${data.dealId}` : 'snooze-generic';
+    const tag = data.dealId ? `snooze-deal-${data.dealId}` : 'snooze-generic';
     setTimeout(() => {
       self.registration.showNotification(event.notification.title, {
         body: event.notification.body,
         icon: event.notification.icon,
         data,
-        tag: snoozeTag,
+        tag,
       });
-    }, 3600000);
+    }, 3_600_000);
     return;
   }
-  if (notifData.dealId) url = `https://julvox.com/?deal=${notifData.dealId}`;
+  if (data.dealId) url = `${PUBLIC_ORIGIN}/?deal=${encodeURIComponent(data.dealId)}`;
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
-      for (const c of cls) {
-        if (c.url.startsWith('https://julvox.com') && 'focus' in c) {
-          c.postMessage({ type: 'navigate', url });
-          return c.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if (client.url.startsWith(PUBLIC_ORIGIN) && 'focus' in client) {
+          client.postMessage({ type: 'navigate', url });
+          return client.focus();
         }
       }
       return clients.openWindow(url);
@@ -187,28 +251,21 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-votes') event.waitUntil(syncPendingVotes());
-  if (event.tag === 'sync-alerts') event.waitUntil(syncPendingAlerts());
-});
-
-async function syncPendingVotes() {
-  try {
-    const cache = await caches.open('dealscan-pending');
-    const keys = await cache.keys();
-    for (const req of keys) {
-      try {
-        const res = await fetch(req);
-        if (res.ok) await cache.delete(req);
-      } catch(e) {}
-    }
-  } catch(e) {}
-}
-
-async function syncPendingAlerts() {
-  // Intentionnellement vide — les alertes prix sont gérées côté serveur.
-}
-
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    CACHE_NAME,
+    CACHE_STATIC,
+    BACKEND_ORIGIN,
+    PUBLIC_API_PATHS,
+    isCacheablePublicApiRequest,
+    isCacheablePublicResponse,
+    safePublicUrl,
+    jsonError,
+    networkOnlyApi,
+    networkFirstPublicGet,
+  };
+}

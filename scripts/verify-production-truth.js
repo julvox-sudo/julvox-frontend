@@ -2,23 +2,15 @@ const fs = require('fs');
 const path = require('path');
 
 const root = process.cwd();
-const forbidden = [
-  'getDemoCompareResults',
-  'getDemoLeaderboard',
-  'getDemoCommDeals',
-  'getDemoReport',
-  'getDemoScanResult',
-  'getDemoWishlist',
-  'getDemoAchievements',
-  'generateSimulatedHistory',
-  'localAnalyzeDeal',
-  'Analyse locale',
-  'MacBook Air M3',
-  'PS5 Slim',
-  'Nike Air Max 270',
-  'Compte supprimé localement',
-  'Deal soumis (vérification en cours)',
-  'Alerte enregistrée pour',
+const forbiddenTokens = [
+  'getDemoCompareResults', 'getDemoLeaderboard', 'getDemoCommDeals', 'getDemoReport',
+  'getDemoScanResult', 'getDemoWishlist', 'getDemoAchievements', 'generateSimulatedHistory',
+  'localAnalyzeDeal', 'injectLocalAnalysis', 'getLocalCalendar', 'getDefaultProPlans',
+  'getLocalAIResponse', 'getDefaultCbRates', 'MacBook Air M3', 'PS5 Slim', 'Nike Air Max 270',
+  'Compte supprimé localement', 'Deal soumis (vérification en cours)', 'Alerte enregistrée pour',
+  "uid:'julien...'", "uid:'marie...'", "uid:'thomas...'", "uid:'chloe...'", "uid:'alex...'",
+  "price_monthly:49", "price_monthly:99", "price_monthly:299",
+  'const defaultRates = {Amazon:3', 'Offline demo',
 ];
 
 function scanProductionTruth(files, baseDir = root) {
@@ -35,44 +27,69 @@ function scanProductionTruth(files, baseDir = root) {
   const sw = read(files?.sw || 'dist/sw.js');
   const combined = `${html}\n${enhancements}`;
 
-  for (const token of forbidden) {
+  for (const token of forbiddenTokens) {
     if (combined.includes(token)) failures.push(`forbidden production token: ${token}`);
   }
+
+  const scriptTags = [
+    '<script src="/runtime-config.js"></script>',
+    '<script src="/api-client.js"></script>',
+    '<script src="/ui-00-production-truth.js" defer></script>',
+    '<script src="/enhancements_v3.js" defer></script>',
+  ];
+  const positions = scriptTags.map(tag => {
+    const count = html.split(tag).length - 1;
+    if (count !== 1) failures.push(`script tag must appear exactly once: ${tag}`);
+    return html.indexOf(tag);
+  });
+  if (!positions.every((position, index) => position >= 0 && (index === 0 || positions[index - 1] < position))) {
+    failures.push('runtime config, API client, UI-00 truth and enhancements load order is invalid');
+  }
+
+  for (const marker of [
+    'ui-00-production-truth:applied-v3',
+    'ui-00-final-product-truth:applied-v3',
+    'ui-00-residual-product-truth:applied-v3',
+  ]) {
+    if (!html.includes(marker)) failures.push(`missing build transformation marker: ${marker}`);
+  }
+  if (!enhancements.includes('ui-00-production-truth:applied-v3')) failures.push('enhancements transformation marker is missing');
 
   if (/Math\.floor\(Math\.random\(\)\s*\*\s*58/.test(combined)) failures.push('random verification duration remains');
   if (/(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)[^;\n]{0,180}Math\.random|Math\.random[^;\n]{0,180}(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)/i.test(combined)) {
     failures.push('random vote, score, confirmation or popularity fallback remains');
   }
   if (/const\s+STORE_TRUST(?:_V3)?\s*=\s*\{\s*['"]/.test(combined)) failures.push('local merchant scores remain');
-  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,120}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(combined)) {
-    failures.push('arbitrary displayed score fallback remains');
-  }
-  if (/Score NovaDeal™\s+\$\{(?:deal|d)\.novadeal_score\}\/100/.test(combined)) {
-    failures.push('an absent score can still be rendered as undefined/100');
-  }
-  if (!html.includes('function ui00ScoreLabel(value)')) failures.push('explicit unavailable score formatter is missing');
-  if (/let\s+rem\s*=\s*3600|dyn_timer_/.test(combined)) failures.push('synthetic flash timer remains');
-  if (/\bLIVE\b/.test(combined)) failures.push('unqualified LIVE label remains');
-  if (/fetchWithTimeout\(\s*(?:API\s*\+|`\$\{API\})|\bfetch\(\s*(?:API\s*\+|`\$\{API\})/.test(combined)) {
-    failures.push('direct backend fetch remains outside API client');
-  }
-  if (/\bfetch\(\s*window\.JULVOX_RUNTIME_CONFIG\?\.backend/.test(combined)) {
-    failures.push('runtime backend URL is fetched directly outside API client');
-  }
-  if (/\|\|\s*['"]https:\/\/[^'"]*railway\.app/.test(html)) failures.push('hard-coded Railway fallback remains in production HTML');
-  if (/railway\.app/.test(client)) failures.push('API client contains a hard-coded Railway URL');
-  if (!html.includes('<script src="/api-client.js"></script>')) failures.push('api-client.js is not loaded');
-  if (!html.includes('<script src="/ui-00-production-truth.js" defer></script>')) failures.push('UI-00 truth layer is not loaded');
-  if (!truth.includes('runConfirmedMutation')) failures.push('mutation confirmation helper is missing');
-  if (!truth.includes('isConfirmedServerResult')) failures.push('server result confirmation predicate is missing');
-  if (/confirm:\s*data\s*=>\s*Boolean\(data\?\.(?:message|status)/.test(truth)) {
-    failures.push('mutation confirmation still accepts a generic message or status');
-  }
-  if (!truth.includes("data?.rgpd === true")) failures.push('account deletion lacks explicit backend confirmation');
-  if (!truth.includes('subscription.unsubscribe()')) failures.push('push subscription lacks rollback after backend failure');
-  if (!sw.includes('status: 503')) failures.push('service worker offline response does not expose status 503');
-  if (!sw.includes('status: 504')) failures.push('service worker stale response does not expose status 504');
-  if (/offline(?:_stale)?[^\n]+deals:\s*\[\]/.test(sw)) failures.push('service worker still fabricates an empty deals result');
+  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,140}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(combined)) failures.push('arbitrary displayed score fallback remains');
+  if (/\b(?:timer|timerSec|rem)\s*=\s*[^;\n]*(?:\|\||\?\?)[^;\n]*(?:3600|7200)\b/.test(combined)) failures.push('synthetic countdown fallback remains');
+  if (/>\s*Live\s*</i.test(combined) || /['\"`]LIVE['\"`]/.test(combined) || /temps réel|vérifié il y a/i.test(combined)) failures.push('unqualified real-time claim remains');
+  if (/fetchWithTimeout\(|fetchWithRetry\(/.test(combined)) failures.push('legacy direct fetch helper remains');
+  if (/\bfetch\(\s*(?:API\s*\+|`\$\{API\}|url\s*,\s*token)/.test(combined)) failures.push('direct backend fetch remains outside API client');
+  if (/\.backend\?\.api_base_url|\.backend\.api_base_url/.test(combined + client + truth)) failures.push('legacy api_base_url property is consumed at runtime');
+  if (/\|\|\s*['"]https:\/\/[^'"]*railway\.app/.test(html) || /railway\.app/.test(client)) failures.push('hard-coded Railway fallback remains');
+
+  if (!client.includes('patch: (path, body, opts = {})')) failures.push('API client PATCH method is missing');
+  if (!client.includes('candidate.username || candidate.password')) failures.push('API client URL credentials rejection is missing');
+  if (!client.includes("configurable: false")) failures.push('API client global is reconfigurable');
+  if (!truth.includes('ui-00-runtime:composed-v1') || !truth.includes('JULVOX_INSTALL_UI00_MUTATIONS')) failures.push('UI-00 public runtime composition is missing');
+  if (!truth.includes('withMutationLock')) failures.push('mutation duplicate guard is missing');
+  if (!truth.includes('Number.isFinite(data?.votes_validate) && Number.isFinite(data?.votes_reject)')) failures.push('community vote confirmation accepts incomplete counters');
+  if (!truth.includes('Number.isFinite(data?.votes_ok) && Number.isFinite(data?.votes_ko)')) failures.push('promotion vote confirmation accepts incomplete counters');
+  if (!truth.includes('response?.status === 204 || data?.rgpd === true')) failures.push('account deletion 204/business confirmation is missing');
+  if (!truth.includes('subscription.unsubscribe()')) failures.push('push subscription rollback is missing');
+  if (!truth.includes('CAPABILITY_SURFACES') || !truth.includes('CAPABILITY_ENTRYPOINTS')) failures.push('capability behavior mapping is missing');
+  if (!truth.includes("runtime.runtime.environment === 'demo'")) failures.push('demo-only environment gate is missing');
+
+  if (!sw.includes("request.method !== 'GET'")) failures.push('service worker does not refuse caching mutations');
+  if (!sw.includes("request.headers?.has?.('Authorization')")) failures.push('service worker does not refuse caching authenticated requests');
+  if (!sw.includes("request.credentials === 'include'")) failures.push('service worker does not refuse credentialed public GET requests');
+  if (!sw.includes('isCacheablePublicResponse') || !sw.includes('Set-Cookie') || !sw.includes('no-store|private')) failures.push('service worker does not reject private/no-store public responses');
+  if (!sw.includes('safePublicUrl')) failures.push('service worker notification redirects are not restricted to the public origin');
+  if (!sw.includes('dealscan-public-api-')) failures.push('service worker does not isolate the new public GET cache');
+  if (sw.includes('syncPendingVotes') || sw.includes("event.tag === 'sync-votes'")) failures.push('service worker still queues or replays vote mutations');
+  if (!sw.includes("status: 503") || !sw.includes("status: 504")) failures.push('service worker 503/504 responses are missing');
+  if (/offline(?:_stale)?[^\n]+deals:\s*\[\]/.test(sw)) failures.push('service worker fabricates an empty deals result');
+  if (!sw.includes("'Cache-Control': 'no-store'")) failures.push('service worker API error responses are cacheable');
 
   return failures;
 }
@@ -87,4 +104,4 @@ if (require.main === module) {
   console.log('Production truth verification passed.');
 }
 
-module.exports = { forbidden, scanProductionTruth };
+module.exports = { forbiddenTokens, scanProductionTruth };

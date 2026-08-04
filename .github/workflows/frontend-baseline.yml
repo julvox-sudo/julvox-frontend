@@ -30,8 +30,20 @@ jobs:
         with:
           node-version: 20
 
+      - name: Run UI-00 tests directly
+        run: node --test tests/ui-00/*.test.js
+
       - name: Build
         run: npm run build
+
+      - name: Run complete verification chain
+        run: npm run verify:all
+
+      - name: Verify distribution separately
+        run: npm run verify:dist
+
+      - name: Verify public manifest separately
+        run: npm run verify:public-manifest
 
       - name: Verify exact public artifact
         run: npm run verify:public-artifact
@@ -42,6 +54,9 @@ jobs:
       - name: Verify deterministic public build
         run: npm run verify:public-determinism
 
+      - name: Verify production truth separately
+        run: npm run verify:production-truth
+
       - name: Record independent public artifact proof
         shell: bash
         run: |
@@ -51,7 +66,7 @@ jobs:
           expected_directories="$RUNNER_TEMP/quality01a-expected-directories.txt"
           actual_directories="$RUNNER_TEMP/quality01a-actual-directories.txt"
 
-          cat > "$expected_files" <<'EOF'
+          cat > "$expected_files" <<'PATHS'
           api-client.js
           enhancements_v3.js
           google3a92a4041aeeec5e.html
@@ -69,12 +84,12 @@ jobs:
           sitemap.xml
           sw.js
           ui-00-production-truth.js
-          EOF
+          PATHS
 
-          cat > "$expected_directories" <<'EOF'
+          cat > "$expected_directories" <<'PATHS'
           icons
           screenshots
-          EOF
+          PATHS
 
           find dist -type f -printf '%P\n' | LC_ALL=C sort > "$actual_files"
           find dist -mindepth 1 -type d -printf '%P\n' | LC_ALL=C sort > "$actual_directories"

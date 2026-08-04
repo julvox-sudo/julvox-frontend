@@ -16,6 +16,7 @@ const contract = readJson('config/runtime-contract.json');
 const generatedPath = path.join(root, 'runtime-config.js');
 if (!fs.existsSync(generatedPath)) fail('runtime-config.js is missing');
 let actual = null;
+let descriptor = null;
 if (!failures.length) {
   const sandbox = { globalThis: {} };
   sandbox.window = sandbox.globalThis;
@@ -23,6 +24,7 @@ if (!failures.length) {
   try {
     vm.runInContext(fs.readFileSync(generatedPath, 'utf8'), sandbox, { filename: 'runtime-config.js' });
     actual = sandbox.globalThis.JULVOX_RUNTIME_CONFIG;
+    descriptor = Object.getOwnPropertyDescriptor(sandbox.globalThis, 'JULVOX_RUNTIME_CONFIG');
   } catch (error) { fail(`runtime-config.js cannot execute: ${error.message}`); }
 }
 const expected = {
@@ -47,12 +49,24 @@ const expected = {
   },
 };
 if (actual && JSON.stringify(actual) !== JSON.stringify(expected)) fail('generated runtime config differs from runtime contract');
+if (descriptor && (descriptor.writable !== false || descriptor.configurable !== false || descriptor.enumerable !== true)) {
+  fail('JULVOX_RUNTIME_CONFIG property descriptor is not immutable');
+}
 function verifyDeepFrozen(value, label) {
   if (!value || typeof value !== 'object') return;
   if (!Object.isFrozen(value)) fail(`${label} is not frozen`);
   for (const [key, nested] of Object.entries(value)) verifyDeepFrozen(nested, `${label}.${key}`);
 }
-if (actual) verifyDeepFrozen(actual, 'runtime config');
+if (actual) {
+  verifyDeepFrozen(actual, 'runtime config');
+  const previousUrl = actual.backend.apiBaseUrl;
+  try { actual.backend.apiBaseUrl = 'https://evil.invalid'; } catch (_) {}
+  if (actual.backend.apiBaseUrl !== previousUrl) fail('runtime backend URL can be mutated');
+  try { actual.application.capabilities.scanner.status = 'supported'; } catch (_) {}
+  if (actual.application.capabilities.scanner.status !== expected.application.capabilities.scanner.status) {
+    fail('nested capability status can be mutated');
+  }
+}
 if (failures.length) {
   console.error('Generated runtime config verification failed:');
   for (const failure of failures) console.error(`- ${failure}`);
