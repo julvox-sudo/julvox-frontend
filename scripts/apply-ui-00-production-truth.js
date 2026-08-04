@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const helpers = require('./ui00-transforms/utils');
+const { centralizeApiCalls } = require('./ui00-transforms/centralize-api-calls');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -20,6 +21,8 @@ function applyProductionTruth(input) {
     return helpers.verifyAppliedOutput(html, enhancements);
   }
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
+  html = centralizeApiCalls(html);
+  enhancements = centralizeApiCalls(enhancements);
   return helpers.verifyAppliedOutput(html, enhancements);
 }
 
@@ -40,5 +43,6 @@ module.exports = {
   applyProductionTruth,
   findMatchingBrace: helpers.findMatchingBrace,
   replaceNamedFunction: helpers.replaceNamedFunction,
+  centralizeApiCalls,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };
