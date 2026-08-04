@@ -76,7 +76,10 @@ test('a missing required historical function fails the build transform', () => {
 
 test('notification duplicates are an explicit two-block invariant', () => {
   const one = sourceFixture().replace("async function enableNotifPermission(){ return 'legacy-two'; }", '');
-  const three = sourceFixture().replace('</script>', "async function enableNotifPermission(){ return 'legacy-three'; }\n</script>");
+  const three = sourceFixture().replace(
+    "async function enableNotifPermission(){ return 'legacy-two'; }\n    </script>",
+    "async function enableNotifPermission(){ return 'legacy-two'; }\n    async function enableNotifPermission(){ return 'legacy-three'; }\n    </script>",
+  );
   assert.throws(() => applyProductionTruth({ html: one, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 1/);
   assert.throws(() => applyProductionTruth({ html: three, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 3/);
 });
