@@ -36,6 +36,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // API Railway → Network first
   if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {
     event.respondWith(networkFirst(event.request, CACHE_NAME, 60));
     return;
