@@ -27,6 +27,7 @@ const report = {
     external_urls: [],
   },
   service_worker_fallbacks: [],
+  known_preexisting_anomalies: [],
 };
 
 function fail(message) {
@@ -59,7 +60,11 @@ function requireDistFile(reference, label) {
   return relativePath;
 }
 
-function classifyIndexReference(reference) {
+function isDynamicReference(value) {
+  return value.includes('${') || value.includes('{{') || value.includes('<%');
+}
+
+function classifyIndexReference(reference, label = 'dist/index.html') {
   const value = reference.trim();
   if (!value) return;
   if (value.startsWith('#')) report.index_html.anchors.push(value);
@@ -68,14 +73,64 @@ function classifyIndexReference(reference) {
   else if (value.startsWith('/cdn-cgi/')) report.index_html.cdn_cgi_routes.push(value);
   else if (/^(?:https?:)?\/\//i.test(value)) report.index_html.external_urls.push(value);
   else if (/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)) report.index_html.other_schemes.push(value);
-  else {
-    const clean = value.split(/[?#]/, 1)[0];
-    const fileLike = /\.(?:avif|css|gif|html?|ico|jpe?g|js|json|mjs|png|svg|txt|webp|woff2?|xml)$/i.test(clean);
-    if (!fileLike || clean === '/') report.index_html.application_routes.push(value);
-    else {
-      const relativePath = requireDistFile(value, 'dist/index.html');
-      if (relativePath) report.index_html.local_files.push(relativePath);
+  else if (isDynamicReference(value) || value === '/' || value.startsWith('/?') || value.startsWith('?')) {
+    report.index_html.application_routes.push(value);
+  } else {
+    const relativePath = requireDistFile(value, label);
+    if (relativePath) report.index_html.local_files.push(relativePath);
+  }
+}
+
+function classifySrcset(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) return;
+  if (trimmed.startsWith('data:')) {
+    classifyIndexReference(trimmed, label);
+    return;
+  }
+  for (const candidate of trimmed.split(',')) {
+    const reference = candidate.trim().split(/\s+/, 1)[0];
+    if (reference) classifyIndexReference(reference, label);
+  }
+}
+
+function inspectCssReferences(cssText, label) {
+  const urlPattern = /url\(\s*(["']?)(.*?)\1\s*\)/gi;
+  let match;
+  while ((match = urlPattern.exec(cssText)) !== null) classifyIndexReference(match[2], label);
+
+  const importPattern = /@import\s+(?!url\()["']([^"']+)["']/gi;
+  while ((match = importPattern.exec(cssText)) !== null) classifyIndexReference(match[1], label);
+}
+
+function inspectJsonLd(indexHtml) {
+  const scriptPattern = /<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+  while ((match = scriptPattern.exec(indexHtml)) !== null) {
+    let document;
+    try {
+      document = JSON.parse(match[1]);
+    } catch (error) {
+      fail(`dist/index.html contains invalid JSON-LD: ${error.message}`);
+      continue;
     }
+
+    function visit(value, key = '') {
+      if (Array.isArray(value)) {
+        for (const item of value) visit(item, key);
+        return;
+      }
+      if (value && typeof value === 'object') {
+        for (const [childKey, childValue] of Object.entries(value)) visit(childValue, childKey);
+        return;
+      }
+      if (key === 'logo' && typeof value === 'string' && /\/logo\.png(?:[?#]|$)/i.test(value)) {
+        report.known_preexisting_anomalies.push(
+          `${value} — pre-existing JSON-LD logo reference outside QUALITY-01A; no local artifact is asserted`,
+        );
+      }
+    }
+    visit(document);
   }
 }
 
@@ -85,15 +140,26 @@ for (const required of ['index.html', 'manifest.json', 'sw.js']) {
 
 if (failures.length === 0) {
   const indexHtml = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
-  const attributePattern = /(?:src|href)\s*=\s*["']([^"']+)["']/gi;
+  const attributePattern = /(?:src|href|poster)\s*=\s*["']([^"']+)["']/gi;
   let match;
   while ((match = attributePattern.exec(indexHtml)) !== null) classifyIndexReference(match[1]);
+
+  const srcsetPattern = /(?:srcset|imagesrcset)\s*=\s*["']([^"']+)["']/gi;
+  while ((match = srcsetPattern.exec(indexHtml)) !== null) classifySrcset(match[1], 'dist/index.html srcset');
+
+  const styleBlockPattern = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+  while ((match = styleBlockPattern.exec(indexHtml)) !== null) inspectCssReferences(match[1], 'dist/index.html style block');
+
+  const styleAttributePattern = /\bstyle\s*=\s*["']([^"']+)["']/gi;
+  while ((match = styleAttributePattern.exec(indexHtml)) !== null) inspectCssReferences(match[1], 'dist/index.html style attribute');
 
   const serviceWorkerRegistrationPattern = /navigator\.serviceWorker\.register\s*\(\s*["']([^"']+)["']/g;
   while ((match = serviceWorkerRegistrationPattern.exec(indexHtml)) !== null) {
     const relativePath = requireDistFile(match[1], 'dist/index.html service worker registration');
     if (relativePath) report.index_html.local_files.push(relativePath);
   }
+
+  inspectJsonLd(indexHtml);
 
   let manifest;
   try {
@@ -148,6 +214,7 @@ report.manifest_resources = uniqueSorted(report.manifest_resources);
 report.service_worker_precache.local_files = uniqueSorted(report.service_worker_precache.local_files);
 report.service_worker_precache.external_urls = uniqueSorted(report.service_worker_precache.external_urls);
 report.service_worker_fallbacks = uniqueSorted(report.service_worker_fallbacks);
+report.known_preexisting_anomalies = uniqueSorted(report.known_preexisting_anomalies);
 
 if (failures.length > 0) {
   console.error('Public reference verification failed:');
