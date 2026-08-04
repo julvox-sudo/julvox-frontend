@@ -4,6 +4,7 @@ const {
   applyProductionTruth,
   HTML_MARKER,
   ENHANCEMENTS_MARKER,
+  replaceNamedFunction,
 } = require('../../scripts/apply-ui-00-production-truth.js');
 const { finalizeHtml } = require('../../scripts/finalize-ui-00-production-truth.js');
 const { finalizeResiduals } = require('../../scripts/finalize-ui-00-residuals.js');
@@ -82,6 +83,14 @@ test('notification duplicates are an explicit two-block invariant', () => {
   );
   assert.throws(() => applyProductionTruth({ html: one, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 1/);
   assert.throws(() => applyProductionTruth({ html: three, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 3/);
+});
+
+test('function parser ignores regex literals containing quotes and braces', () => {
+  const source = `function renderFlash(){ const value = "a'b{}".replace(/['{}]/g, ''); return value; }\nfunction neighbor(){ return true; }`;
+  const replaced = replaceNamedFunction(source, 'renderFlash', 'function renderFlash(){ return []; }');
+  assert.match(replaced, /function renderFlash\(\)\{ return \[\]; \}/);
+  assert.match(replaced, /function neighbor\(\)/);
+  assert.doesNotMatch(replaced, /replace\(\/\['\{\}\]\//);
 });
 
 test('final score and residual transforms are byte-idempotent', () => {
