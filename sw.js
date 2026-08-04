@@ -15,7 +15,6 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
 ];
 
-// ── Install ──────────────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_STATIC)
@@ -24,7 +23,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// ── Activate ─────────────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
@@ -36,36 +34,21 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Fetch ────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
-  // API Railway → Network first
   if (url.hostname.includes('railway.app') || url.hostname.includes('julvox-dealscan')) {
     event.respondWith(networkFirst(event.request, CACHE_NAME, 60));
     return;
   }
-
-  // Fonts → Cache first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(cacheFirst(event.request, CACHE_STATIC));
     return;
   }
-
-  // Navigation HTML → Network first avec fallback offline
-  // (géré ici, pas dans un second listener séparé)
   if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
-    );
+    event.respondWith(fetch(event.request).catch(() => caches.match('/index.html')));
     return;
   }
-
-  // Reste (images, scripts, etc.) → Network only, pas de fallback HTML
-  // Retourner /index.html pour des ressources statiques provoquerait des erreurs de parsing
-  event.respondWith(
-    fetch(event.request).catch(() => new Response('', { status: 503 }))
-  );
+  event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
 });
 
 async function networkFirst(request, cacheName, ttl = 60) {
@@ -74,7 +57,6 @@ async function networkFirst(request, cacheName, ttl = 60) {
     if (res.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, res.clone());
-      // Stocker le timestamp pour vérification TTL en mode offline
       cache.put(
         new Request(request.url + '__ts'),
         new Response(String(Date.now()), { headers: { 'Content-Type': 'text/plain' } })
@@ -82,23 +64,30 @@ async function networkFirst(request, cacheName, ttl = 60) {
     }
     return res;
   } catch(e) {
-    const cache  = await caches.open(cacheName);
+    const cache = await caches.open(cacheName);
     const cached = await cache.match(request);
     if (cached) {
-      // Vérifier que le cache n'est pas trop vieux (TTL en minutes)
       const tsRes = await cache.match(new Request(request.url + '__ts'));
       if (tsRes) {
-        const ts  = parseInt(await tsRes.text(), 10);
+        const ts = parseInt(await tsRes.text(), 10);
         const age = (Date.now() - ts) / 60000;
         if (age > ttl) {
-          return new Response(JSON.stringify({ error: 'offline_stale', deals: [] }), {
+          return new Response(JSON.stringify({
+            error: 'offline_stale',
+            message: 'La dernière réponse disponible a expiré. Reconnectez-vous puis réessayez.'
+          }), {
+            status: 504,
             headers: { 'Content-Type': 'application/json' }
           });
         }
       }
       return cached;
     }
-    return new Response(JSON.stringify({ error: 'offline', deals: [] }), {
+    return new Response(JSON.stringify({
+      error: 'offline',
+      message: 'Le service est indisponible hors ligne et aucune réponse en cache n’est disponible.'
+    }), {
+      status: 503,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -116,79 +105,61 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
-// ── Push Notifications ───────────────────────────────────────
 self.addEventListener('push', event => {
   if (!event.data) return;
-
   let data;
   try { data = event.data.json(); }
   catch(e) { data = { title: '🔥 DealScan', body: event.data.text(), type: 'general' }; }
-
-  // Vérifier les préférences utilisateur (stockées via postMessage)
   const notifType = data.type || 'general';
-
   const notifOptions = {
-    body:    data.body    || 'Un nouveau deal vous attend !',
-    icon:    data.icon    || '/icons/icon-192.png',
-    badge:   '/icons/icon-192.png',
-    image:   data.image   || undefined,
-    tag:     data.tag     || `dealscan-${notifType}`,
-    data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
+    body: data.body || 'Un nouveau deal vous attend !',
+    icon: data.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    image: data.image || undefined,
+    tag: data.tag || `dealscan-${notifType}`,
+    data: { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
     vibrate: [200, 100, 200],
-    requireInteraction: notifType === 'alert_price', // Les alertes prix restent jusqu'au clic
+    requireInteraction: notifType === 'alert_price',
     actions: _getActions(notifType),
   };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || _getTitle(notifType), notifOptions)
-  );
+  event.waitUntil(self.registration.showNotification(data.title || _getTitle(notifType), notifOptions));
 });
 
 function _getTitle(type) {
   const titles = {
     deal_score90: '🏆 Deal exceptionnel',
-    alert_price:  '🎯 Alerte prix déclenchée !',
-    flash_deal:   '⚡ Vente Flash',
-    newsletter:   '📬 Tes deals du jour',
-    new_feature:  '✨ Nouveauté DealScan',
-    community:    '🤝 Communauté',
+    alert_price: '🎯 Alerte prix déclenchée !',
+    flash_deal: '⚡ Vente Flash',
+    newsletter: '📬 Tes deals du jour',
+    new_feature: '✨ Nouveauté DealScan',
+    community: '🤝 Communauté',
   };
   return titles[type] || '🔥 DealScan';
 }
 
 function _getActions(type) {
   if (type === 'alert_price') return [
-    { action: 'view',    title: '🛒 Voir le deal' },
-    { action: 'snooze',  title: '⏰ Rappel +1h' },
+    { action: 'view', title: '🛒 Voir le deal' },
+    { action: 'snooze', title: '⏰ Rappel +1h' },
     { action: 'dismiss', title: '✕ Ignorer' },
   ];
   if (type === 'flash_deal') return [
-    { action: 'view',    title: '⚡ Saisir l\'offre' },
+    { action: 'view', title: '⚡ Saisir l\'offre' },
     { action: 'dismiss', title: '✕' },
   ];
   return [
-    { action: 'view',    title: '🔥 Voir' },
+    { action: 'view', title: '🔥 Voir' },
     { action: 'dismiss', title: '✕' },
   ];
 }
 
-// ── Notification click ───────────────────────────────────────
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'dismiss') return;
-
   const notifData = event.notification.data || {};
   let url = notifData.url || 'https://julvox.com';
-
-  // Snooze : re-notify dans 1h
-  // ⚠️  setTimeout dans un Service Worker est non fiable — le navigateur peut
-  // terminer le SW avant l'expiration. Solution définitive : utiliser un
-  // endpoint backend qui planifie une push notification côté serveur.
-  // En attendant, on tente le best-effort côté client.
   if (event.action === 'snooze') {
     const data = event.notification.data;
-    // data contient { url, type, dealId } — pas de champ "tag"
-    // On utilise dealId pour construire un tag unique et éviter les doublons
     const snoozeTag = data.dealId ? `snooze-deal-${data.dealId}` : 'snooze-generic';
     setTimeout(() => {
       self.registration.showNotification(event.notification.title, {
@@ -200,9 +171,7 @@ self.addEventListener('notificationclick', event => {
     }, 3600000);
     return;
   }
-
   if (notifData.dealId) url = `https://julvox.com/?deal=${notifData.dealId}`;
-
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
       for (const c of cls) {
@@ -216,21 +185,15 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ── Background Sync (retry failed API calls) ─────────────────
 self.addEventListener('sync', event => {
-  if (event.tag === 'sync-votes') {
-    event.waitUntil(syncPendingVotes());
-  }
-  if (event.tag === 'sync-alerts') {
-    event.waitUntil(syncPendingAlerts());
-  }
+  if (event.tag === 'sync-votes') event.waitUntil(syncPendingVotes());
+  if (event.tag === 'sync-alerts') event.waitUntil(syncPendingAlerts());
 });
 
 async function syncPendingVotes() {
-  // Les votes en attente sont envoyés quand la connexion revient
   try {
     const cache = await caches.open('dealscan-pending');
-    const keys  = await cache.keys();
+    const keys = await cache.keys();
     for (const req of keys) {
       try {
         const res = await fetch(req);
@@ -241,13 +204,9 @@ async function syncPendingVotes() {
 }
 
 async function syncPendingAlerts() {
-  // Intentionnellement vide — les alertes prix sont gérées côté serveur (Railway cron).
-  // Cette fonction est réservée pour une future implémentation de sync offline.
+  // Intentionnellement vide — les alertes prix sont gérées côté serveur.
 }
 
-// ── Message from page ─────────────────────────────────────────
 self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
