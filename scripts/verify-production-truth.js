@@ -12,6 +12,7 @@ const forbidden = [
   'getDemoAchievements',
   'generateSimulatedHistory',
   'localAnalyzeDeal',
+  'Analyse locale',
   'MacBook Air M3',
   'PS5 Slim',
   'Nike Air Max 270',
@@ -39,13 +40,17 @@ function scanProductionTruth(files, baseDir = root) {
   }
 
   if (/Math\.floor\(Math\.random\(\)\s*\*\s*58/.test(combined)) failures.push('random verification duration remains');
-  if (/(?:vote|votes|score|popularit)[\s\S]{0,300}Math\.random|Math\.random[\s\S]{0,300}(?:vote|votes|score|popularit)/i.test(combined)) {
-    failures.push('random vote, score or popularity fallback remains');
+  if (/(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)[^;\n]{0,180}Math\.random|Math\.random[^;\n]{0,180}(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)/i.test(combined)) {
+    failures.push('random vote, score, confirmation or popularity fallback remains');
   }
   if (/const\s+STORE_TRUST(?:_V3)?\s*=\s*\{\s*['"]/.test(combined)) failures.push('local merchant scores remain');
-  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,100}\|\|\s*(?:50|75|82)\b/.test(combined)) {
+  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,120}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(combined)) {
     failures.push('arbitrary displayed score fallback remains');
   }
+  if (/Score NovaDeal™\s+\$\{(?:deal|d)\.novadeal_score\}\/100/.test(combined)) {
+    failures.push('an absent score can still be rendered as undefined/100');
+  }
+  if (!html.includes('function ui00ScoreLabel(value)')) failures.push('explicit unavailable score formatter is missing');
   if (/let\s+rem\s*=\s*3600|dyn_timer_/.test(combined)) failures.push('synthetic flash timer remains');
   if (/\bLIVE\b/.test(combined)) failures.push('unqualified LIVE label remains');
   if (/fetchWithTimeout\(\s*(?:API\s*\+|`\$\{API\})|\bfetch\(\s*(?:API\s*\+|`\$\{API\})/.test(combined)) {
