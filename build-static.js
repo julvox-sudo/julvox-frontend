@@ -1,22 +1,28 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  loadPublicArtifactManifest,
+  resolveWithinRoot,
+} = require('./scripts/public-artifact-utils');
 
 const root = process.cwd();
 const out = path.join(root, 'dist');
-const exclude = new Set(['dist', '.git', '.github', 'node_modules']);
-const excludeFiles = new Set(['package-lock.json']);
 
-function copy(src, dest) {
-  const name = path.basename(src);
-  if (exclude.has(name) || excludeFiles.has(name)) return;
-  const stat = fs.statSync(src);
-  if (stat.isDirectory()) {
-    fs.mkdirSync(dest, { recursive: true });
-    for (const entry of fs.readdirSync(src)) copy(path.join(src, entry), path.join(dest, entry));
-  } else {
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
+function copyPublicFile(relativePath) {
+  const source = resolveWithinRoot(root, relativePath);
+  const destination = path.join(out, ...relativePath.split('/'));
+  if (!fs.existsSync(source)) {
+    throw new Error(`Cannot build public artifact: whitelisted source is missing: ${relativePath}`);
   }
+  const stat = fs.lstatSync(source);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`Cannot build public artifact: symbolic links are forbidden: ${relativePath}`);
+  }
+  if (!stat.isFile()) {
+    throw new Error(`Cannot build public artifact: whitelisted source is not a file: ${relativePath}`);
+  }
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(source, destination);
 }
 
 function readRuntimeContract() {
@@ -239,11 +245,12 @@ function integrateServiceWorkerPublicOrigin() {
   fs.writeFileSync(serviceWorkerPath, serviceWorker);
 }
 
+const publicManifest = loadPublicArtifactManifest(root, { expectedFileCount: 15 });
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
-for (const entry of fs.readdirSync(root)) copy(path.join(root, entry), path.join(out, entry));
+for (const entry of publicManifest.files) copyPublicFile(entry.path);
 integrateRuntimeConfig();
 integrateManifestIdentity();
 integrateServiceWorkerBackendDetection();
 integrateServiceWorkerPublicOrigin();
-console.log('Static build complete: dist/');
+console.log(`Static build complete: dist/ (${publicManifest.files.length} whitelisted files)`);
