@@ -28,6 +28,7 @@ const replacedFunctions = [
   'sendAIMessage', 'appendChatBubble', 'loadCashbackBalance', 'loadCashbackRates',
   'simulateCashback', 'renderDeals', 'startCountdownsLive', 'renderFlash',
   'openFlashPage', 'fetchFlashDeals', 'fetchFlashDealsFromClaude', 'renderMLRecommendations',
+  'runCompareV2', 'loadProductComparison',
 ];
 
 function sourceFixture() {
