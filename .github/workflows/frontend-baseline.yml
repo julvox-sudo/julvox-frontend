@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - "frontend/**"
+      - "fix/**"
 
 permissions:
   contents: read
@@ -32,14 +33,36 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Verify required build artifacts
+      - name: Verify exact public artifact
+        run: npm run verify:public-artifact
+
+      - name: Verify public references
+        run: npm run verify:public-references
+
+      - name: Verify deterministic public build
+        run: npm run verify:public-determinism
+
+      - name: Record public artifact proof
         shell: bash
         run: |
           set -euo pipefail
           test -f dist/index.html
           test -f dist/sw.js
-          test -s dist/index.html
-          test -s dist/sw.js
+          test -f dist/manifest.json
+          test -f dist/runtime-config.js
+          test -f dist/enhancements_v3.js
+          test -f build-reports/public-artifact-inventory.json
+          test -f build-reports/public-reference-report.json
+          test "$(find dist -type f | wc -l | tr -d ' ')" = "15"
+          test ! -e dist/.github
+          test ! -e dist/config
+          test ! -e dist/docs
+          test ! -e dist/scripts
+          test ! -e dist/tests
+          test ! -e dist/package.json
+          test ! -e dist/build-static.js
+          find dist -type f -print | LC_ALL=C sort
+          cat build-reports/public-artifact-inventory.json
 
       - name: Upload static build
         uses: actions/upload-artifact@v4
@@ -48,3 +71,11 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload public artifact reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: julvox-frontend-public-artifact-reports
+          path: build-reports/*.json
+          if-no-files-found: error
+          retention-days: 14
