@@ -9,10 +9,12 @@ const enhancementsPath = path.join(dist, 'enhancements_v3.js');
 function fail(message) {
   throw new Error(`UI-00 production truth transform failed: ${message}`);
 }
+
 function readRequired(filePath) {
   if (!fs.existsSync(filePath)) fail(`missing ${path.relative(root, filePath)}`);
   return fs.readFileSync(filePath, 'utf8');
 }
+
 function replaceRequired(source, pattern, replacement, label, minimum = 1) {
   const matches = typeof pattern === 'string'
     ? source.split(pattern).length - 1
@@ -20,6 +22,7 @@ function replaceRequired(source, pattern, replacement, label, minimum = 1) {
   if (matches < minimum) fail(`expected ${label}, found ${matches}`);
   return source.replace(pattern, replacement);
 }
+
 function findMatchingBrace(source, openingIndex) {
   let depth = 0;
   let quote = null;
@@ -48,6 +51,7 @@ function findMatchingBrace(source, openingIndex) {
   }
   return -1;
 }
+
 function replaceNamedFunction(source, name, replacement, required = true) {
   const expression = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`);
   const match = expression.exec(source);
@@ -61,6 +65,7 @@ function replaceNamedFunction(source, name, replacement, required = true) {
   if (braceEnd < 0) fail(`closing brace for ${name} not found`);
   return `${source.slice(0, match.index)}${replacement}${source.slice(braceEnd + 1)}`;
 }
+
 function replaceObjectDeclaration(source, name, replacement) {
   const expression = new RegExp(`const\\s+${name}\\s*=\\s*\\{`);
   const match = expression.exec(source);
@@ -72,10 +77,21 @@ function replaceObjectDeclaration(source, name, replacement) {
   if (source[end] === ';') end += 1;
   return `${source.slice(0, match.index)}${replacement}${source.slice(end)}`;
 }
+
 function centralizeApiFetches(source) {
   return source
+    .replace(/\bfetchWithTimeout\(\s*(?=API\s*\+)/g, 'window.JULVOX_API.fetchResponse(')
+    .replace(/\bfetchWithTimeout\(\s*(?=`\$\{API\})/g, 'window.JULVOX_API.fetchResponse(')
     .replace(/\bfetch\(\s*(?=API\s*\+)/g, 'window.JULVOX_API.fetchResponse(')
     .replace(/\bfetch\(\s*(?=`\$\{API\})/g, 'window.JULVOX_API.fetchResponse(');
+}
+
+function renderLoadFailureCode(elementName, message, retryExpression) {
+  return `if (${elementName}?.dataset?.ui00Confirmed === 'true') {
+    window.JULVOX_PRODUCTION_TRUTH?.renderPreservedError(${elementName}, ${JSON.stringify(message)}, ${retryExpression});
+  } else {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(${elementName}, 'error', ${JSON.stringify(message)}, ${retryExpression});
+  }`;
 }
 
 let html = readRequired(indexPath);
@@ -94,7 +110,7 @@ html = replaceRequired(
   'enhancements script',
 );
 html = html.replace(
-  /const API = window\.JULVOX_RUNTIME_CONFIG\?\.backend\?\.(?:apiBaseUrl|api_base_url) \|\| ['"][^'"]+['"];/,
+  /const API = window\.JULVOX_RUNTIME_CONFIG\?\.backend\?\.(?:apiBaseUrl|api_base_url) \|\| ['"][^'"]*['"];/,
   "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl || '';",
 );
 
@@ -106,13 +122,91 @@ const mutationFunctions = [
 ];
 for (const name of mutationFunctions) html = replaceNamedFunction(html, name, '', true);
 
+html = replaceNamedFunction(html, 'loadWishlistItems', `async function loadWishlistItems() {
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
+  const el = document.getElementById('wishlistItems');
+  if (!el) return;
+  if (!token) {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(el, 'empty', 'Connecte-toi pour utiliser la wishlist.', null);
+    return;
+  }
+  const result = await window.JULVOX_API.get('/wishlist', {
+    token,
+    isEmpty: data => !Array.isArray(data?.items) || data.items.length === 0,
+  });
+  if (!result.ok) {
+    ${renderLoadFailureCode('el', 'Wishlist indisponible. Les dernières données confirmées sont conservées.', 'loadWishlistItems')}
+    return;
+  }
+  if (result.kind === 'empty') {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(el, 'empty', 'Ta wishlist est vide.', loadWishlistItems);
+    return;
+  }
+  renderWishlistItems(result.data.items, el);
+  el.dataset.ui00Confirmed = 'true';
+}`, true);
+
+html = replaceNamedFunction(html, 'loadWishlist', `async function loadWishlist() {
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
+  const el = document.getElementById('wishlistContent');
+  if (!el) return;
+  if (!token) {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(el, 'empty', 'Connecte-toi pour voir ta wishlist.', null);
+    return;
+  }
+  const result = await window.JULVOX_API.get('/wishlist', {
+    token,
+    isEmpty: data => !Array.isArray(data?.wishlist) || data.wishlist.length === 0,
+  });
+  if (!result.ok) {
+    ${renderLoadFailureCode('el', 'Wishlist indisponible. Les dernières données confirmées sont conservées.', 'loadWishlist')}
+    return;
+  }
+  if (result.kind === 'empty') {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(el, 'empty', 'Ta wishlist est vide.', loadWishlist);
+    return;
+  }
+  renderWishlist(result.data.wishlist, el);
+  el.dataset.ui00Confirmed = 'true';
+}`, true);
+
+html = replaceNamedFunction(html, '_loadAndRenderPriceChart', `async function _loadAndRenderPriceChart(deal) {
+  const dealId = deal?.id;
+  const slot = document.getElementById('priceChartSlot_' + dealId);
+  if (!slot) return;
+  const retry = () => _loadAndRenderPriceChart(deal);
+  if (!Number.isInteger(dealId)) {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(slot, 'empty', 'Historique indisponible.', null);
+    return;
+  }
+  const result = await window.JULVOX_API.get('/deals/' + dealId, {
+    isEmpty: data => !Array.isArray(data?.price_history) || data.price_history.length < 2,
+  });
+  if (!result.ok) {
+    if (slot.dataset.ui00Confirmed === 'true') {
+      window.JULVOX_PRODUCTION_TRUTH?.renderPreservedError(slot, 'Historique indisponible. Les dernières données confirmées sont conservées.', retry);
+    } else {
+      window.JULVOX_PRODUCTION_TRUTH?.renderState(slot, 'error', 'Historique indisponible.', retry);
+    }
+    return;
+  }
+  const history = Array.isArray(result.data?.price_history)
+    ? result.data.price_history.filter(point => Number.isFinite(Number(point?.price)) && point?.date)
+    : [];
+  if (history.length < 2) {
+    window.JULVOX_PRODUCTION_TRUTH?.renderState(slot, 'empty', 'Historique indisponible.', retry);
+    return;
+  }
+  renderPriceHistoryChart(history, slot);
+  slot.dataset.ui00Confirmed = 'true';
+}`, true);
+
 html = html
   .replace(/renderCompareResults\(getDemoCompareResults\([^)]*\),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Comparaison indisponible. Réessayez.', () => window.runCompareSearch?.());")
   .replace(/renderLeaderboard\(getDemoLeaderboard\(\),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Classement indisponible. Réessayez.', () => window.loadCommLeader?.($1));")
   .replace(/renderCommDeals\(getDemoCommDeals\(\),\s*([^,]+),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Deals communautaires indisponibles. Réessayez.', () => window.loadCommDeals?.($2, $1));")
   .replace(/renderReport\(getDemoReport\(\),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Rapport indisponible. Réessayez.', () => window.loadMonthlyReport?.($1));")
   .replace(/renderScanResults\(getDemoScanResult\([^)]*\),\s*[^,]+,\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Scanner indisponible.', null);")
-  .replace(/renderWishlistItems\(getDemoWishlist\(\),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Wishlist indisponible. Réessayez.', () => window.loadWishlistItems?.());")
   .replace(/renderAchievements\(getDemoAchievements\(\),\s*([^)]+)\);/g, "window.JULVOX_PRODUCTION_TRUTH?.renderState($1, 'error', 'Progression indisponible. Réessayez.', () => window.loadAchievements?.($1));");
 
 const demoFunctions = [
@@ -146,7 +240,7 @@ html = replaceNamedFunction(html, 'runDealAnalysis', `async function runDealAnal
 
 html = replaceNamedFunction(html, 'renderTrustDetail', `function renderTrustDetail(deal) {
   const merchant = deal?.merchant || deal?.merchant_trust || null;
-  if (!merchant || !Number.isFinite(merchant.score)) return '';
+  if (!merchant || !Number.isFinite(merchant.score)) return '<div style="color:var(--txt3)">Score marchand indisponible</div>';
   const score = merchant.score;
   const label = merchant.tier ? 'Niveau ' + merchant.tier : 'Donnée backend';
   return '<div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px">' +
@@ -162,8 +256,8 @@ html = html
   .replace(/const mins\s*=\s*Math\.floor\(Math\.random\(\) \* 58 \+ 1\);/g, 'const mins = null;')
   .replace(/<span class="deal-trust \$\{tCls\}">\$\{tLbl\}<\/span>/g, "${trust === null ? '' : `<span class=\"deal-trust ${tCls}\">${tLbl}</span>`}")
   .replace(/\$\{ok \? `<div class="deal-verified">✓ Vérifié il y a \$\{mins\} min<\/div>` : ''\}/g, "${ok ? '<div class=\"deal-verified\">✓ Score fourni par le service</div>' : ''}")
-  .replace(/(\b(?:deal|d)\.novadeal_score)\s*\|\|\s*50/g, '$1 ?? null')
-  .replace(/\(d\.novadeal_score\s*\|\|\s*d\.score\)\s*\|\|\s*50/g, '(d.novadeal_score ?? d.score ?? null)')
+  .replace(/(\b(?:deal|d)\.novadeal_score)\s*\|\|\s*(?:50|82)\b/g, '$1 ?? null')
+  .replace(/\(d\.novadeal_score\s*\|\|\s*d\.score\)\s*\|\|\s*(?:50|82)\b/g, '(d.novadeal_score ?? d.score ?? null)')
   .replace(/Compte supprimé localement/g, 'Suppression impossible. Réessayez.')
   .replace(/Deal soumis \(vérification en cours\) ! \+15 pts/g, 'Soumission impossible. Réessayez.')
   .replace(/Alerte enregistrée pour/g, 'Création de l’alerte impossible pour')

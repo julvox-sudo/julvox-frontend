@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { runConfirmedMutation } = require('../../ui-00-production-truth.js');
+const { runConfirmedMutation, isConfirmedServerResult } = require('../../ui-00-production-truth.js');
 
 test('does not confirm before the server result', async () => {
   const events = [];
@@ -38,4 +38,17 @@ test('network exception triggers rollback and honest error', async () => {
   });
   assert.equal(result.ok, false);
   assert.deepEqual(events, ['rollback', 'network-error']);
+});
+
+test('an unnormalized ok flag cannot trigger business success', async () => {
+  const events = [];
+  await runConfirmedMutation({
+    operation: async () => ({ ok: true }),
+    onSuccess: () => events.push('success'),
+    rollback: () => events.push('rollback'),
+    onError: () => events.push('error'),
+  });
+  assert.deepEqual(events, ['rollback', 'error']);
+  assert.equal(isConfirmedServerResult({ ok: true, kind: 'success', status: 200 }), true);
+  assert.equal(isConfirmedServerResult({ ok: true, kind: 'success', status: 0 }), false);
 });

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createApiClient, getRuntimeApiBaseUrl } = require('../../api-client.js');
+const { createApiClient, getRuntimeApiBaseUrl, resolveApiUrl } = require('../../api-client.js');
 
 function runtime() {
   return { JULVOX_RUNTIME_CONFIG: { backend: { apiBaseUrl: 'https://api.example.test' } } };
@@ -27,6 +27,17 @@ test('refuses a missing runtime URL without fallback', async () => {
   assert.deepEqual({ ok: result.ok, status: result.status, kind: result.kind }, { ok: false, status: 0, kind: 'network-error' });
 });
 
+test('refuses an absolute URL outside the configured backend', () => {
+  assert.equal(resolveApiUrl('https://api.example.test.evil.invalid/deals', runtime()), null);
+  assert.equal(resolveApiUrl('https://other.example.test/deals', runtime()), null);
+});
+
+test('preserves a configured backend path prefix', () => {
+  const globalObject = { JULVOX_RUNTIME_CONFIG: { backend: { apiBaseUrl: 'https://api.example.test/v1' } } };
+  assert.equal(resolveApiUrl('/deals', globalObject), 'https://api.example.test/v1/deals');
+  assert.equal(resolveApiUrl('https://api.example.test/v2/deals', globalObject), null);
+});
+
 test('classifies 200 with data as success', async () => {
   const client = createApiClient({ globalObject: runtime(), fetchImpl: async () => jsonResponse({ deals: [{ id: 1 }] }) });
   const result = await client.get('/deals', { isEmpty: data => data.deals.length === 0 });
@@ -48,6 +59,23 @@ test('classifies 204 as empty', async () => {
   assert.equal(result.ok, true);
   assert.equal(result.kind, 'empty');
   assert.equal(result.status, 204);
+});
+
+test('requires explicit confirmation even for a 204 mutation', async () => {
+  const client = createApiClient({ globalObject: runtime(), fetchImpl: async () => new Response(null, { status: 204 }) });
+  const rejected = await client.delete('/resource', { confirm: () => false });
+  const accepted = await client.delete('/resource', { confirm: (_data, response) => response.status === 204 });
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.kind, 'parse-error');
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.kind, 'empty');
+});
+
+test('requires explicit confirmation for an empty 200 mutation response', async () => {
+  const client = createApiClient({ globalObject: runtime(), fetchImpl: async () => new Response('', { status: 200 }) });
+  const result = await client.post('/resource', {}, { confirm: () => false });
+  assert.equal(result.ok, false);
+  assert.equal(result.kind, 'parse-error');
 });
 
 for (const status of [400, 401, 403, 404, 500]) {

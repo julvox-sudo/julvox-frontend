@@ -52,6 +52,7 @@ jobs:
           actual_directories="$RUNNER_TEMP/quality01a-actual-directories.txt"
 
           cat > "$expected_files" <<'EOF'
+          api-client.js
           enhancements_v3.js
           google3a92a4041aeeec5e.html
           icons/icon-192.png
@@ -67,6 +68,7 @@ jobs:
           screenshots/screenshot-mobile.png
           sitemap.xml
           sw.js
+          ui-00-production-truth.js
           EOF
 
           cat > "$expected_directories" <<'EOF'

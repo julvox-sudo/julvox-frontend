@@ -64,7 +64,7 @@ function integrateRuntimeConfig() {
   const headClose = '</head>';
   const runtimeScript = '<script src="/runtime-config.js"></script>';
   const legacyApi = "const API = 'https://julvox-dealscan-backend-production.up.railway.app';";
-  const configuredApi = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.api_base_url || 'https://julvox-dealscan-backend-production.up.railway.app';";
+  const configuredApi = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl || '';";
   const legacyDnsPrefetch = '<link rel="dns-prefetch" href="https://julvox-dealscan-backend-production.up.railway.app"/>';
   const configuredDnsPrefetch = `<!-- runtime-contract:backend.api_base_url -->\n<link rel="dns-prefetch" href="${contract.backend.api_base_url}"/>`;
   const legacyPreconnect = '<link rel="preconnect" href="https://julvox-dealscan-backend-production.up.railway.app" crossorigin/>';
@@ -245,7 +245,7 @@ function integrateServiceWorkerPublicOrigin() {
   fs.writeFileSync(serviceWorkerPath, serviceWorker);
 }
 
-const publicManifest = loadPublicArtifactManifest(root, { expectedFileCount: 15 });
+const publicManifest = loadPublicArtifactManifest(root, { expectedFileCount: 17 });
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 for (const entry of publicManifest.files) copyPublicFile(entry.path);

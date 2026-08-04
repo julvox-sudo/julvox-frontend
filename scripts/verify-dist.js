@@ -5,11 +5,13 @@ const root = process.cwd();
 const dist = path.join(root, 'dist');
 
 const requiredFiles = [
+  'api-client.js',
   'enhancements_v3.js',
   'index.html',
   'manifest.json',
   'runtime-config.js',
   'sw.js',
+  'ui-00-production-truth.js',
 ];
 
 function fail(message) {
@@ -36,6 +38,12 @@ for (const relativePath of requiredFiles) {
 const indexHtml = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
 if (!/<html[\s>]/i.test(indexHtml) || !/<\/html>/i.test(indexHtml)) {
   fail('index.html does not contain a complete HTML document');
+}
+if (!indexHtml.includes('<script src="/api-client.js"></script>')) {
+  fail('index.html does not load api-client.js');
+}
+if (!indexHtml.includes('<script src="/ui-00-production-truth.js" defer></script>')) {
+  fail('index.html does not load ui-00-production-truth.js');
 }
 
 const serviceWorker = fs.readFileSync(path.join(dist, 'sw.js'), 'utf8');

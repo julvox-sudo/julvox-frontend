@@ -2,6 +2,10 @@
   "schema_version": 1,
   "files": [
     {
+      "path": "api-client.js",
+      "classification": "runtime-api-client"
+    },
+    {
       "path": "enhancements_v3.js",
       "classification": "runtime-script"
     },
@@ -60,6 +64,10 @@
     {
       "path": "sw.js",
       "classification": "service-worker"
+    },
+    {
+      "path": "ui-00-production-truth.js",
+      "classification": "runtime-product-truth"
     }
   ]
 }

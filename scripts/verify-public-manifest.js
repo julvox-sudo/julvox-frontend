@@ -10,6 +10,7 @@ const {
 
 const root = process.cwd();
 const EXPECTED_PUBLIC_PATHS = Object.freeze([
+  'api-client.js',
   'enhancements_v3.js',
   'google3a92a4041aeeec5e.html',
   'icons/icon-192.png',
@@ -25,6 +26,7 @@ const EXPECTED_PUBLIC_PATHS = Object.freeze([
   'screenshots/screenshot-mobile.png',
   'sitemap.xml',
   'sw.js',
+  'ui-00-production-truth.js',
 ]);
 const EXPECTED_FILE_COUNT = EXPECTED_PUBLIC_PATHS.length;
 
@@ -43,7 +45,7 @@ function expectFailure(label, document, expectedFragment) {
 const manifest = loadPublicArtifactManifest(root, { expectedFileCount: EXPECTED_FILE_COUNT });
 const manifestPaths = manifest.files.map((entry) => entry.path);
 if (JSON.stringify(manifestPaths) !== JSON.stringify(EXPECTED_PUBLIC_PATHS)) {
-  throw new Error('Public artifact manifest differs from the independently approved QUALITY-01A path set');
+  throw new Error('Public artifact manifest differs from the independently approved QUALITY-01A/UI-00 path set');
 }
 
 for (const entry of manifest.files) {

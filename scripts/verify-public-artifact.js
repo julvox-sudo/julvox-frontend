@@ -12,7 +12,7 @@ const {
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
-const EXPECTED_FILE_COUNT = 15;
+const EXPECTED_FILE_COUNT = 17;
 const failures = [];
 
 function fail(message) {
