@@ -12,17 +12,14 @@
 })(typeof window !== 'undefined' ? window : globalThis, function createJulvoxApiModule(globalObject) {
   'use strict';
 
-  const ALLOWED_KINDS = Object.freeze([
-    'success',
-    'empty',
-    'http-error',
-    'network-error',
-    'parse-error',
-  ]);
-  const TIMEOUT_REASON = Object.freeze({ type: 'julvox-timeout' });
+  const ALLOWED_KINDS = Object.freeze(['success', 'empty', 'http-error', 'network-error', 'parse-error']);
+  const TIMEOUT_REASON = Object.freeze({ code: 'JULVOX_TIMEOUT' });
+  const hasOwn = (object, key) => Boolean(object && typeof object === 'object'
+    && Object.prototype.hasOwnProperty.call(object, key));
 
-  function hasOwn(object, key) {
-    return Boolean(object && typeof object === 'object' && Object.prototype.hasOwnProperty.call(object, key));
+  function result({ ok, status, kind, data = null, message = null, retryAfter = null, timedOut = false, aborted = false }) {
+    if (!ALLOWED_KINDS.includes(kind)) throw new TypeError(`Unsupported API result kind: ${kind}`);
+    return Object.freeze({ ok: Boolean(ok), status: Number.isInteger(status) ? status : 0, kind, data, message, retryAfter, timedOut: Boolean(timedOut), aborted: Boolean(aborted) });
   }
 
   function safeMessageForStatus(status) {
@@ -37,173 +34,108 @@
     return 'La requête n’a pas pu aboutir.';
   }
 
-  function normalizedResult({
-    ok,
-    status,
-    kind,
-    data = null,
-    message = null,
-    retryAfter = null,
-    timedOut = false,
-    aborted = false,
-  }) {
-    if (!ALLOWED_KINDS.includes(kind)) throw new TypeError(`Unsupported API result kind: ${kind}`);
-    return Object.freeze({
-      ok: Boolean(ok),
-      status: Number.isInteger(status) ? status : 0,
-      kind,
-      data,
-      message,
-      retryAfter,
-      timedOut: Boolean(timedOut),
-      aborted: Boolean(aborted),
-    });
-  }
-
-  function getRuntime(globalLike = globalObject) {
-    if (!hasOwn(globalLike, 'JULVOX_RUNTIME_CONFIG')) return null;
-    const runtime = globalLike.JULVOX_RUNTIME_CONFIG;
-    return runtime && typeof runtime === 'object' ? runtime : null;
-  }
-
-  function decodeRepeatedly(value) {
-    let current = String(value);
+  function decodePath(value) {
+    let decoded = String(value);
     for (let index = 0; index < 3; index += 1) {
       try {
-        const decoded = decodeURIComponent(current);
-        if (decoded === current) break;
-        current = decoded;
-      } catch (_) {
-        return null;
-      }
+        const next = decodeURIComponent(decoded);
+        if (next === decoded) break;
+        decoded = next;
+      } catch (_) { return null; }
     }
-    return current;
-  }
-
-  function rawPathFromUrlLike(value) {
-    const text = String(value);
-    const withoutSchemeAndAuthority = text.replace(/^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/?#]*/u, '');
-    return withoutSchemeAndAuthority.split(/[?#]/u, 1)[0] || '';
+    return decoded;
   }
 
   function hasUnsafePath(value) {
-    const raw = rawPathFromUrlLike(value);
-    if (/\\|[\u0000-\u001F\u007F]/u.test(raw)) return true;
-    const decoded = decodeRepeatedly(raw);
-    if (decoded === null || /\\|[\u0000-\u001F\u007F]/u.test(decoded)) return true;
-    return decoded.split('/').some(segment => segment === '.' || segment === '..');
+    const text = String(value);
+    if (/\\|[\u0000-\u001f\u007f]/u.test(text)) return true;
+    const withoutAuthority = text.replace(/^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/?#]*/u, '');
+    const pathOnly = withoutAuthority.split(/[?#]/u, 1)[0];
+    const decoded = decodePath(pathOnly);
+    return decoded === null || /\\|[\u0000-\u001f\u007f]/u.test(decoded)
+      || decoded.split('/').some(segment => segment === '.' || segment === '..');
   }
 
-  function parseHttpUrl(value) {
-    if (typeof value !== 'string' || value.trim() === '' || value !== value.trim()) return null;
-    if (hasUnsafePath(value)) return null;
+  function parseBaseUrl(value) {
+    if (typeof value !== 'string' || value.trim() === '' || value !== value.trim() || hasUnsafePath(value)) return null;
     try {
       const url = new URL(value);
-      if (!['http:', 'https;'].includes(url.protocol)) return null;
-      if (url.username || url.password || url.search || url.hash) return null;
-      return url;
-    } catch (_) {
-      return null;
-    }
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) return null;
+      const path = url.pathname === '/' ? '' : url.pathname.replace(/\/+$/u, '');
+      return `${url.origin}${path}`;
+    } catch (_) { return null; }
   }
 
   function getRuntimeApiBaseUrl(globalLike = globalObject) {
-    const runtime = getRuntime(globalLike);
-    if (!runtime || !hasOwn(runtime, 'backend')) return null;
+    if (!hasOwn(globalLike, 'JULVOX_RUNTIME_CONFIG')) return null;
+    const runtime = globalLike.JULVOX_RUNTIME_CONFIG;
+    if (!runtime || typeof runtime !== 'object' || !hasOwn(runtime, 'backend')) return null;
     const backend = runtime.backend;
     if (!backend || typeof backend !== 'object' || !hasOwn(backend, 'apiBaseUrl')) return null;
-    const url = parseHttpUrl(backend.apiBaseUrl);
-    if (!url) return null;
-    const pathname = url.pathname === '/' ? '' : url.pathname.replace(/\/+$/u, '');
-    return `${url.origin}${pathname}`;
+    return parseBaseUrl(backend.apiBaseUrl);
   }
 
-  function isWithinConfiguredBackend(candidate, baseUrl) {
-    const base = new URL(baseUrl);
-    if (!['http:', 'https;'].includes(candidate.protocol)) return false;
-    if (candidate.username || candidate.password || candidate.origin !== base.origin) return false;
-    const basePath = base.pathname === '/' ? '' : base.pathname.replace(/\/+$/u, '');
-    return !basePath || candidate.pathname === basePath || candidate.pathname.startsWith(`${basePath}/`);
+  function withinBase(candidate, base) {
+    if (!['http:', 'https:'].includes(candidate.protocol) || candidate.username || candidate.password || candidate.origin !== base.origin) return false;
+    const prefix = base.pathname === '/' ? '' : base.pathname.replace(/\/+$/u, '');
+    return !prefix || candidate.pathname === prefix || candidate.pathname.startsWith(`${prefix}/`);
   }
 
   function resolveApiUrl(path, globalLike = globalObject) {
-    const baseUrl = getRuntimeApiBaseUrl(globalLike);
-    if (!baseUrl) return null;
+    const baseValue = getRuntimeApiBaseUrl(globalLike);
+    if (!baseValue) return null;
     const value = path instanceof URL ? path.href : String(path ?? '');
     if (!value || value !== value.trim() || hasUnsafePath(value)) return null;
-
-    let candidate;
+    const base = new URL(baseValue);
     try {
-      if (/^[A-Za-z][A-Za-z0-9+.-]*:/u.test(value)) {
-        candidate = new URL(value);
-      } else if (value.startsWith('?')) {
-        candidate = new URL(`${baseUrl}${value}`);
-      } else {
-        const relative = value.replace(/^\/+/, '');
-        candidate = new URL(relative, `${baseUrl}/`);
-      }
-    } catch (_) {
-      return null;
+      let candidate;
+      if (/^[A-Za-z][A-Za-z0-9+.-]*:/u.test(value)) candidate = new URL(value);
+      else if (value.startsWith('?')) candidate = new URL(`${baseValue}${value}`);
+      else candidate = new URL(value.replace(/^\/+/, ''), `${baseValue}/`);
+      return withinBase(candidate, base) ? candidate.href : null;
+    } catch (_) { return null; }
+  }
+
+  function normalizedEmpty(status, confirm, response) {
+    if (typeof confirm === 'function' && !confirm(null, response)) {
+      return result({ ok: false, status, kind: 'parse-error', message: 'La confirmation du service est incomplète.' });
     }
-    return isWithinConfiguredBackend(candidate, baseUrl) ? candidate.href : null;
+    return result({ ok: true, status, kind: 'empty', data: null });
   }
 
-  function defaultIsEmpty(data) {
-    if (data === null || data === undefined) return true;
-    if (Array.isArray(data)) return data.length === 0;
-    return false;
-  }
-
-  function confirmationFailed(status) {
-    return normalizedResult({
-      ok: false,
-      status,
-      kind: 'parse-error',
-      message: 'La confirmation du service est incomplète.',
-    });
-  }
-
-  function isBodyType(value, constructorName) {
-    const constructor = globalThis?.[constructorName];
+  function isBodyType(value, name) {
+    const constructor = globalThis?.[name];
     return typeof constructor === 'function' && value instanceof constructor;
   }
 
   function prepareBody(body, headers) {
-    if (body === undefined || body === null) return body;
-    if (typeof body === 'string'
-      || isBodyType(body, 'FormData')
-      || isBodyType(body, 'URLSearchParams')
-      || isBodyType(body, 'Blob')
-      || isBodyType(body, 'ArrayBuffer')
-      || (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(body))) {
-      return body;
-    }
+    if (body === undefined || body === null || typeof body === 'string'
+      || isBodyType(body, 'FormData') || isBodyType(body, 'URLSearchParams')
+      || isBodyType(body, 'Blob') || isBodyType(body, 'ArrayBuffer')
+      || (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(body))) return body;
     const prototype = typeof body === 'object' ? Object.getPrototypeOf(body) : null;
-    const isJsonValue = Array.isArray(body) || prototype === Object.prototype || prototype === null;
-    if (!isJsonValue) return body;
+    if (!Array.isArray(body) && prototype !== Object.prototype && prototype !== null) return body;
     if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     return JSON.stringify(body);
   }
 
-  function addBearerToken(headers, token) {
-    if (typeof token !== 'string' || token.trim() === '' || headers.has('Authorization')) return;
-    headers.set('Authorization', `Bearer ${token.trim()}`);
+  function addToken(headers, token) {
+    if (typeof token === 'string' && token.trim() && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token.trim()}`);
+    }
   }
 
-  function createAbortContext(signal, timeoutMs) {
+  function abortContext(signal, timeoutMs) {
     const controller = new AbortController();
-    let externalAbortHandler = null;
-    if (signal) {
-      externalAbortHandler = () => controller.abort(signal.reason);
-      if (signal.aborted) externalAbortHandler();
-      else signal.addEventListener('abort', externalAbortHandler, { once: true });
-    }
-    const timeoutId = setTimeout(() => controller.abort(TIMEOUT_REASON), timeoutMs);
+    const onAbort = () => controller.abort(signal.reason);
+    if (signal?.aborted) onAbort();
+    else signal?.addEventListener?.('abort', onAbort, { once: true });
+    const timer = setTimeout(() => controller.abort(TIMEOUT_REASON), timeoutMs);
     return {
-      controller,
+      signal: controller.signal,
       cleanup() {
-        clearTimeout(timeoutId);
-        if (signal && externalAbortHandler) signal.removeEventListener('abort', externalAbortHandler);
+        clearTimeout(timer);
+        signal?.removeEventListener?.('abort', onAbort);
       },
     };
   }
@@ -211,156 +143,62 @@
   function createApiClient(options = {}) {
     const runtimeGlobal = options.globalObject || globalObject;
     const fetchImpl = options.fetchImpl || runtimeGlobal?.fetch?.bind(runtimeGlobal);
-    const defaultTimeoutMs = Number.isFinite(options.timeoutMs) && options.timeoutMs >= 0
-      ? options.timeoutMs
-      : 12_000;
+    const defaultTimeout = Number.isFinite(options.timeoutMs) && options.timeoutMs >= 0 ? options.timeoutMs : 12_000;
 
     async function request(path, requestOptions = {}) {
       const url = resolveApiUrl(path, runtimeGlobal);
-      if (!url) {
-        return normalizedResult({
-          ok: false,
-          status: 0,
-          kind: 'network-error',
-          message: 'Configuration du service indisponible.',
-        });
+      if (!url || typeof fetchImpl !== 'function') {
+        return result({ ok: false, status: 0, kind: 'network-error', message: url ? 'Le réseau est indisponible.' : 'Configuration du service indisponible.' });
       }
-      if (typeof fetchImpl !== 'function') {
-        return normalizedResult({
-          ok: false,
-          status: 0,
-          kind: 'network-error',
-          message: 'Le réseau est indisponible.',
-        });
-      }
-
-      const {
-        token,
-        timeoutMs: requestedTimeout,
-        confirm,
-        isEmpty,
-        signal,
-        body,
-        headers: suppliedHeaders,
-        ...fetchOptions
-      } = requestOptions;
+      const { token, timeoutMs: requestedTimeout, confirm, isEmpty, signal, body, headers: suppliedHeaders, ...fetchOptions } = requestOptions;
       const headers = new Headers(suppliedHeaders || {});
-      addBearerToken(headers, token);
+      addToken(headers, token);
       const preparedBody = prepareBody(body, headers);
-      const timeoutMs = Number.isFinite(requestedTimeout) && requestedTimeout >= 0
-        ? requestedTimeout
-        : defaultTimeoutMs;
-      const abortContext = createAbortContext(signal, timeoutMs);
-
+      const timeoutMs = Number.isFinite(requestedTimeout) && requestedTimeout >= 0 ? requestedTimeout : defaultTimeout;
+      const context = abortContext(signal, timeoutMs);
       try {
-        const response = await fetchImpl(url, {
-          ...fetchOptions,
-          headers,
-          body: preparedBody,
-          signal: abortContext.controller.signal,
-        });
+        const response = await fetchImpl(url, { ...fetchOptions, headers, body: preparedBody, signal: context.signal });
         const status = Number(response.status) || 0;
         const retryAfter = response.headers?.get?.('Retry-After') || null;
         let text = '';
         try {
           if (status !== 204 && status !== 205) text = await response.text();
         } catch (_) {
-          return normalizedResult({
-            ok: false,
-            status,
-            kind: 'network-error',
-            message: 'La réponse du service n’a pas pu être lue.',
-          });
+          return result({ ok: false, status, kind: 'network-error', message: 'La réponse du service n’a pas pu être lue.' });
         }
-
-        if (!response.ok) {
-          return normalizedResult({
-            ok: false,
-            status,
-            kind: 'http-error',
-            message: safeMessageForStatus(status),
-            retryAfter,
-          });
-        }
-
-        if (status === 204 || status === 205 || text.trim() === '') {
-          if (typeof confirm === 'function' && !confirm(null, response)) return confirmationFailed(status);
-          return normalizedResult({ ok: true, status, kind: 'empty', data: null });
-        }
-
+        if (!response.ok) return result({ ok: false, status, kind: 'http-error', message: safeMessageForStatus(status), retryAfter });
+        if (status === 204 || status === 205 || text.trim() === '') return normalizedEmpty(status, confirm, response);
         let data;
-        try {
-          data = JSON.parse(text);
-        } catch (_) {
-          return normalizedResult({
-            ok: false,
-            status,
-            kind: 'parse-error',
-            message: 'La réponse du service est illisible.',
-          });
+        try { data = JSON.parse(text); }
+        catch (_) { return result({ ok: false, status, kind: 'parse-error', message: 'La réponse du service est illisible.' }); }
+        if (typeof confirm === 'function' && !confirm(data, response)) {
+          return result({ ok: false, status, kind: 'parse-error', message: 'La confirmation du service est incomplète.' });
         }
-
-        if (typeof confirm === 'function' && !confirm(data, response)) return confirmationFailed(status);
-        const empty = typeof isEmpty === 'function' ? isEmpty(data) : defaultIsEmpty(data);
-        return normalizedResult({
-          ok: true,
-          status,
-          kind: empty ? 'empty' : 'success',
-          data,
-        });
+        const empty = typeof isEmpty === 'function' ? isEmpty(data) : data === null || data === undefined || (Array.isArray(data) && data.length === 0);
+        return result({ ok: true, status, kind: empty ? 'empty' : 'success', data });
       } catch (_) {
-        const timedOut = abortContext.controller.signal.aborted
-          && abortContext.controller.signal.reason === TIMEOUT_REASON;
-        const aborted = abortContext.controller.signal.aborted && !timedOut;
-        return normalizedResult({
-          ok: false,
-          status: 0,
-          kind: 'network-error',
-          message: timedOut
-            ? 'La requête a expiré. Réessayez.'
-            : aborted
-              ? 'La requête a été annulée.'
-              : 'Connexion au service impossible.',
-          timedOut,
-          aborted,
+        const timedOut = context.signal.aborted && context.signal.reason === TIMEOUT_REASON;
+        const aborted = context.signal.aborted && !timedOut;
+        return result({
+          ok: false, status: 0, kind: 'network-error', timedOut, aborted,
+          message: timedOut ? 'La requête a expiré. Réessayez.' : aborted ? 'La requête a été annulée.' : 'Connexion au service impossible.',
         });
-      } finally {
-        abortContext.cleanup();
-      }
+      } finally { context.cleanup(); }
     }
 
     async function fetchResponse(input, init = {}, legacyTimeoutMs) {
       const url = resolveApiUrl(input, runtimeGlobal);
       if (!url) throw new TypeError('Julvox runtime API URL is unavailable or the URL is outside the configured backend.');
       if (typeof fetchImpl !== 'function') throw new TypeError('Fetch is unavailable.');
-      const {
-        token,
-        timeoutMs: requestedTimeout,
-        signal,
-        body,
-        headers: suppliedHeaders,
-        confirm: _confirm,
-        isEmpty: _isEmpty,
-        ...fetchOptions
-      } = init;
+      const { token, timeoutMs: requestedTimeout, signal, body, headers: suppliedHeaders, confirm: _confirm, isEmpty: _isEmpty, ...fetchOptions } = init;
       const headers = new Headers(suppliedHeaders || {});
-      addBearerToken(headers, token);
+      addToken(headers, token);
       const preparedBody = prepareBody(body, headers);
-      const timeoutCandidate = Number.isFinite(requestedTimeout) ? requestedTimeout : legacyTimeoutMs;
-      const timeoutMs = Number.isFinite(timeoutCandidate) && timeoutCandidate >= 0
-        ? timeoutCandidate
-        : defaultTimeoutMs;
-      const abortContext = createAbortContext(signal, timeoutMs);
-      try {
-        return await fetchImpl(url, {
-          ...fetchOptions,
-          headers,
-          body: preparedBody,
-          signal: abortContext.controller.signal,
-        });
-      } finally {
-        abortContext.cleanup();
-      }
+      const candidate = Number.isFinite(requestedTimeout) ? requestedTimeout : legacyTimeoutMs;
+      const timeoutMs = Number.isFinite(candidate) && candidate >= 0 ? candidate : defaultTimeout;
+      const context = abortContext(signal, timeoutMs);
+      try { return await fetchImpl(url, { ...fetchOptions, headers, body: preparedBody, signal: context.signal }); }
+      finally { context.cleanup(); }
     }
 
     return Object.freeze({
@@ -375,12 +213,5 @@
   }
 
   const defaultClient = createApiClient();
-  return Object.freeze({
-    ALLOWED_KINDS,
-    createApiClient,
-    getRuntimeApiBaseUrl,
-    resolveApiUrl,
-    safeMessageForStatus,
-    ...defaultClient,
-  });
+  return Object.freeze({ ALLOWED_KINDS, createApiClient, getRuntimeApiBaseUrl, resolveApiUrl, safeMessageForStatus, ...defaultClient });
 });
