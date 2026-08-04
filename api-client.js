@@ -25,6 +25,7 @@
     if (status === 401) return 'Votre session a expiré. Reconnectez-vous.';
     if (status === 403) return 'Cette action n’est pas autorisée.';
     if (status === 404) return 'La ressource demandée est introuvable.';
+    if (status === 409) return 'La ressource a changé. Actualisez puis réessayez.';
     if (status === 429) return 'Trop de requêtes. Réessayez plus tard.';
     if (status >= 500) return 'Le service est momentanément indisponible.';
     return 'La requête n’a pas pu aboutir.';
@@ -53,30 +54,48 @@
     try {
       const url = new URL(raw);
       if (!['http:', 'https:'].includes(url.protocol)) return null;
-      return url.origin + url.pathname.replace(/\/$/, '');
+      const pathname = url.pathname === '/' ? '' : url.pathname.replace(/\/$/, '');
+      return `${url.origin}${pathname}`;
     } catch (_) {
       return null;
     }
   }
 
+  function isWithinConfiguredBackend(candidate, baseUrl) {
+    const base = new URL(baseUrl);
+    if (candidate.origin !== base.origin) return false;
+    const basePath = base.pathname === '/' ? '' : base.pathname.replace(/\/$/, '');
+    return !basePath || candidate.pathname === basePath || candidate.pathname.startsWith(`${basePath}/`);
+  }
+
   function resolveApiUrl(path, globalLike = globalObject) {
     const baseUrl = getRuntimeApiBaseUrl(globalLike);
     if (!baseUrl) return null;
-    if (path instanceof URL) {
-      if (!path.href.startsWith(baseUrl)) return null;
-      return path.href;
+    const value = path instanceof URL ? path.href : String(path || '');
+    const joined = /^https?:\/\//i.test(value)
+      ? value
+      : `${baseUrl}${value.startsWith('/') ? value : `/${value}`}`;
+    try {
+      const candidate = new URL(joined);
+      return isWithinConfiguredBackend(candidate, baseUrl) ? candidate.href : null;
+    } catch (_) {
+      return null;
     }
-    const value = String(path || '');
-    if (/^https?:\/\//i.test(value)) {
-      return value.startsWith(baseUrl) ? value : null;
-    }
-    return `${baseUrl}${value.startsWith('/') ? value : `/${value}`}`;
   }
 
   function defaultIsEmpty(data) {
     if (data === null || data === undefined) return true;
     if (Array.isArray(data)) return data.length === 0;
     return false;
+  }
+
+  function confirmationFailed(status) {
+    return normalizedResult({
+      ok: false,
+      status,
+      kind: 'parse-error',
+      message: 'La confirmation du service est incomplète.',
+    });
   }
 
   function createApiClient(options = {}) {
@@ -108,7 +127,8 @@
         headers.set('Authorization', `Bearer ${requestOptions.token}`);
       }
       const body = requestOptions.body;
-      if (body !== undefined && body !== null && !(body instanceof FormData) && !headers.has('Content-Type')) {
+      const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+      if (body !== undefined && body !== null && !isFormData && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
       }
 
@@ -126,7 +146,9 @@
         const response = await fetchImpl(url, {
           ...requestOptions,
           headers,
-          body: body && headers.get('Content-Type') === 'application/json' && typeof body !== 'string'
+          body: body !== undefined && body !== null
+            && headers.get('Content-Type') === 'application/json'
+            && typeof body !== 'string'
             ? JSON.stringify(body)
             : body,
           signal: controller.signal,
@@ -146,6 +168,9 @@
         }
 
         if (status === 204 || text.trim() === '') {
+          if (typeof requestOptions.confirm === 'function' && !requestOptions.confirm(null, response)) {
+            return confirmationFailed(status);
+          }
           return normalizedResult({ ok: true, status, kind: 'empty', data: null });
         }
 
@@ -162,12 +187,7 @@
         }
 
         if (typeof requestOptions.confirm === 'function' && !requestOptions.confirm(data, response)) {
-          return normalizedResult({
-            ok: false,
-            status,
-            kind: 'parse-error',
-            message: 'La confirmation du service est incomplète.',
-          });
+          return confirmationFailed(status);
         }
 
         const isEmpty = typeof requestOptions.isEmpty === 'function'
@@ -179,7 +199,7 @@
           kind: isEmpty ? 'empty' : 'success',
           data,
         });
-      } catch (error) {
+      } catch (_) {
         const timedOut = controller.signal.aborted && controller.signal.reason === 'timeout';
         return normalizedResult({
           ok: false,
@@ -201,6 +221,10 @@
       const timeoutMs = Number.isFinite(init.timeoutMs) ? init.timeoutMs : defaultTimeoutMs;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort('timeout'), timeoutMs);
+      if (init.signal) {
+        if (init.signal.aborted) controller.abort(init.signal.reason);
+        else init.signal.addEventListener('abort', () => controller.abort(init.signal.reason), { once: true });
+      }
       try {
         return await fetchImpl(url, { ...init, headers, signal: controller.signal });
       } finally {
