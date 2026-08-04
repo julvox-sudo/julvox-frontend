@@ -7,8 +7,11 @@ const INVENTORY_RELATIVE_PATH = 'build-reports/public-artifact-inventory.json';
 const REFERENCE_REPORT_RELATIVE_PATH = 'build-reports/public-reference-report.json';
 
 const FORBIDDEN_DIRECTORY_PREFIXES = [
+  '.git/',
   '.github/',
+  'build-reports/',
   'config/',
+  'coverage/',
   'docs/',
   'node_modules/',
   'scripts/',
@@ -16,6 +19,7 @@ const FORBIDDEN_DIRECTORY_PREFIXES = [
 ];
 
 const FORBIDDEN_EXACT_PATHS = new Set([
+  '.env',
   'build-static.js',
   'package-lock.json',
   'package.json',
@@ -60,10 +64,45 @@ function normalizePublicPath(value) {
 
 function resolveWithinRoot(root, relativePath) {
   const normalized = normalizePublicPath(relativePath);
-  const absolute = path.resolve(root, ...normalized.split('/'));
-  const relative = path.relative(root, absolute);
+  const segments = normalized.split('/');
+  const rootAbsolute = path.resolve(root);
+  const absolute = path.resolve(rootAbsolute, ...segments);
+  const relative = path.relative(rootAbsolute, absolute);
   if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error(`Public artifact path escapes or resolves to repository root: ${relativePath}`);
+  }
+
+  let current = rootAbsolute;
+  for (const segment of segments) {
+    current = path.join(current, segment);
+    if (!fs.existsSync(current)) break;
+    if (fs.lstatSync(current).isSymbolicLink()) {
+      throw new Error(`Public artifact path must not contain a symbolic link: ${relativePath}`);
+    }
+  }
+
+  if (fs.existsSync(absolute)) {
+    const rootReal = fs.realpathSync(rootAbsolute);
+    const fileReal = fs.realpathSync(absolute);
+    const realRelative = path.relative(rootReal, fileReal);
+    if (!realRelative || realRelative.startsWith('..') || path.isAbsolute(realRelative)) {
+      throw new Error(`Public artifact path escapes repository root through the filesystem: ${relativePath}`);
+    }
+  }
+  return absolute;
+}
+
+function resolveExistingPublicFileWithinRoot(root, relativePath) {
+  const absolute = resolveWithinRoot(root, relativePath);
+  if (!fs.existsSync(absolute)) {
+    throw new Error(`Whitelisted source file is missing: ${relativePath}`);
+  }
+  const stat = fs.lstatSync(absolute);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`Whitelisted source path must not contain a symbolic link: ${relativePath}`);
+  }
+  if (!stat.isFile()) {
+    throw new Error(`Whitelisted source path is not a file: ${relativePath}`);
   }
   return absolute;
 }
@@ -145,9 +184,11 @@ function loadPublicArtifactManifest(root = process.cwd(), options = {}) {
 
 function isForbiddenPublicPath(publicPath) {
   const normalized = normalizePublicPath(publicPath);
-  if (FORBIDDEN_EXACT_PATHS.has(normalized)) return true;
-  if (FORBIDDEN_DIRECTORY_PREFIXES.some((prefix) => normalized.startsWith(prefix))) return true;
   const lower = normalized.toLocaleLowerCase('en-US');
+  const segments = lower.split('/');
+  if (segments.some((segment) => segment.startsWith('.'))) return true;
+  if (FORBIDDEN_EXACT_PATHS.has(lower) || lower.startsWith('.env.')) return true;
+  if (FORBIDDEN_DIRECTORY_PREFIXES.some((prefix) => lower.startsWith(prefix))) return true;
   return FORBIDDEN_SUFFIXES.some((suffix) => lower.endsWith(suffix));
 }
 
@@ -167,6 +208,32 @@ function listFilesRecursive(directory) {
       if (entry.isDirectory()) visit(absolute, relative);
       else if (entry.isFile()) output.push(normalizePublicPath(relative));
       else throw new Error(`Unsupported public artifact filesystem entry: ${relative}`);
+    }
+  }
+
+  visit(directory, '');
+  return output;
+}
+
+function listDirectoriesRecursive(directory) {
+  if (!fs.existsSync(directory)) return [];
+  const output = [];
+
+  function visit(current, relativePrefix) {
+    const entries = fs.readdirSync(current, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name, 'en'));
+    for (const entry of entries) {
+      const relative = relativePrefix ? `${relativePrefix}/${entry.name}` : entry.name;
+      const absolute = path.join(current, entry.name);
+      if (entry.isSymbolicLink()) {
+        throw new Error(`Symbolic links are not allowed in public artifact output: ${relative}`);
+      }
+      if (entry.isDirectory()) {
+        output.push(normalizePublicPath(relative));
+        visit(absolute, relative);
+      } else if (!entry.isFile()) {
+        throw new Error(`Unsupported public artifact filesystem entry: ${relative}`);
+      }
     }
   }
 
@@ -212,9 +279,11 @@ module.exports = {
   REFERENCE_REPORT_RELATIVE_PATH,
   createInventory,
   isForbiddenPublicPath,
+  listDirectoriesRecursive,
   listFilesRecursive,
   loadPublicArtifactManifest,
   normalizePublicPath,
+  resolveExistingPublicFileWithinRoot,
   resolveWithinRoot,
   sha256File,
   validateManifestDocument,
