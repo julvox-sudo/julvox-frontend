@@ -23,12 +23,23 @@ function replaceAtLeast(source, pattern, replacement, label, minimum = 1) {
   return source.replace(pattern, replacement);
 }
 
+function canStartRegexLiteral(source, slashIndex) {
+  let index = slashIndex - 1;
+  while (index >= 0 && /\s/u.test(source[index])) index -= 1;
+  if (index < 0) return true;
+  if (/[(\[{,:;=!?&|+*%^~<>-]/u.test(source[index])) return true;
+  const prefix = source.slice(Math.max(0, index - 24), index + 1);
+  return /\b(?:return|case|throw|delete|void|typeof|instanceof|in|of|yield|await|new)$/u.test(prefix);
+}
+
 function findMatchingBrace(source, openingIndex) {
   let depth = 0;
   let quote = null;
   let escaped = false;
   let lineComment = false;
   let blockComment = false;
+  let regexLiteral = false;
+  let regexClass = false;
   for (let index = openingIndex; index < source.length; index += 1) {
     const character = source[index];
     const next = source[index + 1];
@@ -40,8 +51,17 @@ function findMatchingBrace(source, openingIndex) {
       if (character === quote) quote = null;
       continue;
     }
+    if (regexLiteral) {
+      if (escaped) { escaped = false; continue; }
+      if (character === '\\') { escaped = true; continue; }
+      if (character === '[') { regexClass = true; continue; }
+      if (character === ']' && regexClass) { regexClass = false; continue; }
+      if (character === '/' && !regexClass) regexLiteral = false;
+      continue;
+    }
     if (character === '/' && next === '/') { lineComment = true; index += 1; continue; }
     if (character === '/' && next === '*') { blockComment = true; index += 1; continue; }
+    if (character === '/' && canStartRegexLiteral(source, index)) { regexLiteral = true; regexClass = false; continue; }
     if (character === '"' || character === "'" || character === '`') { quote = character; continue; }
     if (character === '{') depth += 1;
     if (character === '}') {
