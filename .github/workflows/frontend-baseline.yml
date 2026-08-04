@@ -42,27 +42,59 @@ jobs:
       - name: Verify deterministic public build
         run: npm run verify:public-determinism
 
-      - name: Record public artifact proof
+      - name: Record independent public artifact proof
         shell: bash
         run: |
           set -euo pipefail
-          test -f dist/index.html
-          test -f dist/sw.js
-          test -f dist/manifest.json
-          test -f dist/runtime-config.js
-          test -f dist/enhancements_v3.js
+          expected_files="$RUNNER_TEMP/quality01a-expected-files.txt"
+          actual_files="$RUNNER_TEMP/quality01a-actual-files.txt"
+          expected_directories="$RUNNER_TEMP/quality01a-expected-directories.txt"
+          actual_directories="$RUNNER_TEMP/quality01a-actual-directories.txt"
+
+          cat > "$expected_files" <<'EOF'
+          enhancements_v3.js
+          google3a92a4041aeeec5e.html
+          icons/icon-192.png
+          icons/icon-512.png
+          icons/shortcut-alerts.png
+          icons/shortcut-deals.png
+          icons/shortcut-flash.png
+          icons/shortcut-promos.png
+          index.html
+          manifest.json
+          robots.txt
+          runtime-config.js
+          screenshots/screenshot-mobile.png
+          sitemap.xml
+          sw.js
+          EOF
+
+          cat > "$expected_directories" <<'EOF'
+          icons
+          screenshots
+          EOF
+
+          find dist -type f -printf '%P\n' | LC_ALL=C sort > "$actual_files"
+          find dist -mindepth 1 -type d -printf '%P\n' | LC_ALL=C sort > "$actual_directories"
+          diff -u "$expected_files" "$actual_files"
+          diff -u "$expected_directories" "$actual_directories"
+
           test -f build-reports/public-artifact-inventory.json
           test -f build-reports/public-reference-report.json
-          test "$(find dist -type f | wc -l | tr -d ' ')" = "15"
+          test ! -e dist/.git
           test ! -e dist/.github
+          test ! -e dist/build-reports
           test ! -e dist/config
           test ! -e dist/docs
           test ! -e dist/scripts
           test ! -e dist/tests
           test ! -e dist/package.json
           test ! -e dist/build-static.js
-          find dist -type f -print | LC_ALL=C sort
+          test -z "$(find dist -type l -print -quit)"
+
+          cat "$actual_files"
           cat build-reports/public-artifact-inventory.json
+          cat build-reports/public-reference-report.json
 
       - name: Upload static build
         uses: actions/upload-artifact@v4
