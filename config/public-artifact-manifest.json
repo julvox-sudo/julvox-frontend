@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "enhancements_v3.js",
+      "classification": "runtime-script"
+    },
+    {
+      "path": "google3a92a4041aeeec5e.html",
+      "classification": "domain-verification"
+    },
+    {
+      "path": "icons/icon-192.png",
+      "classification": "pwa-icon"
+    },
+    {
+      "path": "icons/icon-512.png",
+      "classification": "pwa-icon"
+    },
+    {
+      "path": "icons/shortcut-alerts.png",
+      "classification": "pwa-shortcut-icon"
+    },
+    {
+      "path": "icons/shortcut-deals.png",
+      "classification": "pwa-shortcut-icon"
+    },
+    {
+      "path": "icons/shortcut-flash.png",
+      "classification": "pwa-shortcut-icon"
+    },
+    {
+      "path": "icons/shortcut-promos.png",
+      "classification": "pwa-shortcut-icon"
+    },
+    {
+      "path": "index.html",
+      "classification": "application-entrypoint"
+    },
+    {
+      "path": "manifest.json",
+      "classification": "pwa-manifest"
+    },
+    {
+      "path": "robots.txt",
+      "classification": "seo"
+    },
+    {
+      "path": "runtime-config.js",
+      "classification": "generated-runtime-config"
+    },
+    {
+      "path": "screenshots/screenshot-mobile.png",
+      "classification": "pwa-screenshot"
+    },
+    {
+      "path": "sitemap.xml",
+      "classification": "seo"
+    },
+    {
+      "path": "sw.js",
+      "classification": "service-worker"
+    }
+  ]
+}
