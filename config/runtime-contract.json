@@ -5,7 +5,36 @@
     "tagline": "Achetez mieux. Décidez avec confiance.",
     "description": "Julvox analyse les offres, compare les prix et vous aide à prendre des décisions d’achat fiables, transparentes et argumentées.",
     "frontend_version": "17.0.0",
-    "public_base_url": "https://julvox.com"
+    "public_base_url": "https://julvox.com",
+    "capabilities": {
+      "deals": { "status": "supported" },
+      "deal_detail": { "status": "supported" },
+      "price_history": { "status": "supported" },
+      "search": { "status": "supported" },
+      "filters": { "status": "supported" },
+      "comparison": { "status": "supported" },
+      "favorites": { "status": "partial" },
+      "alerts": { "status": "supported" },
+      "wishlist": { "status": "supported" },
+      "community": { "status": "partial" },
+      "newsletter": { "status": "supported" },
+      "authentication": { "status": "supported" },
+      "account": { "status": "supported" },
+      "premium": { "status": "partial" },
+      "stripe": { "status": "partial" },
+      "paypal": { "status": "partial" },
+      "push": { "status": "partial" },
+      "pwa": { "status": "supported" },
+      "offline": { "status": "partial" },
+      "ai": { "status": "experimental" },
+      "recommendations": { "status": "experimental" },
+      "pro_api": { "status": "experimental" },
+      "gamification": { "status": "experimental" },
+      "reports": { "status": "partial" },
+      "scanner": { "status": "unavailable" },
+      "local_analysis": { "status": "demo-only" },
+      "demo_fixtures": { "status": "demo-only" }
+    }
   },
   "backend": {
     "api_base_url": "https://julvox-dealscan-backend-production.up.railway.app",
@@ -17,6 +46,7 @@
     "cache_version": "v17"
   },
   "runtime": {
+    "environment": "production",
     "enhancements_script": "enhancements_v3.js"
   }
 }

@@ -24,6 +24,7 @@ const config = {
   application: {
     name: contract.application?.name,
     frontendVersion: contract.application?.frontend_version,
+    capabilities: contract.application?.capabilities,
   },
   backend: {
     apiBaseUrl: contract.backend?.api_base_url,
@@ -35,6 +36,7 @@ const config = {
     cacheVersion: contract.pwa?.cache_version,
   },
   runtime: {
+    environment: contract.runtime?.environment,
     enhancementsScript: contract.runtime?.enhancements_script,
   },
 };
@@ -43,11 +45,13 @@ for (const [label, value] of [
   ['schemaVersion', config.schemaVersion],
   ['application.name', config.application.name],
   ['application.frontendVersion', config.application.frontendVersion],
+  ['application.capabilities', config.application.capabilities],
   ['backend.apiBaseUrl', config.backend.apiBaseUrl],
   ['backend.healthPath', config.backend.healthPath],
   ['pwa.manifestPath', config.pwa.manifestPath],
   ['pwa.serviceWorkerPath', config.pwa.serviceWorkerPath],
   ['pwa.cacheVersion', config.pwa.cacheVersion],
+  ['runtime.environment', config.runtime.environment],
   ['runtime.enhancementsScript', config.runtime.enhancementsScript],
 ]) {
   if (value === undefined || value === null || value === '') fail(`missing value: ${label}`);
@@ -56,7 +60,13 @@ for (const [label, value] of [
 const content = `// Generated from config/runtime-contract.json. Do not edit manually.\n` +
   `(function (global) {\n` +
   `  'use strict';\n` +
-  `  const config = Object.freeze(${JSON.stringify(config, null, 2)});\n` +
+  `  function deepFreeze(value) {\n` +
+  `    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;\n` +
+  `    Object.freeze(value);\n` +
+  `    for (const nested of Object.values(value)) deepFreeze(nested);\n` +
+  `    return value;\n` +
+  `  }\n` +
+  `  const config = deepFreeze(${JSON.stringify(config, null, 2)});\n` +
   `  Object.defineProperty(global, 'JULVOX_RUNTIME_CONFIG', {\n` +
   `    value: config,\n` +
   `    writable: false,\n` +
