@@ -119,7 +119,7 @@ self.addEventListener('push', event => {
     badge: '/icons/icon-192.png',
     image: data.image || undefined,
     tag: data.tag || `dealscan-${notifType}`,
-    data: { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
+    data:    { url: data.url || 'https://julvox.com', type: notifType, dealId: data.deal_id },
     vibrate: [200, 100, 200],
     requireInteraction: notifType === 'alert_price',
     actions: _getActions(notifType),
