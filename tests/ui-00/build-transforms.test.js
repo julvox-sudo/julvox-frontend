@@ -13,7 +13,7 @@ const removedFunctions = [
   'createAlert', 'createSmartAlertForDeal', 'deleteAlert', 'voteDeal',
   'submitCommunityDealNew', 'voteCommDeal', 'postDealComment', 'postCommComment',
   'submitReport', 'createSquad', 'joinSquad', 'addToWishlist', 'removeFromWishlist',
-  'subscribeNewsletter', 'enableNotifPermission', 'deleteAccount', 'votePromo',
+  'subscribeNewsletter', 'deleteAccount', 'votePromo',
   'getDemoCompareResults', 'getDemoLeaderboard', 'getDemoCommDeals', 'getDemoReport',
   'getDemoScanResult', 'getDemoWishlist', 'getDemoAchievements', 'generateSimulatedHistory',
   'localAnalyzeDeal', 'injectLocalAnalysis', 'getLocalCalendar', 'getDefaultProPlans',
@@ -43,7 +43,9 @@ function sourceFixture() {
     const STORE_TRUST = { Shop: 82 };
     var _origOpenPromosPage = null;
     setTimeout(function(){ window.openPromosPage = async function(){}; }, 500);
+    async function enableNotifPermission(){ return 'legacy-one'; }
     ${functionStubs}
+    async function enableNotifPermission(){ return 'legacy-two'; }
     </script>
     <script src="/enhancements_v3.js" defer></script>
   </body></html>`;
@@ -64,11 +66,19 @@ test('the full transformation is idempotent and enforces script order', () => {
   const truth = first.html.indexOf('/ui-00-production-truth.js');
   const enhancements = first.html.indexOf('/enhancements_v3.js');
   assert.ok(runtime < api && api < truth && truth < enhancements);
+  assert.doesNotMatch(first.html, /function\s+enableNotifPermission\s*\(/);
 });
 
 test('a missing required historical function fails the build transform', () => {
   const broken = sourceFixture().replace(/async function loadSwipeFeed\(\)\{ return null; \}/, '');
   assert.throws(() => applyProductionTruth({ html: broken, enhancements: enhancementsFixture() }), /loadSwipeFeed/);
+});
+
+test('notification duplicates are an explicit two-block invariant', () => {
+  const one = sourceFixture().replace("async function enableNotifPermission(){ return 'legacy-two'; }", '');
+  const three = sourceFixture().replace('</script>', "async function enableNotifPermission(){ return 'legacy-three'; }\n</script>");
+  assert.throws(() => applyProductionTruth({ html: one, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 1/);
+  assert.throws(() => applyProductionTruth({ html: three, enhancements: enhancementsFixture() }), /exactly 2 function enableNotifPermission, found 3/);
 });
 
 test('final score and residual transforms are byte-idempotent', () => {
@@ -83,7 +93,6 @@ test('final score and residual transforms are byte-idempotent', () => {
 test('a partial prior transformation cannot be accepted', () => {
   assert.throws(() => applyProductionTruth({ html: `${HTML_MARKER}${sourceFixture()}`, enhancements: enhancementsFixture() }), /partial prior transformation/);
 });
-
 
 test('public UI-00 runtime composition is byte-idempotent', () => {
   const truth = '/* truth */ JULVOX_PRODUCTION_TRUTH';

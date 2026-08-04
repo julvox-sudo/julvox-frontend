@@ -52,18 +52,32 @@ function findMatchingBrace(source, openingIndex) {
   return -1;
 }
 
-function replaceNamedFunction(source, name, replacement, required = true) {
-  const expression = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`);
-  const matches = [...source.matchAll(new RegExp(expression.source, 'g'))];
-  if (matches.length !== 1) {
-    if (!required && matches.length === 0) return source;
-    fail(`expected exactly one function ${name}, found ${matches.length}`);
+function namedFunctionSpans(source, name) {
+  const expression = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`, 'g');
+  const matches = [...source.matchAll(expression)];
+  return matches.map(match => {
+    const braceStart = source.indexOf('{', match.index + match[0].length);
+    const braceEnd = findMatchingBrace(source, braceStart);
+    if (braceStart < 0 || braceEnd < 0) fail(`function ${name} is not balanced`);
+    return { start: match.index, end: braceEnd + 1 };
+  });
+}
+
+function replaceNamedFunctions(source, name, replacement, expectedCount) {
+  const spans = namedFunctionSpans(source, name);
+  if (spans.length !== expectedCount) fail(`expected exactly ${expectedCount} function ${name}, found ${spans.length}`);
+  let output = source;
+  for (const span of spans.slice().reverse()) {
+    output = `${output.slice(0, span.start)}${replacement}${output.slice(span.end)}`;
   }
-  const match = matches[0];
-  const braceStart = source.indexOf('{', match.index + match[0].length);
-  const braceEnd = findMatchingBrace(source, braceStart);
-  if (braceStart < 0 || braceEnd < 0) fail(`function ${name} is not balanced`);
-  return `${source.slice(0, match.index)}${replacement}${source.slice(braceEnd + 1)}`;
+  return output;
+}
+
+function replaceNamedFunction(source, name, replacement, required = true) {
+  const spans = namedFunctionSpans(source, name);
+  if (!required && spans.length === 0) return source;
+  if (spans.length !== 1) fail(`expected exactly one function ${name}, found ${spans.length}`);
+  return `${source.slice(0, spans[0].start)}${replacement}${source.slice(spans[0].end)}`;
 }
 
 function replaceObjectDeclaration(source, name, replacement) {
@@ -125,4 +139,18 @@ function verifyAppliedOutput(html, enhancements) {
   if (!enhancements.includes("window.JULVOX_API.get('/deals/trending?limit=8'")) fail('enhancements API loading is not centralized');
   return { html, enhancements };
 }
-module.exports = { HTML_MARKER, ENHANCEMENTS_MARKER, fail, countMatches, replaceExactly, replaceAtLeast, findMatchingBrace, replaceNamedFunction, replaceObjectDeclaration, removeBetween, renderLoadFailureCode, verifyAppliedOutput };
+module.exports = {
+  HTML_MARKER,
+  ENHANCEMENTS_MARKER,
+  fail,
+  countMatches,
+  replaceExactly,
+  replaceAtLeast,
+  findMatchingBrace,
+  replaceNamedFunction,
+  replaceNamedFunctions,
+  replaceObjectDeclaration,
+  removeBetween,
+  renderLoadFailureCode,
+  verifyAppliedOutput,
+};

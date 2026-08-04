@@ -1,6 +1,14 @@
 module.exports = function transformStage(html, enhancements, helpers) {
-  const { HTML_MARKER, ENHANCEMENTS_MARKER, replaceExactly, replaceAtLeast, replaceNamedFunction, replaceObjectDeclaration, removeBetween, renderLoadFailureCode } = helpers;
-    html = replaceExactly(
+  const {
+    HTML_MARKER,
+    replaceExactly,
+    replaceNamedFunction,
+    replaceNamedFunctions,
+    replaceObjectDeclaration,
+    removeBetween,
+    renderLoadFailureCode,
+  } = helpers;
+  html = replaceExactly(
     html,
     '<script src="/runtime-config.js"></script>',
     `${HTML_MARKER}\n<script src="/runtime-config.js"></script>\n<script src="/api-client.js"></script>`,
@@ -23,7 +31,7 @@ module.exports = function transformStage(html, enhancements, helpers) {
     'createAlert', 'createSmartAlertForDeal', 'deleteAlert', 'voteDeal',
     'submitCommunityDealNew', 'voteCommDeal', 'postDealComment', 'postCommComment',
     'submitReport', 'createSquad', 'joinSquad', 'addToWishlist', 'removeFromWishlist',
-    'subscribeNewsletter', 'enableNotifPermission', 'deleteAccount', 'votePromo',
+    'subscribeNewsletter', 'deleteAccount', 'votePromo',
     'getDemoCompareResults', 'getDemoLeaderboard', 'getDemoCommDeals', 'getDemoReport',
     'getDemoScanResult', 'getDemoWishlist', 'getDemoAchievements',
     'generateSimulatedHistory', 'localAnalyzeDeal', 'injectLocalAnalysis', 'getLocalCalendar', 'getDefaultProPlans',
@@ -31,6 +39,7 @@ module.exports = function transformStage(html, enhancements, helpers) {
     'buildDealsPrompt', 'buildPromosPrompt', 'buildFlashPrompt', 'callClaudeAI',
   ];
   for (const name of removedFunctions) html = replaceNamedFunction(html, name, '', true);
+  html = replaceNamedFunctions(html, 'enableNotifPermission', '', 2);
   html = replaceObjectDeclaration(html, 'FRENCH_SITES', 'const FRENCH_SITES = Object.freeze({}); /* UI-00: aucun catalogue local */');
   html = replaceExactly(html, 'placeholder="Ex: MacBook Air M3, Sony WH-1000XM5…"', 'placeholder="Rechercher un produit à comparer…"', 'demo product placeholder');
 
