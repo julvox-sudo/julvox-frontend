@@ -40,9 +40,13 @@ function findMatchingBrace(source, openingIndex) {
   let blockComment = false;
   let regexLiteral = false;
   let regexClass = false;
+  let templateText = false;
+  const templateReturnDepths = [];
+
   for (let index = openingIndex; index < source.length; index += 1) {
     const character = source[index];
     const next = source[index + 1];
+
     if (lineComment) { if (character === '\n') lineComment = false; continue; }
     if (blockComment) { if (character === '*' && next === '/') { blockComment = false; index += 1; } continue; }
     if (quote) {
@@ -59,13 +63,32 @@ function findMatchingBrace(source, openingIndex) {
       if (character === '/' && !regexClass) regexLiteral = false;
       continue;
     }
+    if (templateText) {
+      if (escaped) { escaped = false; continue; }
+      if (character === '\\') { escaped = true; continue; }
+      if (character === '`') { templateText = false; continue; }
+      if (character === '$' && next === '{') {
+        templateReturnDepths.push(depth);
+        depth += 1;
+        templateText = false;
+        index += 1;
+      }
+      continue;
+    }
+
     if (character === '/' && next === '/') { lineComment = true; index += 1; continue; }
     if (character === '/' && next === '*') { blockComment = true; index += 1; continue; }
     if (character === '/' && canStartRegexLiteral(source, index)) { regexLiteral = true; regexClass = false; continue; }
-    if (character === '"' || character === "'" || character === '`') { quote = character; continue; }
+    if (character === '"' || character === "'") { quote = character; continue; }
+    if (character === '`') { templateText = true; continue; }
     if (character === '{') depth += 1;
     if (character === '}') {
       depth -= 1;
+      if (templateReturnDepths.length && depth === templateReturnDepths[templateReturnDepths.length - 1]) {
+        templateReturnDepths.pop();
+        templateText = true;
+        continue;
+      }
       if (depth === 0) return index;
     }
   }
@@ -87,9 +110,7 @@ function replaceNamedFunctions(source, name, replacement, expectedCount) {
   const spans = namedFunctionSpans(source, name);
   if (spans.length !== expectedCount) fail(`expected exactly ${expectedCount} function ${name}, found ${spans.length}`);
   let output = source;
-  for (const span of spans.slice().reverse()) {
-    output = `${output.slice(0, span.start)}${replacement}${output.slice(span.end)}`;
-  }
+  for (const span of spans.slice().reverse()) output = `${output.slice(0, span.start)}${replacement}${output.slice(span.end)}`;
   return output;
 }
 
@@ -142,9 +163,7 @@ function verifyAppliedOutput(html, enhancements) {
     if (countMatches(html, script) !== 1) fail(`required script must appear exactly once: ${script}`);
     return html.indexOf(script);
   });
-  if (!positions.every((value, index) => index === 0 || positions[index - 1] < value)) {
-    fail('runtime, API client, UI-00 truth and enhancements scripts are not loaded in the required order');
-  }
+  if (!positions.every((value, index) => index === 0 || positions[index - 1] < value)) fail('runtime, API client, UI-00 truth and enhancements scripts are not loaded in the required order');
   const forbidden = [
     'getDemoWishlist', 'generateSimulatedHistory', 'getLocalCalendar', 'getDefaultProPlans',
     'getLocalAIResponse', 'getDefaultCbRates', 'fetchWithTimeout', 'fetchWithRetry',
@@ -159,18 +178,9 @@ function verifyAppliedOutput(html, enhancements) {
   if (!enhancements.includes("window.JULVOX_API.get('/deals/trending?limit=8'")) fail('enhancements API loading is not centralized');
   return { html, enhancements };
 }
+
 module.exports = {
-  HTML_MARKER,
-  ENHANCEMENTS_MARKER,
-  fail,
-  countMatches,
-  replaceExactly,
-  replaceAtLeast,
-  findMatchingBrace,
-  replaceNamedFunction,
-  replaceNamedFunctions,
-  replaceObjectDeclaration,
-  removeBetween,
-  renderLoadFailureCode,
-  verifyAppliedOutput,
+  HTML_MARKER, ENHANCEMENTS_MARKER, fail, countMatches, replaceExactly, replaceAtLeast,
+  findMatchingBrace, replaceNamedFunction, replaceNamedFunctions, replaceObjectDeclaration,
+  removeBetween, renderLoadFailureCode, verifyAppliedOutput,
 };
