@@ -5,9 +5,11 @@ const root = process.cwd();
 const dist = path.join(root, 'dist');
 
 const requiredFiles = [
+  'enhancements_v3.js',
   'index.html',
-  'sw.js',
   'manifest.json',
+  'runtime-config.js',
+  'sw.js',
 ];
 
 function fail(message) {
