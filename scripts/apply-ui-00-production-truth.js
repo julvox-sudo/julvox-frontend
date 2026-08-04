@@ -6,6 +6,7 @@ const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
   require('./ui00-transforms/stage-3'),
+  require('./ui00-transforms/stage-4'),
 ];
 
 const root = process.cwd();
