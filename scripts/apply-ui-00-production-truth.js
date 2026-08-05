@@ -6,6 +6,7 @@ const helpers = { ...baseHelpers, ...functionHelpers };
 const { centralizeApiCalls } = require('./ui00-transforms/centralize-api-calls');
 const { repairFlashUrlGuard } = require('./ui00-transforms/repair-flash-url-guard');
 const { repairChatRenderer } = require('./ui00-transforms/repair-chat-renderer');
+const { ensureLoadingStateHelper } = require('./ui00-transforms/ensure-loading-state-helper');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -29,6 +30,7 @@ function applyProductionTruth(input) {
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
   html = repairFlashUrlGuard(html);
   html = repairChatRenderer(html);
+  html = ensureLoadingStateHelper(html);
   html = centralizeApiCalls(html);
   enhancements = centralizeApiCalls(enhancements);
   return helpers.verifyAppliedOutput(html, enhancements);
@@ -54,5 +56,6 @@ module.exports = {
   centralizeApiCalls,
   repairFlashUrlGuard,
   repairChatRenderer,
+  ensureLoadingStateHelper,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };

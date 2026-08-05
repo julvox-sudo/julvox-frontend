@@ -15,6 +15,7 @@ const CRITICAL_GLOBAL_HANDLERS = Object.freeze([
   'filterCat',
   'setSort',
   'setMinSc',
+  'showLoadingDeals',
   'loadDeals',
 ]);
 
