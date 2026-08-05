@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { applyProductionTruth } = require('../../scripts/apply-ui-00-production-truth.js');
+const { ensureMobileSearchFeedback } = require('../../scripts/ui00-transforms/ensure-mobile-search-feedback.js');
 
 const repoRoot = path.resolve(__dirname, '../..');
 const sourceHtml = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
@@ -77,6 +78,15 @@ function createRuntime(deals = []) {
     },
   };
 }
+
+test('leaves unrelated build fixtures unchanged and fails closed on a partial search runtime', () => {
+  const unrelated = '<!doctype html><html><body><div>fixture</div></body></html>';
+  assert.equal(ensureMobileSearchFeedback(unrelated), unrelated);
+  assert.throws(
+    () => ensureMobileSearchFeedback(`${SEARCH_START}\nfunction handleSearch(){}`),
+    /expected one search container, found 0/,
+  );
+});
 
 test('keeps the mobile search focusable and associates an observable live status', () => {
   const input = transformed.match(/<input[^>]+id="searchInput"[^>]*>/)?.[0] || '';

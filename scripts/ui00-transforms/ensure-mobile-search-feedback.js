@@ -98,10 +98,18 @@ function ensureMobileSearchFeedback(source) {
     return input;
   }
 
-  if (count(input, SEARCH_CONTAINER) !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search container, found ${count(input, SEARCH_CONTAINER)}`);
-  if (count(input, SEARCH_RUNTIME_START) !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search runtime start, found ${count(input, SEARCH_RUNTIME_START)}`);
-  if (count(input, SEARCH_RUNTIME_END) !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search runtime end, found ${count(input, SEARCH_RUNTIME_END)}`);
-  if (count(input, 'id="searchStatus"') !== 0) throw new Error('UI-00 mobile search transform failed: an unrecognized search status already exists');
+  const containerCount = count(input, SEARCH_CONTAINER);
+  const inputCount = count(input, SEARCH_INPUT);
+  const startCount = count(input, SEARCH_RUNTIME_START);
+  const endCount = count(input, SEARCH_RUNTIME_END);
+  const statusCount = count(input, 'id="searchStatus"');
+
+  if (containerCount === 0 && inputCount === 0 && startCount === 0 && endCount === 0 && statusCount === 0) return input;
+  if (containerCount !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search container, found ${containerCount}`);
+  if (inputCount !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search input, found ${inputCount}`);
+  if (startCount !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search runtime start, found ${startCount}`);
+  if (endCount !== 1) throw new Error(`UI-00 mobile search transform failed: expected one search runtime end, found ${endCount}`);
+  if (statusCount !== 0) throw new Error('UI-00 mobile search transform failed: an unrecognized search status already exists');
 
   const start = input.indexOf(SEARCH_RUNTIME_START);
   const end = input.indexOf(SEARCH_RUNTIME_END, start);
