@@ -7,7 +7,7 @@
 const CACHE_VERSION = 'v17';
 const CACHE_NAME = `dealscan-public-api-${CACHE_VERSION}`;
 const CACHE_STATIC = `dealscan-static-${CACHE_VERSION}`;
-const BACKEND_ORIGIN = 'https://julvox-dealscan-backend-production.up.railway.app';
+const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */
 const PUBLIC_ORIGIN = 'https://julvox.com';
 
 const STATIC_ASSETS = [
