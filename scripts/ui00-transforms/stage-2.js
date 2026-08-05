@@ -158,5 +158,69 @@ module.exports = function transformStage(html, enhancements, helpers) {
   if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'error', 'Simulation de cashback indisponible.', simulateCashback); return; }
   el.textContent = result.data.cashback + '€ de cashback sur ' + amount + '€ chez ' + store + ' (' + result.data.rate_pct + '%)';
 }`, true);
+
+  html = replaceNamedFunction(html, 'loadLeaderboard', `async function loadLeaderboard() {
+  const el = document.getElementById('leaderboardList');
+  if (!el) return;
+  el.textContent = 'Chargement…';
+  const result = await window.JULVOX_API.get('/community/leaderboard', {
+    isEmpty: data => !Array.isArray(data?.leaderboard) || data.leaderboard.length === 0,
+  });
+  if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'error', 'Classement indisponible.', loadLeaderboard); return; }
+  if (result.kind === 'empty') { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'empty', 'Classement indisponible.', loadLeaderboard); return; }
+  renderLeaderboard(result.data.leaderboard, el);
+}`, true);
+
+  html = replaceNamedFunction(html, 'loadCommDeals', `async function loadCommDeals(sort, el) {
+  if (!el) return;
+  el.textContent = 'Chargement…';
+  const selectedSort = typeof sort === 'string' && sort ? sort : 'recent';
+  const result = await window.JULVOX_API.get('/community/deals?status=approved&sort=' + encodeURIComponent(selectedSort) + '&limit=20', {
+    isEmpty: data => !Array.isArray(data?.deals) || data.deals.length === 0,
+  });
+  if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'error', 'Deals communautaires indisponibles.', () => loadCommDeals(selectedSort, el)); return; }
+  if (result.kind === 'empty') { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'empty', 'Aucun deal communautaire confirmé.', () => loadCommDeals(selectedSort, el)); return; }
+  renderCommDeals(result.data.deals, el, selectedSort);
+}`, true);
+
+  html = replaceNamedFunction(html, 'lookupBarcodeValue', `async function lookupBarcodeValue(ean) {
+  const el = document.getElementById('scanResults');
+  if (!el) return;
+  const normalizedEan = String(ean ?? '').trim();
+  if (!normalizedEan) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'empty', 'Code-barres indisponible.', null); return; }
+  el.textContent = 'Recherche en cours…';
+  const result = await window.JULVOX_API.get('/scan/barcode/' + encodeURIComponent(normalizedEan), {
+    confirm: data => data && typeof data === 'object' && typeof data.found === 'boolean',
+  });
+  if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'error', 'Recherche code-barres indisponible.', () => lookupBarcodeValue(normalizedEan)); return; }
+  renderScanResults(result.data, normalizedEan, el);
+}`, true);
+
+  html = replaceNamedFunction(html, 'loadAchievements', `async function loadAchievements() {
+  const token = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.token : localStorage.getItem('token');
+  const el = document.getElementById('achievementsGrid');
+  if (!el) return;
+  el.textContent = 'Chargement…';
+  const result = await window.JULVOX_API.get('/achievements', {
+    token,
+    isEmpty: data => !Array.isArray(data?.achievements) || data.achievements.length === 0,
+  });
+  if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'error', 'Succès indisponibles.', loadAchievements); return; }
+  if (result.kind === 'empty') { window.JULVOX_PRODUCTION_TRUTH.renderState(el, 'empty', 'Aucun succès confirmé.', loadAchievements); return; }
+  renderAchievements(result.data, el);
+}`, true);
+
+  html = replaceNamedFunction(html, 'enrichDealModal', `async function enrichDealModal(deal) {
+  const container = document.getElementById('modalExtra');
+  if (!container) return;
+  const dealId = deal?.id;
+  if (!Number.isInteger(dealId)) { window.JULVOX_PRODUCTION_TRUTH.renderState(container, 'empty', 'Analyse indisponible.', null); return; }
+  const result = await window.JULVOX_API.get('/deals/' + encodeURIComponent(dealId) + '/analysis', {
+    confirm: data => data && typeof data === 'object',
+  });
+  if (!result.ok) { window.JULVOX_PRODUCTION_TRUTH.renderState(container, 'error', 'Analyse indisponible.', () => enrichDealModal(deal)); return; }
+  injectAnalysisInModal(result.data, deal);
+}`, true);
+
   return { html, enhancements };
 };

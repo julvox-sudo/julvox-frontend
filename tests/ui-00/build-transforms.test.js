@@ -29,11 +29,19 @@ const replacedFunctions = [
   'simulateCashback', 'renderDeals', 'startCountdownsLive', 'renderFlash',
   'openFlashPage', 'fetchFlashDeals', 'fetchFlashDealsFromClaude', 'renderMLRecommendations',
   'runCompareV2', 'loadProductComparison',
+  'loadLeaderboard', 'loadCommDeals', 'lookupBarcodeValue', 'loadAchievements', 'enrichDealModal',
 ];
 
 function sourceFixture() {
+  const legacyConsumerBodies = {
+    loadLeaderboard: 'return getDemoLeaderboard();',
+    loadCommDeals: 'return getDemoCommDeals();',
+    lookupBarcodeValue: 'return getDemoScanResult();',
+    loadAchievements: 'return getDemoAchievements();',
+    enrichDealModal: 'return injectLocalAnalysis();',
+  };
   const functionStubs = [...removedFunctions, ...replacedFunctions, 'loadDealVotes']
-    .map(name => `${name.startsWith('load') || name.startsWith('run') || name.startsWith('open') || name.startsWith('send') || name.startsWith('fetch') || name.startsWith('simulate') ? 'async ' : ''}function ${name}(){ return null; }`)
+    .map(name => `${name.startsWith('load') || name.startsWith('run') || name.startsWith('open') || name.startsWith('send') || name.startsWith('fetch') || name.startsWith('simulate') || name === 'enrichDealModal' ? 'async ' : ''}function ${name}(){ ${legacyConsumerBodies[name] || 'return null;'} }`)
     .join('\n');
   return `<!doctype html><html><head><script src="/runtime-config.js"></script></head><body>
     <input placeholder="Ex: MacBook Air M3, Sony WH-1000XM5…">
@@ -53,7 +61,7 @@ function sourceFixture() {
   </body></html>`;
 }
 function enhancementsFixture() {
-  return `const STORE_TRUST_V3 = { Shop: 82 };\nasync function loadDynamicFlashDeals(){ return null; }\nconst label='LIVE';`;
+  return `const STORE_TRUST_V3 = { Shop: 82 };\nasync function loadDynamicFlashDeals(){ return null; }\nconst label='LIVE';\nconst notificationScore='★\${deal.novadeal_score||0}';`;
 }
 
 test('the full transformation is idempotent and enforces script order', () => {
@@ -69,6 +77,9 @@ test('the full transformation is idempotent and enforces script order', () => {
   const enhancements = first.html.indexOf('/enhancements_v3.js');
   assert.ok(runtime < api && api < truth && truth < enhancements);
   assert.doesNotMatch(first.html, /function\s+enableNotifPermission\s*\(/);
+  assert.doesNotMatch(first.html, /getDemoLeaderboard|getDemoCommDeals|getDemoScanResult|getDemoAchievements|injectLocalAnalysis/);
+  assert.doesNotMatch(first.enhancements, /novadeal_score\|\|0/);
+  assert.match(first.enhancements, /Score indisponible/);
 });
 
 test('a missing required historical function fails the build transform', () => {

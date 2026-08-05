@@ -1,3 +1,34 @@
+function replaceAtMostOnce(source, pattern, replacement, label) {
+  const matches = String(source).match(pattern) || [];
+  if (matches.length > 1) throw new Error(`UI-00 ${label}: expected at most one occurrence, found ${matches.length}`);
+  return String(source).replace(pattern, replacement);
+}
+
+function removeFabricatedVerificationTiming(source) {
+  let output = replaceAtMostOnce(
+    source,
+    /^  const mins   = Math\.floor\(Math\.random\(\) \* 58 \+ 1\);\n/m,
+    '',
+    'random verification duration',
+  );
+  output = replaceAtMostOnce(
+    output,
+    /^      \$\{ok \? `<div class="deal-verified">✓ Vérifié il y a \$\{mins\} min<\/div>` : ''\}\n/m,
+    '',
+    'fabricated verification timestamp rendering',
+  );
+  return output;
+}
+
+function removeNotificationScoreFallback(source) {
+  return replaceAtMostOnce(
+    source,
+    /★\$\{deal\.novadeal_score\|\|0\}/g,
+    "${ui00NumericScore(deal.novadeal_score) === null ? 'Score indisponible' : '★' + ui00NumericScore(deal.novadeal_score)}",
+    'new deal notification score fallback',
+  );
+}
+
 module.exports = function transformStage(html, enhancements, helpers) {
   const { HTML_MARKER, ENHANCEMENTS_MARKER, replaceExactly, replaceAtLeast, replaceNamedFunction, replaceObjectDeclaration, removeBetween, renderLoadFailureCode } = helpers;
     html = replaceNamedFunction(html, 'renderDeals', `function renderDeals(deals) {
@@ -106,6 +137,8 @@ module.exports = function transformStage(html, enhancements, helpers) {
   }).join('');
 }`, true);
 
+  html = removeFabricatedVerificationTiming(html);
+
   html = replaceObjectDeclaration(html, 'STORE_TRUST', 'const STORE_TRUST = Object.freeze({}); /* UI-00: aucune vérité marchand locale */');
   html = replaceAtLeast(html, /<div class="live-pill"><div class="live-dot"><\/div>Live<\/div>/g, '<div class="live-pill">Offres</div>', 'visible Live labels', 2);
   html = replaceAtLeast(html, /deals vérifiés ✓/g, 'offres reçues', 'unqualified verified deal labels', 1);
@@ -113,6 +146,7 @@ module.exports = function transformStage(html, enhancements, helpers) {
   html = html.replace(/en temps réel/gi, 'à partir des données disponibles').replace(/temps réel/gi, 'données disponibles');
 
   enhancements = replaceObjectDeclaration(enhancements, 'STORE_TRUST_V3', 'const STORE_TRUST_V3 = Object.freeze({}); /* UI-00: aucune vérité marchand locale */');
+  enhancements = removeNotificationScoreFallback(enhancements);
   enhancements = replaceNamedFunction(enhancements, 'loadDynamicFlashDeals', `async function loadDynamicFlashDeals() {
   const result = await window.JULVOX_API.get('/deals/trending?limit=8', { isEmpty: data => !Array.isArray(data?.deals) || data.deals.length === 0 });
   const flashRow = document.getElementById('flashRow');
@@ -128,3 +162,7 @@ module.exports = function transformStage(html, enhancements, helpers) {
     .replace(/60\+ deals démo[^\n]*/gi, 'données de production uniquement');
   return { html, enhancements };
 };
+
+module.exports.removeFabricatedVerificationTiming = removeFabricatedVerificationTiming;
+module.exports.removeNotificationScoreFallback = removeNotificationScoreFallback;
+module.exports.replaceAtMostOnce = replaceAtMostOnce;

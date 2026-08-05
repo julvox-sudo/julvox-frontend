@@ -14,6 +14,23 @@ const forbiddenTokens = [
   'const defaultRates = {Amazon:3', 'Offline demo',
 ];
 
+function hasDemoOnlyGate(source) {
+  const truth = String(source);
+  const explicitDemoEnvironment = /\bisDemoMode\b[\s\S]{0,180}runtime\(\)\?\.\s*runtime\?\.\s*environment\s*===\s*['"]demo['"]/.test(truth);
+  const unknownFailsUnavailable = /VALID_CAPABILITY_STATUSES\.includes\(definition\?\.status\)\s*\?\s*definition\.status\s*:\s*['"]unavailable['"]/.test(truth);
+  const demoOnlyRequiresDemo = /status\s*!==\s*['"]demo-only['"]\s*\|\|\s*isDemoMode\(\)/.test(truth);
+  return explicitDemoEnvironment && unknownFailsUnavailable && demoOnlyRequiresDemo;
+}
+
+function hasHonestServiceWorkerErrors(source) {
+  const sw = String(source);
+  const helperPassesStatus = /function\s+jsonError\s*\(\s*status\s*,[\s\S]{0,500}?new\s+Response\([\s\S]{0,300}?\{\s*status\s*,/.test(sw);
+  const unavailable503 = /\bjsonError\(\s*503\s*,\s*['"]offline['"]/.test(sw);
+  const stale504 = /\bjsonError\(\s*504\s*,\s*['"]offline_stale['"]/.test(sw);
+  const noFabricatedSuccess = !/\bjsonError\(\s*200\s*,\s*['"]offline(?:_stale)?['"]/.test(sw);
+  return helperPassesStatus && unavailable503 && stale504 && noFabricatedSuccess;
+}
+
 function scanProductionTruth(files, baseDir = root) {
   const failures = [];
   const read = relativePath => {
@@ -79,7 +96,7 @@ function scanProductionTruth(files, baseDir = root) {
   if (!truth.includes('response?.status === 204 || data?.rgpd === true')) failures.push('account deletion 204/business confirmation is missing');
   if (!truth.includes('subscription.unsubscribe()')) failures.push('push subscription rollback is missing');
   if (!truth.includes('CAPABILITY_SURFACES') || !truth.includes('CAPABILITY_ENTRYPOINTS')) failures.push('capability behavior mapping is missing');
-  if (!truth.includes("runtime.runtime.environment === 'demo'")) failures.push('demo-only environment gate is missing');
+  if (!hasDemoOnlyGate(truth)) failures.push('demo-only environment gate is missing');
 
   if (!sw.includes("request.method !== 'GET'")) failures.push('service worker does not refuse caching mutations');
   if (!sw.includes("request.headers?.has?.('Authorization')")) failures.push('service worker does not refuse caching authenticated requests');
@@ -88,9 +105,9 @@ function scanProductionTruth(files, baseDir = root) {
   if (!sw.includes('safePublicUrl')) failures.push('service worker notification redirects are not restricted to the public origin');
   if (!sw.includes('dealscan-public-api-')) failures.push('service worker does not isolate the new public GET cache');
   if (sw.includes('syncPendingVotes') || sw.includes("event.tag === 'sync-votes'")) failures.push('service worker still queues or replays vote mutations');
-  if (!sw.includes("status: 503") || !sw.includes("status: 504")) failures.push('service worker 503/504 responses are missing');
+  if (!hasHonestServiceWorkerErrors(sw)) failures.push('service worker 503/504 responses are missing');
   if (/offline(?:_stale)?[^\n]+deals:\s*\[\]/.test(sw)) failures.push('service worker fabricates an empty deals result');
-  if (!sw.includes("'Cache-Control': 'no-store'")) failures.push('service worker API error responses are cacheable');
+  if (!/['"]Cache-Control['"]\s*:\s*['"]no-store['"]/.test(sw)) failures.push('service worker API error responses are cacheable');
 
   return failures;
 }
@@ -105,4 +122,4 @@ if (require.main === module) {
   console.log('Production truth verification passed.');
 }
 
-module.exports = { forbiddenTokens, scanProductionTruth };
+module.exports = { forbiddenTokens, hasDemoOnlyGate, hasHonestServiceWorkerErrors, scanProductionTruth };

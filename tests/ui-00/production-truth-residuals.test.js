@@ -5,7 +5,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { scanProductionTruth } = require('../../scripts/verify-production-truth.js');
+const {
+  hasDemoOnlyGate,
+  hasHonestServiceWorkerErrors,
+  scanProductionTruth,
+} = require('../../scripts/verify-production-truth.js');
+const {
+  removeFabricatedVerificationTiming,
+  removeNotificationScoreFallback,
+} = require('../../scripts/ui00-transforms/stage-3.js');
 
 const root = path.join(__dirname, '../..');
 
@@ -33,16 +41,65 @@ test('all five historical demo consumers have explicit production transformation
   for (const name of ['loadLeaderboard', 'loadCommDeals', 'lookupBarcodeValue', 'loadAchievements', 'enrichDealModal']) {
     assert.match(stage, new RegExp(`replaceNamedFunction\\(html, '${name}'`), name);
   }
+  assert.doesNotMatch(stage, /getDemoLeaderboard|getDemoCommDeals|getDemoScanResult|getDemoAchievements|injectLocalAnalysis/);
 });
 
-test('production transforms explicitly remove fabricated verification time and the notification score fallback', () => {
-  const stages = [3, 5].map(number => fs.readFileSync(path.join(root, `scripts/ui00-transforms/stage-${number}.js`), 'utf8')).join('\n');
-  assert.match(stages, /random verification duration/);
-  assert.match(stages, /new deal notification score fallback/);
+test('fabricated verification timing is removed deterministically and idempotently', () => {
+  const source = [
+    'function dealCard(ok) {',
+    '  const mins   = Math.floor(Math.random() * 58 + 1);',
+    '  return `',
+    '      ${ok ? `<div class="deal-verified">✓ Vérifié il y a ${mins} min</div>` : \'\'}',
+    '  `;',
+    '}',
+  ].join('\n') + '\n';
+  const transformed = removeFabricatedVerificationTiming(source);
+  assert.doesNotMatch(transformed, /Math\.random|Vérifié il y a|\bmins\b/);
+  assert.equal(removeFabricatedVerificationTiming(transformed), transformed);
 });
 
-test('production truth accepts the current semantic demo gate and jsonError 503\/504 contract', () => {
-  const failures = scan();
-  assert.equal(failures.some(value => value.includes('demo-only environment gate')), false, failures.join('\n'));
-  assert.equal(failures.some(value => value.includes('service worker 503\/504')), false, failures.join('\n'));
+test('notification score fallback uses the existing bounded score primitive', () => {
+  const source = `<span>★${'${deal.novadeal_score||0}'}</span>`;
+  const transformed = removeNotificationScoreFallback(source);
+  assert.doesNotMatch(transformed, /novadeal_score\|\|0/);
+  assert.match(transformed, /ui00NumericScore\(deal\.novadeal_score\).*Score indisponible/);
+  assert.equal(removeNotificationScoreFallback(transformed), transformed);
+});
+
+test('production truth accepts the current semantic demo gate and jsonError 503/504 contract', () => {
+  const files = baseFiles();
+  assert.equal(hasDemoOnlyGate(files['ui-00-production-truth.js']), true);
+  assert.equal(hasHonestServiceWorkerErrors(files['sw.js']), true);
+  assert.deepEqual(scan(), []);
+});
+
+test('demo-only bypasses and unknown statuses that do not fail unavailable are rejected', () => {
+  const files = baseFiles();
+  for (const broken of [
+    files['ui-00-production-truth.js'].replace("environment==='demo'", "environment==='production'"),
+    files['ui-00-production-truth.js'].replace("status!=='demo-only'||isDemoMode()", "status!=='demo-only'||true"),
+    files['ui-00-production-truth.js'].replace("definition.status:'unavailable'", "definition.status:'supported'"),
+  ]) {
+    assert.equal(hasDemoOnlyGate(broken), false);
+    assert.ok(scan({ 'ui-00-production-truth.js': broken }).some(value => value.includes('demo-only environment gate')));
+  }
+});
+
+test('service worker status mutations to 200 or a helper that ignores status are rejected', () => {
+  const files = baseFiles();
+  for (const broken of [
+    files['sw.js'].replace("jsonError(503,'offline'", "jsonError(200,'offline'"),
+    files['sw.js'].replace("jsonError(504,'offline_stale'", "jsonError(200,'offline_stale'"),
+    files['sw.js'].replace('{status,headers:', '{status:200,headers:'),
+  ]) {
+    assert.equal(hasHonestServiceWorkerErrors(broken), false);
+    assert.ok(scan({ 'sw.js': broken }).some(value => value.includes('service worker 503/504')));
+  }
+});
+
+test('renaming a demo provider does not hide known fabricated production data', () => {
+  const failures = scan({
+    'index.html': `${baseFiles()['index.html']}function renamedProvider(){return {uid:'julien...'};}`,
+  });
+  assert.ok(failures.some(value => value.includes("uid:'julien...'")));
 });
