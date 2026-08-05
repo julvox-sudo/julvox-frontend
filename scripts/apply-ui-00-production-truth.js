@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const helpers = require('./ui00-transforms/utils');
+const baseHelpers = require('./ui00-transforms/utils');
+const functionHelpers = require('./ui00-transforms/function-spans');
+const helpers = { ...baseHelpers, ...functionHelpers };
 const { centralizeApiCalls } = require('./ui00-transforms/centralize-api-calls');
 const stages = [
   require('./ui00-transforms/stage-1'),
