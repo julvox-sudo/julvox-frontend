@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { findArbitraryScoreFallbacks } = require('./ui-00-score-contract.js');
 
 const root = process.cwd();
 const forbiddenTokens = [
@@ -60,9 +61,9 @@ function scanProductionTruth(files, baseDir = root) {
     failures.push('random vote, score, confirmation or popularity fallback remains');
   }
   if (/const\s+STORE_TRUST(?:_V3)?\s*=\s*\{\s*['"]/.test(combined)) failures.push('local merchant scores remain');
-  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,140}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(combined)) failures.push('arbitrary displayed score fallback remains');
+  if (findArbitraryScoreFallbacks(combined).length) failures.push('arbitrary displayed score fallback remains');
   if (/\b(?:timer|timerSec|rem)\s*=\s*[^;\n]*(?:\|\||\?\?)[^;\n]*(?:3600|7200)\b/.test(combined)) failures.push('synthetic countdown fallback remains');
-  if (/>\s*Live\s*</i.test(combined) || /['\"`]LIVE['\"`]/.test(combined) || /temps réel|vérifié il y a/i.test(combined)) failures.push('unqualified real-time claim remains');
+  if (/>\s*Live\s*</i.test(combined) || /['"`]LIVE['"`]/.test(combined) || /temps réel|vérifié il y a/i.test(combined)) failures.push('unqualified real-time claim remains');
   if (/fetchWithTimeout\(|fetchWithRetry\(/.test(combined)) failures.push('legacy direct fetch helper remains');
   if (/\bfetch\(\s*(?:API\s*\+|`\$\{API\}|url\s*,\s*token)/.test(combined)) failures.push('direct backend fetch remains outside API client');
   if (/\.backend\?\.api_base_url|\.backend\.api_base_url/.test(combined + client + truth)) failures.push('legacy api_base_url property is consumed at runtime');
