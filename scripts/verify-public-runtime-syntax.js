@@ -35,7 +35,11 @@ function verifyPublicRuntimeSyntax(html) {
     try {
       new vm.Script(source, { filename: `dist/index.html:inline-script-${index + 1}.js` });
     } catch (error) {
-      fail(`inline script ${index + 1} does not parse: ${error.message}`);
+      const stackContext = String(error.stack || '')
+        .split('\n')
+        .slice(0, 4)
+        .join('\n');
+      fail(`inline script ${index + 1} does not parse: ${error.message}\n${stackContext}`);
     }
   });
 
