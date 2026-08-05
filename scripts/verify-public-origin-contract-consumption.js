@@ -60,13 +60,15 @@ if (contract) {
       if (!serviceWorker.includes(`const PUBLIC_ORIGIN = '${origin}'; /* runtime-contract:application.public_base_url */`)) {
         fail('dist/sw.js does not define PUBLIC_ORIGIN from application.public_base_url');
       }
-      for (const expected of [
-        'data.url || PUBLIC_ORIGIN',
-        'notifData.url || PUBLIC_ORIGIN',
-        '`${PUBLIC_ORIGIN}/?deal=${notifData.dealId}`',
-        'c.url.startsWith(PUBLIC_ORIGIN)',
-      ]) {
-        if (!serviceWorker.includes(expected)) fail(`dist/sw.js is missing public origin consumption: ${expected}`);
+
+      const publicOriginConsumers = [
+        ['safe URL base', /new URL\([^,\n]+,\s*PUBLIC_ORIGIN\)/],
+        ['notification URL sanitization', /safePublicUrl\([^)]*\.url\)/],
+        ['deal navigation URL', /`\$\{PUBLIC_ORIGIN\}\/\?deal=\$\{encodeURIComponent\([^)]*\.dealId\)\}`/],
+        ['existing client origin guard', /\.url\.startsWith\(PUBLIC_ORIGIN\)/],
+      ];
+      for (const [label, pattern] of publicOriginConsumers) {
+        if (!pattern.test(serviceWorker)) fail(`dist/sw.js is missing public origin consumption: ${label}`);
       }
 
       const historicalLiteral = 'https://julvox.com';
