@@ -4,6 +4,7 @@ const baseHelpers = require('./ui00-transforms/utils');
 const functionHelpers = require('./ui00-transforms/function-spans');
 const helpers = { ...baseHelpers, ...functionHelpers };
 const { centralizeApiCalls } = require('./ui00-transforms/centralize-api-calls');
+const { repairFlashUrlGuard } = require('./ui00-transforms/repair-flash-url-guard');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -25,6 +26,7 @@ function applyProductionTruth(input) {
     return helpers.verifyAppliedOutput(html, enhancements);
   }
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
+  html = repairFlashUrlGuard(html);
   html = centralizeApiCalls(html);
   enhancements = centralizeApiCalls(enhancements);
   return helpers.verifyAppliedOutput(html, enhancements);
@@ -48,5 +50,6 @@ module.exports = {
   findMatchingBrace: helpers.findMatchingBrace,
   replaceNamedFunction: helpers.replaceNamedFunction,
   centralizeApiCalls,
+  repairFlashUrlGuard,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };
