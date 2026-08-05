@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { replaceNamedFunction } = require('./apply-ui-00-production-truth.js');
+const { findArbitraryScoreFallbacks, normalizeScoreFallbacks } = require('./ui-00-score-contract.js');
 
 const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
@@ -10,26 +11,10 @@ function fail(message) {
   throw new Error(`UI-00 residual product truth failed: ${message}`);
 }
 
-function normalizeScoreFallbacks(source) {
-  let output = source;
-  const scoreAccess = String.raw`(?:[A-Za-z_$][\w$]*(?:\[[^\]\n]+\])?(?:\?\.)?\.(?:novadeal_score|merchant_trust_score|score))`;
-  output = output.replace(new RegExp(`(${scoreAccess})\\s*(?:\\|\\||\\?\\?)\\s*(?:50|75|82)\\b`, 'g'), 'ui00NumericScore($1)');
-  output = output.replace(/\(([^()\n]*(?:novadeal_score|merchant_trust_score|score)[^()\n]*)\)\s*(?:\|\||\?\?)\s*(?:50|75|82)\b/g, 'ui00NumericScore($1)');
-  output = output
-    .replace(/const\s+bestScore\s*=\s*([^;]+);/g, 'const bestScore = ui00NumericScore($1);')
-    .replace(/const\s+sc\s*=\s*([^;]*(?:novadeal_score|\.score)[^;]*);/g, 'const sc = ui00NumericScore($1);')
-    .replace(/score:\s*([^,}\n]*(?:novadeal_score|\.score)[^,}\n]*)\s*(?:\|\||\?\?)\s*(?:50|75|82)\b/g, 'score: ui00NumericScore($1)')
-    .replace(/\$\{bestScore\}\/100/g, '${ui00ScoreLabel(bestScore)}')
-    .replace(/\$\{sc\}\/100/g, '${ui00ScoreLabel(sc)}')
-    .replace(/★\s*\$\{bestScore\}/g, "${bestScore === null ? 'Score indisponible' : '★ ' + bestScore}")
-    .replace(/★\s*\$\{sc\}/g, "${sc === null ? 'Score indisponible' : '★ ' + sc}");
-  return output;
-}
-
 function verifyResiduals(html) {
   if (!html.includes(MARKER)) fail('residual marker is missing');
   if (/(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)[^;\n]{0,180}Math\.random|Math\.random[^;\n]{0,180}(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)/i.test(html)) fail('a random business fallback remains');
-  if (/\b(?:novadeal_score|merchant_trust_score|score)\b[^\n;]{0,140}(?:\|\||\?\?)\s*(?:50|75|82)\b/.test(html)) fail('an arbitrary score fallback remains');
+  if (findArbitraryScoreFallbacks(html).length) fail('an arbitrary score fallback remains');
   if (/function\s+loadDealVotes[\s\S]{0,900}Math\.random/.test(html)) fail('loadDealVotes still fabricates counters');
   return html;
 }
