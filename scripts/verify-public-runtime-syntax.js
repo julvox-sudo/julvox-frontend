@@ -28,6 +28,20 @@ function extractExecutableInlineScripts(html) {
     .map(([, , source]) => source);
 }
 
+function syntaxContext(source, error) {
+  const stack = String(error.stack || '');
+  const match = stack.match(/inline-script-\d+\.js:(\d+)/);
+  if (!match) return '';
+  const lineNumber = Number.parseInt(match[1], 10);
+  const lines = source.split('\n');
+  const start = Math.max(1, lineNumber - 6);
+  const end = Math.min(lines.length, lineNumber + 6);
+  return lines
+    .slice(start - 1, end)
+    .map((line, offset) => `${start + offset === lineNumber ? '>' : ' '} ${String(start + offset).padStart(5, ' ')} | ${line}`)
+    .join('\n');
+}
+
 function verifyPublicRuntimeSyntax(html) {
   const scripts = extractExecutableInlineScripts(html);
   if (!scripts.length) fail('no executable inline script was found');
@@ -39,7 +53,8 @@ function verifyPublicRuntimeSyntax(html) {
         .split('\n')
         .slice(0, 4)
         .join('\n');
-      fail(`inline script ${index + 1} does not parse: ${error.message}\n${stackContext}`);
+      const nearbySource = syntaxContext(source, error);
+      fail(`inline script ${index + 1} does not parse: ${error.message}\n${stackContext}${nearbySource ? `\n${nearbySource}` : ''}`);
     }
   });
 
@@ -58,4 +73,4 @@ if (require.main === module) {
   console.log(`Public runtime syntax verified: ${result.inlineScriptCount} inline scripts, ${result.criticalHandlerCount} critical handlers.`);
 }
 
-module.exports = { CRITICAL_GLOBAL_HANDLERS, extractExecutableInlineScripts, verifyPublicRuntimeSyntax };
+module.exports = { CRITICAL_GLOBAL_HANDLERS, extractExecutableInlineScripts, syntaxContext, verifyPublicRuntimeSyntax };
