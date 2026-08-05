@@ -38,6 +38,10 @@ function ui00ScoreSortValue(...values) {
   return score === null ? Number.NEGATIVE_INFINITY : score;
 }`;
 
+const SCORE_LIKE = /(?:score|rating|quality|trust|confidence)/i;
+const INTERFACE_ONLY = /(?:filters?|preferences?|threshold|min(?:imum)?|max(?:imum)?)/i;
+const COUNTER_LIKE = /(?:votes?|count|total|price|duration|timer|page|limit)/i;
+
 function normalizeScoreFallbacks(source) {
   let output = source;
 
@@ -61,10 +65,12 @@ function normalizeScoreFallbacks(source) {
     (_, ref) => `ui00ResolveScore(${ref}.novadeal_score, ${ref}.score)`,
   );
 
-  const scoreAccess = String.raw`(?:[A-Za-z_$][\w$]*(?:\[[^\]\n]+\])?(?:\?\.)?\.(?:novadeal_score|merchant_trust_score|score))`;
+  const propertyAccess = String.raw`([A-Za-z_$][\w$]*(?:\[[^\]\n]+\])?(?:\?\.)?\.([A-Za-z_$][\w$]*))`;
   output = output.replace(
-    new RegExp(`(${scoreAccess})\\s*(?:\\|\\||\\?\\?)\\s*(?:0|50|75|82)\\b`, 'g'),
-    'ui00ResolveScore($1)',
+    new RegExp(`${propertyAccess}\\s*(?:\\|\\||\\?\\?)\\s*(?:0|50|75|82)\\b`, 'gi'),
+    (match, access, property) => SCORE_LIKE.test(property) && !INTERFACE_ONLY.test(property) && !COUNTER_LIKE.test(property)
+      ? `ui00ResolveScore(${access})`
+      : match,
   );
   output = output.replace(
     /(STORE_TRUST(?:_V3)?\[[^\]\n]+\])\s*(?:\|\||\?\?)\s*(?:0|50|75|82)\b/g,
@@ -78,9 +84,6 @@ function findArbitraryScoreFallbacks(source) {
   const findings = [];
   const statements = String(source).split(/[;\n]/);
   const numericFallback = /(?:\|\||\?\?)\s*-?\d+(?:\.\d+)?\b/g;
-  const scoreLike = /(?:score|rating|quality|trust|confidence)/i;
-  const interfaceOnly = /(?:filters?|preferences?|threshold|min(?:imum)?|max(?:imum)?)/i;
-  const counterLike = /(?:votes?|count|total|price|duration|timer|page|limit)/i;
 
   for (const statement of statements) {
     numericFallback.lastIndex = 0;
@@ -91,8 +94,8 @@ function findArbitraryScoreFallbacks(source) {
       const operand = operandMatch?.[1] || '';
       const target = statement.match(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/)?.[1] || '';
       const context = `${target} ${operand}`;
-      if (interfaceOnly.test(context)) continue;
-      if (scoreLike.test(operand) || (scoreLike.test(target) && !counterLike.test(operand))) {
+      if (INTERFACE_ONLY.test(context)) continue;
+      if (SCORE_LIKE.test(operand) || (SCORE_LIKE.test(target) && !COUNTER_LIKE.test(operand))) {
         findings.push(statement.trim());
         break;
       }
