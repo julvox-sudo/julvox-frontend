@@ -122,18 +122,24 @@ function integrateManifestIdentity() {
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
+const SERVICE_WORKER_BACKEND_SOURCE_ANCHOR = "const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */";
+
+function materializeServiceWorkerBackendOrigin(source, backendOrigin) {
+  return replaceExactlyOnce(
+    source,
+    SERVICE_WORKER_BACKEND_SOURCE_ANCHOR,
+    `const BACKEND_ORIGIN = '${backendOrigin}'; /* runtime-contract:backend.api_base_url */`,
+    'service worker backend origin build anchor',
+  );
+}
+
 function integrateServiceWorkerRuntime() {
   const serviceWorkerPath = path.join(out, 'sw.js');
   let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
   const contract = readRuntimeContract();
   const backendOrigin = readHttpUrl(contract.backend.api_base_url, 'backend.api_base_url').origin;
   const publicOrigin = readHttpUrl(contract.application.public_base_url, 'application.public_base_url').origin;
-  serviceWorker = replaceExactlyOnce(
-    serviceWorker,
-    "const BACKEND_ORIGIN = 'https://julvox-dealscan-backend-production.up.railway.app';",
-    `const BACKEND_ORIGIN = '${backendOrigin}'; /* runtime-contract:backend.api_base_url */`,
-    'service worker backend origin',
-  );
+  serviceWorker = materializeServiceWorkerBackendOrigin(serviceWorker, backendOrigin);
   serviceWorker = replaceExactlyOnce(
     serviceWorker,
     "const PUBLIC_ORIGIN = 'https://julvox.com';",
@@ -143,11 +149,21 @@ function integrateServiceWorkerRuntime() {
   fs.writeFileSync(serviceWorkerPath, serviceWorker);
 }
 
-const publicManifest = loadPublicArtifactManifest(root, { expectedFileCount: 17 });
-fs.rmSync(out, { recursive: true, force: true });
-fs.mkdirSync(out, { recursive: true });
-for (const entry of publicManifest.files) copyPublicFile(entry.path);
-integrateRuntimeConfig();
-integrateManifestIdentity();
-integrateServiceWorkerRuntime();
-console.log(`Static build complete: dist/ (${publicManifest.files.length} whitelisted files)`);
+function build() {
+  const publicManifest = loadPublicArtifactManifest(root, { expectedFileCount: 17 });
+  fs.rmSync(out, { recursive: true, force: true });
+  fs.mkdirSync(out, { recursive: true });
+  for (const entry of publicManifest.files) copyPublicFile(entry.path);
+  integrateRuntimeConfig();
+  integrateManifestIdentity();
+  integrateServiceWorkerRuntime();
+  console.log(`Static build complete: dist/ (${publicManifest.files.length} whitelisted files)`);
+}
+
+if (require.main === module) build();
+
+module.exports = {
+  SERVICE_WORKER_BACKEND_SOURCE_ANCHOR,
+  build,
+  materializeServiceWorkerBackendOrigin,
+};
