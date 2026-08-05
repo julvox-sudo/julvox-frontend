@@ -8,6 +8,7 @@ const { repairFlashUrlGuard } = require('./ui00-transforms/repair-flash-url-guar
 const { repairChatRenderer } = require('./ui00-transforms/repair-chat-renderer');
 const { ensureLoadingStateHelper } = require('./ui00-transforms/ensure-loading-state-helper');
 const { ensureDealCounterGuard } = require('./ui00-transforms/ensure-deal-counter-guard');
+const { activatePriceHistoryRuntime } = require('./ui00-transforms/activate-price-history-runtime');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -29,6 +30,7 @@ function applyProductionTruth(input) {
     return helpers.verifyAppliedOutput(html, enhancements);
   }
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
+  html = activatePriceHistoryRuntime(html);
   html = repairFlashUrlGuard(html);
   html = repairChatRenderer(html);
   html = ensureLoadingStateHelper(html);
@@ -60,5 +62,6 @@ module.exports = {
   repairChatRenderer,
   ensureLoadingStateHelper,
   ensureDealCounterGuard,
+  activatePriceHistoryRuntime,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };
