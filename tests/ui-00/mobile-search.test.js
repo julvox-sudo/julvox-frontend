@@ -3,13 +3,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { applyProductionTruth } = require('../../scripts/apply-ui-00-production-truth.js');
 const { ensureMobileSearchFeedback } = require('../../scripts/ui00-transforms/ensure-mobile-search-feedback.js');
 
 const repoRoot = path.resolve(__dirname, '../..');
 const sourceHtml = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
-const sourceEnhancements = fs.readFileSync(path.join(repoRoot, 'enhancements_v3.js'), 'utf8');
-const transformed = applyProductionTruth({ html: sourceHtml, enhancements: sourceEnhancements }).html;
+const transformed = ensureMobileSearchFeedback(sourceHtml);
 
 const SEARCH_START = '// ── SEARCH ────────────────────────────────────────────────────';
 const SEARCH_END = '// ── FAVORITES ─────────────────────────────────────────────────';
