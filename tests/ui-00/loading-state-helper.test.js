@@ -25,7 +25,7 @@ test('loading helper renders one accessible status without product data', () => 
       },
     },
   };
-  vm.runInNewContext(`${ensureLoadingStateHelper("async function loadDeals(cat, minSc) { return [cat, minSc]; }")}\nshowLoadingDeals();`, context);
+  vm.runInNewContext(`${ensureLoadingStateHelper("async function loadDeals(cat, minSc) { showLoadingDeals(); return [cat, minSc]; }")}\nshowLoadingDeals();`, context);
   assert.equal(appended.length, 1);
   assert.equal(appended[0].dataset.ui00State, 'loading');
   assert.equal(appended[0].attributes.role, 'status');
@@ -33,7 +33,12 @@ test('loading helper renders one accessible status without product data', () => 
   assert.equal(appended[0].textContent, 'Vérification des offres réelles...');
 });
 
-test('fails closed when the loadDeals anchor is missing or ambiguous', () => {
-  assert.throws(() => ensureLoadingStateHelper('function other() {}'), /anchor, found 0/);
-  assert.throws(() => ensureLoadingStateHelper('async function loadDeals(cat, minSc) {}\nasync function loadDeals(cat, minSc) {}'), /anchor, found 2/);
+test('leaves unrelated transform fixtures unchanged', () => {
+  const source = 'function other() { return true; }';
+  assert.equal(ensureLoadingStateHelper(source), source);
+});
+
+test('fails closed when a loading call has no unique loadDeals anchor', () => {
+  assert.throws(() => ensureLoadingStateHelper('function other() { showLoadingDeals(); }'), /for 1 call\(s\), found 0/);
+  assert.throws(() => ensureLoadingStateHelper('async function loadDeals(cat, minSc) { showLoadingDeals(); }\nasync function loadDeals(cat, minSc) {}'), /for 1 call\(s\), found 2/);
 });

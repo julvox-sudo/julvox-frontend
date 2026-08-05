@@ -16,8 +16,10 @@ function ensureLoadingStateHelper(source) {
   const helperCount = (input.match(/function\s+showLoadingDeals\s*\(/g) || []).length;
   if (helperCount === 1) return input;
   if (helperCount !== 0) throw new Error(`UI-00 loading helper injection failed: expected at most one helper, found ${helperCount}`);
+  const callCount = (input.match(/\bshowLoadingDeals\s*\(/g) || []).length;
+  if (callCount === 0) return input;
   const anchorCount = input.split(LOAD_DEALS_ANCHOR).length - 1;
-  if (anchorCount !== 1) throw new Error(`UI-00 loading helper injection failed: expected exactly one loadDeals anchor, found ${anchorCount}`);
+  if (anchorCount !== 1) throw new Error(`UI-00 loading helper injection failed: expected exactly one loadDeals anchor for ${callCount} call(s), found ${anchorCount}`);
   return input.replace(LOAD_DEALS_ANCHOR, `${LOADING_HELPER}\n\n${LOAD_DEALS_ANCHOR}`);
 }
 
