@@ -19,7 +19,8 @@ function verifyFinalized(html) {
   if ((html.match(/function ui00NumericScore\(/g) || []).length !== 1) fail('ui00NumericScore must be defined exactly once');
   if ((html.match(/function ui00ResolveScore\(/g) || []).length !== 1) fail('ui00ResolveScore must be defined exactly once');
   if ((html.match(/function ui00ScoreLabel\(/g) || []).length !== 1) fail('ui00ScoreLabel must be defined exactly once');
-  if (findArbitraryScoreFallbacks(html).length) fail('an arbitrary score fallback remains');
+  const scoreFallbacks = findArbitraryScoreFallbacks(html);
+  if (scoreFallbacks.length) fail(`an arbitrary score fallback remains: ${scoreFallbacks[0]}`);
   if (/Score NovaDeal™\s+\$\{(?:deal|d)\.novadeal_score\}\/100/.test(html)) fail('undefined score rendering remains');
   return html;
 }
