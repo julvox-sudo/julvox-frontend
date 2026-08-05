@@ -7,6 +7,7 @@ const {
   normalizeNumericScore,
   normalizeScoreFallbacks,
   resolveNumericScore,
+  scoreSortValue,
 } = require('../../scripts/ui-00-score-contract.js');
 const { finalizeHtml } = require('../../scripts/finalize-ui-00-production-truth.js');
 
@@ -27,27 +28,38 @@ test('score resolution preserves zero and skips invalid candidates', () => {
   assert.equal(resolveNumericScore(undefined, null, 'bad'), null);
 });
 
-test('all historical score fallback variants use the central resolver', () => {
+test('missing scores use an isolated sort sentinel without changing valid zero', () => {
+  assert.equal(scoreSortValue(0, 91), 0);
+  assert.equal(scoreSortValue(null, 91), 91);
+  assert.equal(scoreSortValue(undefined, 'bad'), Number.NEGATIVE_INFINITY);
+});
+
+test('all historical and renamed score fallback variants use the central resolver', () => {
   const source = [
     'const a=(d.novadeal_score||d.score)||50;',
     'const b=(deal.novadeal_score ?? deal.score) ?? 75;',
     'const c=deal.score||deal.novadeal_score||50;',
     'const d=deal.merchant_trust_score||75;',
     'const e=p.score || 82;',
+    'const risk=data.risk_score || 0;',
+    "if(currentSort==='score')return rows.sort((a,b)=>(b.novadeal_score||0)-(a.novadeal_score||0));",
   ].join('\n');
   const transformed = normalizeScoreFallbacks(source);
-  assert.doesNotMatch(transformed, /(?:\|\||\?\?)\s*(?:50|75|82)\b/);
+  assert.doesNotMatch(transformed, /(?:\|\||\?\?)\s*(?:0|50|75|82)\b/);
   assert.match(transformed, /ui00ResolveScore\(d\.novadeal_score, d\.score\)/);
   assert.match(transformed, /ui00ResolveScore\(deal\.novadeal_score, deal\.score\)/);
   assert.match(transformed, /ui00ResolveScore\(deal\.merchant_trust_score\)/);
   assert.match(transformed, /ui00ResolveScore\(p\.score\)/);
+  assert.match(transformed, /ui00ResolveScore\(data\.risk_score\)/);
+  assert.match(transformed, /ui00ScoreSortValue\(b\.novadeal_score, b\.score\)/);
 });
 
-test('fallback detector rejects renamed equivalents but keeps interface thresholds', () => {
-  assert.deepEqual(findArbitraryScoreFallbacks('const qualityIndex = offer.rating || 50;').length, 1);
-  assert.deepEqual(findArbitraryScoreFallbacks('const confidenceValue = backendScore ?? 75;').length, 1);
-  assert.deepEqual(findArbitraryScoreFallbacks('const filters = { score: saved.score ?? 50 };').length, 0);
-  assert.deepEqual(findArbitraryScoreFallbacks('const ok = score >= 50;').length, 0);
+test('fallback detector rejects renamed equivalents but keeps thresholds and counters', () => {
+  assert.equal(findArbitraryScoreFallbacks('const qualityIndex = offer.rating || 50;').length, 1);
+  assert.equal(findArbitraryScoreFallbacks('const confidenceValue = backendScore ?? 75;').length, 1);
+  assert.equal(findArbitraryScoreFallbacks('const filters = { score: saved.score ?? 50 };').length, 0);
+  assert.equal(findArbitraryScoreFallbacks('const ok = score >= 50;').length, 0);
+  assert.equal(findArbitraryScoreFallbacks("const trustPct = totalVotes > 0 ? ((d.votes_validate||0) / totalVotes) : null;").length, 0);
 });
 
 test('finalizer gives all four rendering paths an honest unavailable state', () => {
