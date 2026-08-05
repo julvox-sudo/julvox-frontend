@@ -77,14 +77,26 @@ function normalizeScoreFallbacks(source) {
 function findArbitraryScoreFallbacks(source) {
   const findings = [];
   const statements = String(source).split(/[;\n]/);
-  const numericFallback = /(?:\|\||\?\?)\s*-?\d+(?:\.\d+)?\b/;
-  const businessScore = /(?:novadeal_score|merchant_trust_score|\bscore\b|rating|quality|trust|confidence)/i;
+  const numericFallback = /(?:\|\||\?\?)\s*-?\d+(?:\.\d+)?\b/g;
+  const scoreLike = /(?:score|rating|quality|trust|confidence)/i;
   const interfaceOnly = /(?:filters?|preferences?|threshold|min(?:imum)?|max(?:imum)?)/i;
+  const counterLike = /(?:votes?|count|total|price|duration|timer|page|limit)/i;
 
   for (const statement of statements) {
-    if (!numericFallback.test(statement) || !businessScore.test(statement)) continue;
-    if (interfaceOnly.test(statement)) continue;
-    findings.push(statement.trim());
+    numericFallback.lastIndex = 0;
+    let match;
+    while ((match = numericFallback.exec(statement))) {
+      const before = statement.slice(0, match.index);
+      const operandMatch = before.match(/([A-Za-z_$][\w$]*(?:(?:\?\.)|\.)[A-Za-z_$][\w$]*|[A-Za-z_$][\w$]*)\s*$/);
+      const operand = operandMatch?.[1] || '';
+      const target = statement.match(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/)?.[1] || '';
+      const context = `${target} ${operand}`;
+      if (interfaceOnly.test(context)) continue;
+      if (scoreLike.test(operand) || (scoreLike.test(target) && !counterLike.test(operand))) {
+        findings.push(statement.trim());
+        break;
+      }
+    }
   }
   return findings;
 }
