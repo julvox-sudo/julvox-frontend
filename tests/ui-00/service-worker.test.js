@@ -4,7 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.join(__dirname, '../../sw.js'), 'utf8');
+const sourceTemplate = fs.readFileSync(path.join(__dirname, '../../sw.js'), 'utf8');
+const contract = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/runtime-contract.json'), 'utf8'));
+const backendOrigin = new URL(contract.backend.api_base_url).origin;
+const SOURCE_ANCHOR = "const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */";
+const source = sourceTemplate.replace(SOURCE_ANCHOR, `const BACKEND_ORIGIN = '${backendOrigin}';`);
+if (source === sourceTemplate) throw new Error('Service worker backend build anchor is missing from the test source');
 
 function loadServiceWorker(overrides = {}) {
   const listeners = {};
@@ -52,25 +57,25 @@ function loadServiceWorker(overrides = {}) {
 
 test('only unauthenticated public GET requests are cacheable', () => {
   const { mod } = loadServiceWorker();
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/deals?limit=2')), true);
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/deals', { method: 'POST' })), false);
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/deals', { headers: { Authorization: 'Bearer secret' } })), false);
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/deals?access_token=x')), false);
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/deals', { credentials: 'include' })), false);
-  assert.equal(mod.isCacheablePublicApiRequest(new Request('https://julvox-dealscan-backend-production.up.railway.app/account/profile')), false);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/deals?limit=2`)), true);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/deals`, { method: 'POST' })), false);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/deals`, { headers: { Authorization: 'Bearer secret' } })), false);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/deals?access_token=x`)), false);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/deals`, { credentials: 'include' })), false);
+  assert.equal(mod.isCacheablePublicApiRequest(new Request(`${backendOrigin}/account/profile`)), false);
   assert.equal(mod.isCacheablePublicApiRequest(new Request('https://other.test/deals')), false);
 });
 
 test('a public GET is cached but a mutation and authenticated GET are network-only', async () => {
   let fetches = 0;
   const loaded = loadServiceWorker({ fetch: async request => { fetches += 1; return new Response(JSON.stringify({ url: request.url }), { status: 200 }); } });
-  const publicRequest = new Request('https://julvox-dealscan-backend-production.up.railway.app/deals');
+  const publicRequest = new Request(`${backendOrigin}/deals`);
   await loaded.mod.networkFirstPublicGet(publicRequest, loaded.mod.CACHE_NAME, 60);
   const cache = loaded.cacheStores.get(loaded.mod.CACHE_NAME);
   assert.ok(await cache.match(publicRequest));
 
-  const mutation = new Request('https://julvox-dealscan-backend-production.up.railway.app/deals/1/vote', { method: 'POST' });
-  const authenticated = new Request('https://julvox-dealscan-backend-production.up.railway.app/deals', { headers: { Authorization: 'Bearer x' } });
+  const mutation = new Request(`${backendOrigin}/deals/1/vote`, { method: 'POST' });
+  const authenticated = new Request(`${backendOrigin}/deals`, { headers: { Authorization: 'Bearer x' } });
   assert.equal((await loaded.mod.networkOnlyApi(mutation)).status, 200);
   assert.equal((await loaded.mod.networkOnlyApi(authenticated)).status, 200);
   assert.equal(fetches, 3);
@@ -80,7 +85,7 @@ test('a public GET is cached but a mutation and authenticated GET are network-on
 
 test('offline API failure is 503 and never fabricates an empty deals list', async () => {
   const { mod } = loadServiceWorker({ fetch: async () => { throw new Error('offline'); } });
-  const response = await mod.networkOnlyApi(new Request('https://julvox-dealscan-backend-production.up.railway.app/account/profile'));
+  const response = await mod.networkOnlyApi(new Request(`${backendOrigin}/account/profile`));
   assert.equal(response.status, 503);
   assert.match(response.headers.get('Content-Type'), /application\/json/);
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
@@ -91,7 +96,7 @@ test('offline API failure is 503 and never fabricates an empty deals list', asyn
 
 test('expired or unverifiable public cache is returned as 504, not 200', async () => {
   const loaded = loadServiceWorker({ fetch: async () => { throw new Error('offline'); } });
-  const request = new Request('https://julvox-dealscan-backend-production.up.railway.app/deals');
+  const request = new Request(`${backendOrigin}/deals`);
   const cache = await loaded.context.caches.open(loaded.mod.CACHE_NAME);
   await cache.put(request, new Response('{"deals":[{"id":1}]}', { status: 200 }));
   let response = await loaded.mod.networkFirstPublicGet(request, loaded.mod.CACHE_NAME, 60);
