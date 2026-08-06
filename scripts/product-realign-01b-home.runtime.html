@@ -1,0 +1,172 @@
+
+<script id="product-realign-01b-home-runtime">
+(function productRealign01BHomeRuntime(){
+  'use strict';
+  var STORAGE_KEY = "julvox:decision-home:conversations:v1";
+  var MAX_CONVERSATIONS = 2;
+  var root = document.getElementById('julvoxDecisionHome');
+  if (!root) return;
+
+  function cleanText(value, limit) {
+    return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, limit || 800);
+  }
+
+  function readConversations() {
+    try {
+      var parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map(function(item){
+        return {
+          id: cleanText(item && item.id, 80),
+          need: cleanText(item && item.need, 800),
+          clarified: cleanText(item && item.clarified, 240),
+          next: cleanText(item && item.next, 240),
+          updatedAt: cleanText(item && item.updatedAt, 40)
+        };
+      }).filter(function(item){ return item.id && item.need; }).slice(0, MAX_CONVERSATIONS);
+    } catch (_) { return []; }
+  }
+
+  function saveConversation(need) {
+    var cleanNeed = cleanText(need, 800);
+    if (!cleanNeed) return null;
+    var now = new Date().toISOString();
+    var item = {
+      id: 'decision-' + Date.now().toString(36),
+      need: cleanNeed,
+      clarified: 'Ton besoin initial est enregistré.',
+      next: 'Préciser ce qui compte le plus pour toi.',
+      updatedAt: now
+    };
+    var items = [item].concat(readConversations().filter(function(existing){ return existing.need !== cleanNeed; })).slice(0, MAX_CONVERSATIONS);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (_) {}
+    return item;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function titleFromNeed(need) {
+    var text = cleanText(need, 80).replace(/[.?!]+$/,'');
+    if (text.length <= 48) return text;
+    return text.slice(0,45).trim() + '…';
+  }
+
+  function renderConversations() {
+    var list = document.getElementById('pr01bConversationList');
+    if (!list) return;
+    var items = readConversations();
+    if (!items.length) {
+      list.innerHTML = '<div class="pr01b-empty"><strong>Commence par expliquer ce que tu essaies de décider.</strong><span>Tes conversations apparaîtront ici, sans fiche produit ni indicateur artificiel.</span></div>';
+      return;
+    }
+    list.innerHTML = items.map(function(item){
+      return '<article class="pr01b-conversation" data-home-conversation="true">' +
+        '<div class="pr01b-conv-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5.5 4v-4.8A2.5 2.5 0 0 1 4 13.7z"/><path d="M8 9h.01M12 9h.01M16 9h.01"/></svg></div>' +
+        '<div class="pr01b-conv-body"><div class="pr01b-conv-label">Conversation en cours</div>' +
+        '<h3 class="pr01b-conv-title">' + escapeHtml(titleFromNeed(item.need)) + '</h3>' +
+        '<p class="pr01b-conv-line"><strong>Ton besoin :</strong> ' + escapeHtml(item.need) + '</p>' +
+        '<p class="pr01b-conv-line"><strong>Déjà clarifié :</strong> ' + escapeHtml(item.clarified) + '</p>' +
+        '<div class="pr01b-conv-next">Prochaine étape : ' + escapeHtml(item.next) + '</div></div></article>';
+    }).join('');
+  }
+
+  function showMessage(text) {
+    var element = document.getElementById('pr01bHomeMessage');
+    if (!element) return;
+    element.textContent = cleanText(text, 240);
+    element.dataset.visible = 'true';
+  }
+
+  function openConversation(prompt) {
+    var safePrompt = cleanText(prompt, 800);
+    if (!safePrompt) return;
+    saveConversation(safePrompt);
+    renderConversations();
+    showMessage('Ta réflexion est enregistrée. Julvox ouvre la conversation pour poursuivre avec toi.');
+    if (typeof window.openAIChat === 'function' && typeof window.sendAIMessage === 'function') {
+      window.openAIChat();
+      window.setTimeout(function(){ window.sendAIMessage(safePrompt); }, 80);
+      return;
+    }
+    var input = document.getElementById('chatInput');
+    if (input) input.value = safePrompt;
+  }
+
+  function focusComposer() {
+    document.getElementById('pr01bConversationInput')?.focus();
+    document.querySelector('.pr01b-hero')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  function navigate(action) {
+    if (action === 'home') { window.scrollTo({top:0,behavior:'smooth'}); return; }
+    if (action === 'conversations') { focusComposer(); return; }
+    if (action === 'decisions') { document.getElementById('pr01bDecisions')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    if (action === 'settings') {
+      if (typeof window.openAccountPage === 'function') window.openAccountPage();
+      else if (typeof window.openPage === 'function' && document.getElementById('accountPage')) window.openPage('accountPage');
+      return;
+    }
+    if (action === 'help') {
+      if (typeof window.openAIChat === 'function') window.openAIChat();
+      else focusComposer();
+      return;
+    }
+    if (action === 'toggle-menu') {
+      var sheet = document.getElementById('pr01bMobileSheet');
+      var button = root.querySelector('[data-home-action="toggle-menu"]');
+      var open = sheet && sheet.dataset.open !== 'true';
+      if (sheet) { sheet.dataset.open = open ? 'true' : 'false'; sheet.setAttribute('aria-hidden', open ? 'false' : 'true'); }
+      if (button) button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }
+
+  root.addEventListener('click', function(event){
+    var actionElement = event.target.closest('[data-home-action]');
+    if (actionElement) { event.preventDefault(); navigate(actionElement.dataset.homeAction); return; }
+    var example = event.target.closest('[data-home-example]');
+    if (example) {
+      var input = document.getElementById('pr01bConversationInput');
+      if (input) { input.value = example.dataset.homeExample || ''; input.focus(); }
+      return;
+    }
+    var inspiration = event.target.closest('[data-home-inspiration]');
+    if (inspiration) {
+      var composer = document.getElementById('pr01bConversationInput');
+      if (composer) { composer.value = 'J’aimerais réfléchir à un achat lié à l’univers ' + inspiration.dataset.homeInspiration.toLowerCase() + '.'; composer.focus(); }
+      document.querySelector('.pr01b-hero')?.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  });
+
+  document.getElementById('pr01bConversationForm')?.addEventListener('submit', function(event){
+    event.preventDefault();
+    var input = document.getElementById('pr01bConversationInput');
+    var prompt = cleanText(input && input.value, 800);
+    if (!prompt) { showMessage('Explique-moi simplement ce que tu essaies de décider.'); input?.focus(); return; }
+    if (input) input.value = '';
+    openConversation(prompt);
+  });
+
+  document.getElementById('pr01bConversationInput')?.addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight,128) + 'px';
+  });
+
+  document.getElementById('pr01bMobileSheet')?.addEventListener('click', function(event){
+    if (event.target === this) navigate('toggle-menu');
+  });
+
+  try {
+    var user = typeof window.currentUser !== 'undefined' ? window.currentUser : null;
+    var fullName = cleanText(user && (user.name || user.full_name || user.email), 80);
+    if (fullName) {
+      var first = fullName.split(/[ @]/)[0];
+      root.querySelectorAll('[data-home-first-name]').forEach(function(element){ element.textContent = first; });
+      root.querySelectorAll('[data-home-user-name]').forEach(function(element){ element.textContent = fullName; });
+    }
+  } catch (_) {}
+
+  renderConversations();
+})();
+</script>
