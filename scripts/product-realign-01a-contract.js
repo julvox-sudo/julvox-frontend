@@ -6,6 +6,7 @@ const UNJUSTIFIED_DECISION_PATTERNS = Object.freeze([
   ['score threshold produces a buy-now recommendation', /Achetez maintenant/i],
   ['score threshold produces a wait recommendation', /function\s+getVerdict[\s\S]{0,900}text\s*:\s*['"]Attendez['"]/i],
   ['score alone asserts an historical low', /Prix historiquement bas/i],
+  ['swipe score threshold produces historical badges', /score\s*>=\s*90\s*\?\s*'<span class="record-badge">[^']*RECORD<\/span>'\s*:\s*score\s*>=\s*85\s*\?\s*'<span class="rare-badge">[^']*RARE<\/span>'/i],
   ['missing drop probability becomes 50 percent', /drop_probability\s*\|\|\s*0\.5/],
   ['missing merchant tier becomes tier 2', /merchant\.tier\s*\|\|\s*2/],
   ['missing rarity becomes index 0', /rarity\.index\s*\|\|\s*0/],

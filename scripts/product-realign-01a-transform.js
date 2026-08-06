@@ -2,7 +2,11 @@
 
 const { replaceNamedFunction } = require('./ui00-transforms/function-spans.js');
 const { PRODUCT_REALIGN_MARKER } = require('./product-realign-01a-contract.js');
-const { neutralizedGetVerdict, neutralizedRenderTrustDetail } = require('./product-realign-01a-decision-renderers.js');
+const {
+  neutralizedBuildSwipeCard,
+  neutralizedGetVerdict,
+  neutralizedRenderTrustDetail,
+} = require('./product-realign-01a-decision-renderers.js');
 const { neutralizedRenderAnalysisResults } = require('./product-realign-01a-analysis-renderer.js');
 const { neutralizedRenderProductComparison, neutralizedInjectAnalysisInModal } = require('./product-realign-01a-comparison-renderers.js');
 
@@ -74,25 +78,30 @@ const EXACT_REPLACEMENTS = Object.freeze([
   ],
 ]);
 
+function neutralizeSwipeSurface(source) {
+  if (!/(?:async\s+)?function\s+buildSwipeCard\s*\(/.test(source)) return source;
+  return replaceNamedFunction(source, 'buildSwipeCard', sourceFor(neutralizedBuildSwipeCard, 'buildSwipeCard'));
+}
+
 function neutralizeUnjustifiedDecisionClaims(source) {
-  if (source.includes(PRODUCT_REALIGN_MARKER)) return source;
+  let html = neutralizeSwipeSurface(source);
+  if (html.includes(PRODUCT_REALIGN_MARKER)) return html;
   const functionNames = Object.keys(FUNCTION_REPLACEMENTS);
-  const presentFunctions = functionNames.filter(name => new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`).test(source));
+  const presentFunctions = functionNames.filter(name => new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`).test(html));
   const anchor = 'function ui00ScoreLabel(value) {';
-  const anchorIndex = source.indexOf(anchor);
+  const anchorIndex = html.indexOf(anchor);
   if (anchorIndex < 0) fail('score helper anchor is missing');
 
   // Existing transform unit fixtures do not contain the historical verdict surface,
   // even when they include an isolated merchant renderer. Mark those fixtures without
   // weakening the full-artifact invariant; once getVerdict exists, all surfaces are required.
   if (!presentFunctions.includes('getVerdict')) {
-    return `${source.slice(0, anchorIndex)}${PRODUCT_REALIGN_MARKER}\n${source.slice(anchorIndex)}`;
+    return `${html.slice(0, anchorIndex)}${PRODUCT_REALIGN_MARKER}\n${html.slice(anchorIndex)}`;
   }
   if (presentFunctions.length !== functionNames.length) {
     fail(`partial decision surface set: found ${presentFunctions.length} of ${functionNames.length}`);
   }
 
-  let html = source;
   for (const [name, replacement] of Object.entries(FUNCTION_REPLACEMENTS)) {
     html = replaceNamedFunction(html, name, replacement);
   }
@@ -104,4 +113,4 @@ function neutralizeUnjustifiedDecisionClaims(source) {
   return `${html.slice(0, index)}${PRODUCT_REALIGN_MARKER}\n${html.slice(index)}`;
 }
 
-module.exports = { neutralizeUnjustifiedDecisionClaims };
+module.exports = { neutralizeSwipeSurface, neutralizeUnjustifiedDecisionClaims };
