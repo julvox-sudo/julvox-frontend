@@ -6,6 +6,18 @@
       "classification": "runtime-api-client"
     },
     {
+      "path": "brand/julvox-glyph-small.svg",
+      "classification": "official-brand-glyph-small"
+    },
+    {
+      "path": "brand/julvox-logo-horizontal-negative.svg",
+      "classification": "official-brand-logo-negative"
+    },
+    {
+      "path": "brand/julvox-logo-horizontal.svg",
+      "classification": "official-brand-logo"
+    },
+    {
       "path": "enhancements_v3.js",
       "classification": "runtime-script"
     },
@@ -15,27 +27,19 @@
     },
     {
       "path": "icons/icon-192.png",
-      "classification": "pwa-icon"
+      "classification": "official-pwa-icon"
     },
     {
       "path": "icons/icon-512.png",
-      "classification": "pwa-icon"
+      "classification": "official-pwa-icon"
     },
     {
-      "path": "icons/shortcut-alerts.png",
-      "classification": "pwa-shortcut-icon"
+      "path": "icons/julvox-favicon-16-transparent.png",
+      "classification": "official-favicon"
     },
     {
-      "path": "icons/shortcut-deals.png",
-      "classification": "pwa-shortcut-icon"
-    },
-    {
-      "path": "icons/shortcut-flash.png",
-      "classification": "pwa-shortcut-icon"
-    },
-    {
-      "path": "icons/shortcut-promos.png",
-      "classification": "pwa-shortcut-icon"
+      "path": "icons/julvox-favicon-32-transparent.png",
+      "classification": "official-favicon"
     },
     {
       "path": "index.html",
@@ -52,10 +56,6 @@
     {
       "path": "runtime-config.js",
       "classification": "generated-runtime-config"
-    },
-    {
-      "path": "screenshots/screenshot-mobile.png",
-      "classification": "pwa-screenshot"
     },
     {
       "path": "sitemap.xml",
