@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const home = require('./product-realign-01b-home.js');
 const startupIcons = require('./product-realign-01b-startup-icons.js');
-const officialBrand = require('./product-realign-01b-brand-integrate.js');
 
 const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
@@ -15,5 +14,4 @@ if (fs.existsSync(manifestPath)) {
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 }
 startupIcons.write(root);
-officialBrand.integrate(root);
-console.log('PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup and official A2.2 brand integrated into dist.');
+console.log('PRODUCT-REALIGN-01B locked home and HOTFIX-05 startup integrated into dist.');

@@ -11,6 +11,10 @@ const manifest = JSON.parse(
 const packageDocument = JSON.parse(
   fs.readFileSync(path.join(root, 'package.json'), 'utf8'),
 );
+const homeIntegratorSource = fs.readFileSync(
+  path.join(root, 'scripts', 'product-realign-01b-home-integrate.js'),
+  'utf8',
+);
 
 const CERTIFIED_HORIZONTAL_LOGOS = [
   'brand/julvox-logo-horizontal.svg',
@@ -52,6 +56,9 @@ test('maintient l’intégration branding officielle hors de la chaîne de build
   const buildCommand = packageDocument.scripts.build;
   assert.doesNotMatch(buildCommand, /product-realign-01b-brand-integrate|integrate:product-realign-01b-brand/);
   assert.match(buildCommand, /integrate:product-realign-01b-home/);
+  assert.doesNotMatch(homeIntegratorSource, /product-realign-01b-brand-integrate|officialBrand|officialBrand\.integrate/);
+  assert.match(homeIntegratorSource, /home\.applyHomeExperience/);
+  assert.match(homeIntegratorSource, /startupIcons\.write/);
 });
 
 test('ne conserve aucune sonde ou métadonnée temporaire de l’intégration rejetée', () => {
