@@ -76,6 +76,22 @@ const EXACT_REPLACEMENTS = Object.freeze([
 
 function neutralizeUnjustifiedDecisionClaims(source) {
   if (source.includes(PRODUCT_REALIGN_MARKER)) return source;
+  const functionNames = Object.keys(FUNCTION_REPLACEMENTS);
+  const presentFunctions = functionNames.filter(name => new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`).test(source));
+  const anchor = 'function ui00ScoreLabel(value) {';
+  const anchorIndex = source.indexOf(anchor);
+  if (anchorIndex < 0) fail('score helper anchor is missing');
+
+  // Existing transform unit fixtures do not contain the historical verdict surface,
+  // even when they include an isolated merchant renderer. Mark those fixtures without
+  // weakening the full-artifact invariant; once getVerdict exists, all surfaces are required.
+  if (!presentFunctions.includes('getVerdict')) {
+    return `${source.slice(0, anchorIndex)}${PRODUCT_REALIGN_MARKER}\n${source.slice(anchorIndex)}`;
+  }
+  if (presentFunctions.length !== functionNames.length) {
+    fail(`partial decision surface set: found ${presentFunctions.length} of ${functionNames.length}`);
+  }
+
   let html = source;
   for (const [name, replacement] of Object.entries(FUNCTION_REPLACEMENTS)) {
     html = replaceNamedFunction(html, name, replacement);
@@ -83,9 +99,8 @@ function neutralizeUnjustifiedDecisionClaims(source) {
   for (const [search, replacement, label] of EXACT_REPLACEMENTS) {
     html = replaceExactly(html, search, replacement, label);
   }
-  const anchor = 'function ui00ScoreLabel(value) {';
   const index = html.indexOf(anchor);
-  if (index < 0) fail('score helper anchor is missing');
+  if (index < 0) fail('score helper anchor is missing after transformation');
   return `${html.slice(0, index)}${PRODUCT_REALIGN_MARKER}\n${html.slice(index)}`;
 }
 
