@@ -1,0 +1,36 @@
+{
+  "mission": "JULVOX-BINARY-INTEGRITY-01",
+  "source_pack_sha256": "5680524562e21367dc20031a9ef0155ce8e475cdb66919158e54e0a3c0f13500",
+  "files": [
+    {
+      "name": "julvox-logo-horizontal.svg",
+      "size": 4221,
+      "sha256": "cebca51950d70db87f33100be87adaf28907b99792f2a4eb5e6e7ffcd50bf91f",
+      "git_sha": "b303b505289324e0028a8adfc74cf82873fba8b4"
+    },
+    {
+      "name": "julvox-glyph-small.svg",
+      "size": 2024,
+      "sha256": "07b51790ee93467f2e22c47c5af50b91fd6853596ee55307933589dd48f32bd0",
+      "git_sha": "c41dad92f2b525ebf5e5212758c4ff9f17ad7373"
+    },
+    {
+      "name": "julvox-favicon-16-transparent.png",
+      "size": 353,
+      "sha256": "39596221dc5a077bd5ba56e0ab3d8f4fb39b24d320d0eed12cb313bef526276f",
+      "git_sha": "d991334e6e0ee7c25cddd9573f16e8add32a15d9"
+    },
+    {
+      "name": "julvox-app-icon-192.png",
+      "size": 8722,
+      "sha256": "8681b5b78c93fa72dc0837400f4335b899fbb1371572e36bf22587e8b70435f6",
+      "git_sha": "599031e4a0720d70b320a4c61ecc181a0732a205"
+    },
+    {
+      "name": "julvox-app-icon-512.png",
+      "size": 14322,
+      "sha256": "b61af9f6b613062a32eab2a1ab4b3dbc6eaa0ea5add3f8fd03de1ab3a298395f",
+      "git_sha": "c3586617e27b9d8c8ad52d0cb0bf714f98bda975"
+    }
+  ]
+}
