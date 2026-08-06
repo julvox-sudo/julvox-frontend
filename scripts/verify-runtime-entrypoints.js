@@ -44,12 +44,16 @@ if (enhancements) {
 }
 
 if (serviceWorker) {
-  for (const eventName of ['install', 'activate', 'fetch', 'push', 'notificationclick', 'sync', 'message']) {
+  for (const eventName of ['install', 'activate', 'fetch', 'push', 'notificationclick', 'message']) {
     requirePattern(
       serviceWorker,
       new RegExp(`self\\.addEventListener\\s*\\(\\s*["']${eventName}["']`),
       `sw.js is missing the ${eventName} entrypoint`,
     );
+  }
+  if (/self\.addEventListener\s*\(\s*["']sync["']/.test(serviceWorker)
+      || /syncPendingVotes|sync-votes/.test(serviceWorker)) {
+    failures.push('sw.js must not queue or replay vote mutations');
   }
 }
 
