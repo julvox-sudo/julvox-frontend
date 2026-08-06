@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="320" height="488" viewBox="40 24 320 488" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
   <title id="title">julvox-glyph-master-color-no-sand</title>
-  <desc id="desc">Glyphe Julvox A2.2 Base allégée, J asymétrique avec passage négatif ascendant.</desc>
+  <desc id="desc">Glyphe Julvox A2.2 sans accent sable, pour usages réduits et contraintes de reproduction.</desc>
   <defs>
     <mask id="passage-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="540">
       <rect width="512" height="540" fill="white"/>
