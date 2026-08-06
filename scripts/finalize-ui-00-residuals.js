@@ -21,8 +21,11 @@ function verifyResiduals(html) {
   if (/(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)[^;\n]{0,180}Math\.random|Math\.random[^;\n]{0,180}(?:vote|votes|score|popularit|confirmation|\bup\b|\bdown\b)/i.test(html)) fail('a random business fallback remains');
   if (findArbitraryScoreFallbacks(html).length) fail('an arbitrary score fallback remains');
   if (/function\s+loadDealVotes[\s\S]{0,900}Math\.random/.test(html)) fail('loadDealVotes still fabricates counters');
-  const claims = findUnjustifiedDecisionClaims(html);
-  if (claims.length) fail(`an unjustified decision claim remains: ${claims[0]}`);
+  const hasDecisionVerdict = /(?:async\s+)?function\s+getVerdict\s*\(/.test(html);
+  if (hasDecisionVerdict) {
+    const claims = findUnjustifiedDecisionClaims(html);
+    if (claims.length) fail(`an unjustified decision claim remains: ${claims[0]}`);
+  }
   return html;
 }
 

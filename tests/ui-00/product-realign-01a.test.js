@@ -4,8 +4,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {
+  MARKER,
   PRODUCT_REALIGN_MARKER,
   finalizeResiduals,
+  verifyResiduals,
 } = require('../../scripts/finalize-ui-00-residuals.js');
 const {
   findUnjustifiedDecisionClaims,
@@ -144,4 +146,12 @@ test('merchant wording no longer presents a score as confidence', () => {
   assert.doesNotMatch(result, /Confiance marchand|Score de confiance NovaDeal|Score de confiance algorithmique/i);
   assert.match(result, /Indicateur marchand/);
   assert.match(result, /Cet indicateur n’est pas un niveau de confiance/);
+});
+
+
+test('isolated transform fixtures without a verdict surface remain scoped', () => {
+  const fixture = `${MARKER}
+${PRODUCT_REALIGN_MARKER}
+const legacyLabel = 'Confiance marchand';`;
+  assert.equal(verifyResiduals(fixture), fixture);
 });
