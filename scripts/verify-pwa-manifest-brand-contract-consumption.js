@@ -10,7 +10,6 @@ const expected = {
   name: `${contract.application.name} — ${contract.application.tagline}`,
   short_name: contract.application.name,
   description: contract.application.description,
-  screenshot_label: `${contract.application.name} — ${contract.application.tagline}`,
 };
 
 const historical = {
@@ -36,7 +35,9 @@ if (sourceManifest.screenshots?.[0]?.label !== historical.screenshot_label) erro
 if (distManifest.name !== expected.name) errors.push(`Built manifest name differs from the runtime contract: ${distManifest.name}`);
 if (distManifest.short_name !== expected.short_name) errors.push(`Built manifest short_name differs from the runtime contract: ${distManifest.short_name}`);
 if (distManifest.description !== expected.description) errors.push('Built manifest description differs from the runtime contract.');
-if (distManifest.screenshots?.[0]?.label !== expected.screenshot_label) errors.push('Built manifest primary screenshot label differs from the runtime contract.');
+if (!Array.isArray(distManifest.screenshots) || distManifest.screenshots.length !== 0) {
+  errors.push('Built manifest must not publish a legacy or uncertified PWA screenshot.');
+}
 if (distManifest._runtime_contract !== 'application.name+application.tagline+application.description') {
   errors.push('Built manifest is missing the F010 runtime contract trace marker.');
 }
