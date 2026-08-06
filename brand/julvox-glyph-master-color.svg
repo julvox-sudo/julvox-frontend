@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="488" viewBox="40 24 320 488" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">julvox-glyph-master-color</title>
+  <desc id="desc">Master couleur du glyphe Julvox A2.2 — Base allégée.</desc>
+  <defs>
+    <mask id="passage-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="white"/>
+      <path d="M 96 530 L 115 435 C 139 423 159 407 176 386 C 199 356 214 320 222 279 C 226 258 226 241 220 226 C 217 218 212 218 207 225 C 188 250 165 272 138 290 L 152 338 C 175 326 195 309 210 286 C 203 330 186 367 160 397 C 144 415 126 428 106 438 L 74 530 Z" fill="black"/>
+    </mask>
+  </defs>
+  <path id="main-body" fill="#0B1D34" d="M 168 44 L 294 44 C 306 44 315 53 315 65 L 315 291 C 315 371 279 429 220 459 C 197 471 171 479 146 484 C 137 486 128 480 125 471 L 120 453 C 118 445 123 437 131 434 C 163 425 187 408 204 383 C 222 356 230 321 230 278 L 230 130 L 168 130 C 158 130 150 122 150 112 L 150 62 C 150 52 158 44 168 44 Z" mask="url(#passage-mask)"/>
+  <path id="tension-piece" fill="#0B1D34" d="M 72 326 C 77 319 85 315 94 315 L 141 315 C 148 315 152 322 149 329 L 113 405 C 109 414 98 417 90 411 C 76 400 68 382 66 361 L 64 345 C 63 337 66 331 72 326 Z"/>
+  <path id="teal-accent" fill="#0EA7A1" d="M 168 44 L 242 44 C 225 60 204 74 181 85 L 150 97 L 150 62 C 150 52 158 44 168 44 Z"/>
+  <path id="sand-accent" fill="#E6D7C2" d="M 122 414 C 130 403 137 389 142 374 C 146 362 151 352 157 345 C 153 366 153 386 156 404 C 158 418 162 429 167 438 L 144 438 C 135 431 128 423 122 414 Z"/>
+</svg>
