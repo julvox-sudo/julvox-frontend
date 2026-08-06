@@ -1,3 +1,0 @@
-JULVOX-BINARY-INTEGRITY-01
-Second isolated push to trigger the temporary workflow.
-No binary data changed.

@@ -1,3 +1,0 @@
-JULVOX-BINARY-INTEGRITY-01
-Trigger through the GitHub contents API.
-No binary data changed.
