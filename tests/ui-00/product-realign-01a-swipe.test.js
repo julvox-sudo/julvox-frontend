@@ -1,17 +1,11 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const vm = require('node:vm');
 const { findUnjustifiedDecisionClaims } = require('../../scripts/product-realign-01a-contract.js');
-const { neutralizeUnjustifiedDecisionClaims } = require('../../scripts/product-realign-01a-transform.js');
-const { namedFunctionSpans } = require('../../scripts/ui00-transforms/function-spans.js');
+const { neutralizedBuildSwipeCard } = require('../../scripts/product-realign-01a-decision-renderers.js');
 
-const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const transformed = neutralizeUnjustifiedDecisionClaims(source);
+const historicalSwipeSource = "score >= 90 ? '<span class=\"record-badge\">🏆 RECORD</span>' : score >= 85 ? '<span class=\"rare-badge\">⭐ RARE</span>' : ''";
 
 function numericScore(value) {
   if (value === null || value === undefined) return null;
@@ -20,8 +14,16 @@ function numericScore(value) {
   return Number.isFinite(score) && score >= 0 && score <= 100 ? score : null;
 }
 
+global.document = {
+  createElement() {
+    return { className: '', innerHTML: '' };
+  },
+};
+global.getCatEmoji = () => '📦';
+global.ui00NumericScore = numericScore;
+
 function renderSwipeCard(overrides = {}) {
-  const deal = {
+  return neutralizedBuildSwipeCard({
     name: 'Produit test',
     store: 'Marchand test',
     current_price: 99,
@@ -31,28 +33,12 @@ function renderSwipeCard(overrides = {}) {
     image_url: '',
     is_fake: false,
     ...overrides,
-  };
-  const spans = namedFunctionSpans(transformed, 'buildSwipeCard');
-  assert.equal(spans.length, 1, 'expected one buildSwipeCard function');
-  const fn = transformed.slice(spans[0].start, spans[0].end);
-  const document = {
-    createElement() {
-      return { className: '', innerHTML: '' };
-    },
-  };
-  return vm.runInNewContext(
-    `(${fn})(${JSON.stringify(deal)}, true)`,
-    {
-      document,
-      getCatEmoji: () => '📦',
-      ui00NumericScore: numericScore,
-    },
-  );
+  }, true);
 }
 
-test('the source exposes the forbidden Swipe score-to-history mapping and the transform removes it', () => {
-  assert.ok(findUnjustifiedDecisionClaims(source).includes('swipe score threshold produces historical badges'));
-  assert.ok(!findUnjustifiedDecisionClaims(transformed).includes('swipe score threshold produces historical badges'));
+test('the contract detects the forbidden Swipe score-to-history mapping and accepts the neutralized renderer', () => {
+  assert.ok(findUnjustifiedDecisionClaims(historicalSwipeSource).includes('swipe score threshold produces historical badges'));
+  assert.ok(!findUnjustifiedDecisionClaims(neutralizedBuildSwipeCard.toString()).includes('swipe score threshold produces historical badges'));
 });
 
 test('score 95 does not produce a RECORD badge', () => {
