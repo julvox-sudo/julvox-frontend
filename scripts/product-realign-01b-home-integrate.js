@@ -11,6 +11,7 @@ fs.writeFileSync(indexPath, home.applyHomeExperience(fs.readFileSync(indexPath, 
 const manifestPath = path.join(root, 'dist', 'manifest.json');
 if (fs.existsSync(manifestPath)) {
   const manifest = home.applyPwaStartupManifest(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.screenshots = [];
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 }
 startupIcons.write(root);

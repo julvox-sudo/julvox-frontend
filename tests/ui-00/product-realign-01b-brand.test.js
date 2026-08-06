@@ -59,6 +59,7 @@ test('maintient l’intégration branding officielle hors de la chaîne de build
   assert.doesNotMatch(homeIntegratorSource, /product-realign-01b-brand-integrate|officialBrand|officialBrand\.integrate/);
   assert.match(homeIntegratorSource, /home\.applyHomeExperience/);
   assert.match(homeIntegratorSource, /startupIcons\.write/);
+  assert.match(homeIntegratorSource, /manifest\.screenshots\s*=\s*\[\]/);
 });
 
 test('ne conserve aucune sonde ou métadonnée temporaire de l’intégration rejetée', () => {
