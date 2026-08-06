@@ -1,0 +1,58 @@
+name: Binary integrity 01
+
+on:
+  push:
+    branches:
+      - test/binary-integrity-01
+    paths:
+      - binary-integrity-01/method-d/source/**
+      - .github/workflows/binary-integrity-01.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/binary-integrity-01
+          fetch-depth: 0
+      - name: Reconstruct controlled binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p binary-integrity-01/method-d
+          cat binary-integrity-01/method-d/source/julvox-app-icon-512.b64.part-* > /tmp/julvox-app-icon-512.b64
+          base64 --decode /tmp/julvox-app-icon-512.b64 > binary-integrity-01/method-d/julvox-app-icon-512.png
+          cp binary-integrity-01/reference-existing/julvox-app-icon-192.png binary-integrity-01/method-d/julvox-app-icon-192.png
+      - name: Verify exact hashes and signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+          check() {
+            file="$1" expected_size="$2" expected_sha256="$3" expected_git="$4"
+            actual_size="$(stat -c %s "$file")"
+            actual_sha256="$(sha256sum "$file" | awk '{print $1}')"
+            actual_git="$(git hash-object "$file")"
+            test "$actual_size" = "$expected_size"
+            test "$actual_sha256" = "$expected_sha256"
+            test "$actual_git" = "$expected_git"
+            printf '%s size=%s sha256=%s git=%s mime=%s\n' "$file" "$actual_size" "$actual_sha256" "$actual_git" "$(file -b --mime-type "$file")" | tee -a binary-integrity-01/method-d/workflow-results.txt
+          }
+          : > binary-integrity-01/method-d/workflow-results.txt
+          check binary-integrity-01/method-c/julvox-logo-horizontal.svg 4221 cebca51950d70db87f33100be87adaf28907b99792f2a4eb5e6e7ffcd50bf91f b303b505289324e0028a8adfc74cf82873fba8b4
+          check binary-integrity-01/method-c/julvox-glyph-small.svg 2024 07b51790ee93467f2e22c47c5af50b91fd6853596ee55307933589dd48f32bd0 c41dad92f2b525ebf5e5212758c4ff9f17ad7373
+          check binary-integrity-01/method-b/julvox-favicon-16-transparent.png 353 39596221dc5a077bd5ba56e0ab3d8f4fb39b24d320d0eed12cb313bef526276f d991334e6e0ee7c25cddd9573f16e8add32a15d9
+          check binary-integrity-01/method-d/julvox-app-icon-192.png 8722 8681b5b78c93fa72dc0837400f4335b899fbb1371572e36bf22587e8b70435f6 599031e4a0720d70b320a4c61ecc181a0732a205
+          check binary-integrity-01/method-d/julvox-app-icon-512.png 14322 b61af9f6b613062a32eab2a1ab4b3dbc6eaa0ea5add3f8fd03de1ab3a298395f c3586617e27b9d8c8ad52d0cb0bf714f98bda975
+      - name: Commit generated proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name julvox-binary-integrity-bot
+          git config user.email actions@users.noreply.github.com
+          git add binary-integrity-01/method-d/julvox-app-icon-192.png binary-integrity-01/method-d/julvox-app-icon-512.png binary-integrity-01/method-d/workflow-results.txt
+          git commit -m 'test(binary): reconstruct exact PNG probes [binary-integrity-generated]'
+          git push origin HEAD:test/binary-integrity-01
