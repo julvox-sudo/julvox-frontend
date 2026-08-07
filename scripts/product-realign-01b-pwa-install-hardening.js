@@ -67,6 +67,17 @@ const PWA_INSTALL_RUNTIME = `
     catch (_) { return false; }
   }
 
+  function refreshServiceWorkerRegistration() {
+    if (!('serviceWorker' in navigator) || !navigator.serviceWorker.ready) return;
+    navigator.serviceWorker.ready
+      .then(function(registration){
+        if (registration && typeof registration.update === 'function') {
+          return registration.update();
+        }
+      })
+      .catch(function(){});
+  }
+
   var legacyShowInstallPrompt = window.showInstallPrompt;
   if (typeof legacyShowInstallPrompt === 'function') {
     window.showInstallPrompt = function(fromButton) {
@@ -92,6 +103,7 @@ const PWA_INSTALL_RUNTIME = `
   window.addEventListener('beforeinstallprompt', function(){
     if (!isStandaloneContext()) writeInstalledState(false);
   });
+  window.addEventListener('load', refreshServiceWorkerRegistration, { once: true });
 
   if (window.matchMedia) {
     var displayMode = window.matchMedia('(display-mode: standalone)');
