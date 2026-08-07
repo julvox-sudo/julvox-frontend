@@ -85,6 +85,11 @@ test('female, male and neutral fallbacks respect self-agreement rules', () => {
   assert.match(feminine, /prête/);
   assert.doesNotMatch(feminine, /\bravi\b|\bprêt\b/);
 
+  const feminineVous = fallbackSelfReference({ identity: 'feminine', tone: 'warm', address_mode: 'vous' });
+  assert.match(feminineVous, /ravie de vous aider/);
+  assert.match(feminineVous, /prête/);
+  assert.doesNotMatch(feminineVous, /vousaider/);
+
   const masculine = fallbackSelfReference({ identity: 'masculine', tone: 'warm', address_mode: 'tu' });
   assert.match(masculine, /\bravi\b/);
   assert.match(masculine, /\bprêt\b/);
