@@ -25,10 +25,11 @@ test('reconciliation restores the same conversation id and persisted history', (
   assert.match(html, /context:x\.context/);
 });
 
-test('scanner reuses the active Julvox conversation instead of forcing a new one', () => {
+test('scanner prioritizes the active Julvox conversation instead of forcing a new one', () => {
   const html = integrate(fixture());
   assert.match(html, /ensureJulvoxAssistantConversation/);
-  assert.doesNotMatch(html, /startNewJulvoxAssistantConversation\(\);\nif\(typeof window\.openAIChat/);
+  assert.match(html, /ensureJulvoxAssistantConversation\(\); else if\(typeof window\.startNewJulvoxAssistantConversation/);
+  assert.doesNotMatch(html, /julvox-assistant-scanner-conversation-bridge-01-runtime">if\(typeof window\.startNewJulvoxAssistantConversation/);
 });
 
 test('sufficient context stops the questionnaire and never fabricates model references', () => {
