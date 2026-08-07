@@ -3,9 +3,17 @@ const assert = require('node:assert/strict');
 const smartScan = require('../../scripts/product-smart-scan-01.js');
 const hardening = require('../../scripts/product-smart-scan-01-hardening.js');
 
-function builtHtml() {
+function baseHtml() {
   const source = '<!doctype html><html><head></head><body><main>Julvox</main></body></html>';
-  return hardening.hardenSmartScanExperience(smartScan.applySmartScanExperience(source));
+  return smartScan.applySmartScanExperience(source);
+}
+
+function builtHtml() {
+  const base = baseHtml();
+  smartScan.verifySmartScanExperience(base);
+  const hardened = hardening.hardenSmartScanExperience(base);
+  hardening.verifySmartScanHardening(hardened);
+  return hardened;
 }
 
 test('Smart Scan exposes the four authorized input modes in one dialog', () => {
@@ -25,7 +33,23 @@ test('all online paths converge on identify, confirmation and analysis endpoints
   assert.ok(html.includes('confirmed:true'));
   assert.ok(html.includes('Confirme d’abord le produit identifié.'));
   assert.ok(html.includes('Quel produit regardes-tu ?'));
-  assert.ok(html.includes('C’est ce produit'));
+  assert.ok(html.includes('C’est bien ce produit'));
+  assert.ok(html.includes('Ce n’est pas le bon produit'));
+});
+
+test('manual barcode accepts GTIN-14 and delegates checksum validation to backend', () => {
+  const html = builtHtml();
+  assert.ok(html.includes('^\\d{14}$'));
+  assert.ok(html.includes('EAN-8, UPC-A, EAN-13 ou GTIN-14 valide'));
+  assert.ok(html.includes('placeholder="EAN-13, GTIN-14, EAN-8 ou UPC-A"'));
+});
+
+test('product confirmation card exposes source, barcode and optional sourced image', () => {
+  const html = builtHtml();
+  assert.ok(html.includes('Code-barres :'));
+  assert.ok(html.includes('Source :'));
+  assert.ok(html.includes("c&&c.imageUrl"));
+  assert.ok(html.includes("confiance : '+confidenceText"));
 });
 
 test('public decision vocabulary is limited to the four Smart Scan outcomes', () => {
@@ -37,10 +61,12 @@ test('public decision vocabulary is limited to the four Smart Scan outcomes', ()
 });
 
 test('Smart Scan does not embed fabricated confidence percentages', () => {
+  const base = baseHtml();
+  smartScan.verifySmartScanExperience(base);
   const html = builtHtml();
-  smartScan.verifySmartScanExperience(html);
+  hardening.verifySmartScanHardening(html);
   assert.doesNotMatch(html, /Confiance\s*:\s*(91|95|99)\s*%/i);
-  assert.ok(html.includes("Number.isFinite(confidence)?' — confiance fournie : '"));
+  assert.ok(html.includes("Number.isFinite(confidence)?Math.round(confidence*100)+' %':'non chiffrée'"));
 });
 
 test('photo handling is explicit, bounded and not stored in permanent Julvox history', () => {
