@@ -8,6 +8,7 @@ const {
 } = require('../../scripts/product-realign-01b-pwa-install-hardening.js');
 const {
   APP_SHELL_URL,
+  OFFLINE_SHELL_FALLBACK_HTML,
   applyOfflineRefreshHardening,
 } = require('../../scripts/product-realign-01b-pwa-refresh-hardening.js');
 
@@ -20,11 +21,11 @@ function transformedServiceWorkerSource() {
     );
 }
 
-function loadServiceWorker({ failAsset = null } = {}) {
+function loadServiceWorker({ failAsset = null, startOnline = true } = {}) {
   const listeners = {};
   const stored = new Map();
   const added = [];
-  let online = true;
+  let online = startOnline;
   let skipWaitingCalls = 0;
 
   const cache = {
@@ -108,13 +109,18 @@ async function dispatchFetch(listener, request) {
   return responsePromise;
 }
 
-test('build output upgrades the PWA shell to refresh revision 02', () => {
+test('build output upgrades the PWA shell to refresh revision 03', () => {
   const source = transformedServiceWorkerSource();
-  assert.match(source, /const CACHE_REVISION = 'offline-shell-02'/);
+  assert.match(source, /const CACHE_REVISION = 'offline-shell-03'/);
   assert.match(source, /Promise\.allSettled\(STATIC_ASSETS\.map/);
   assert.match(source, /networkFirstNavigation\(event\.request\)/);
+  assert.match(source, /offlineShellFallbackResponse\(\)/);
   assert.doesNotMatch(source, /cache\.addAll\(STATIC_ASSETS\)/);
   assert.equal((source.match(/const APP_SHELL_URL = '\/index\.html';/g) || []).length, 1);
+  assert.match(OFFLINE_SHELL_FALLBACK_HTML, /Julvox/);
+  assert.match(OFFLINE_SHELL_FALLBACK_HTML, /Accueil/);
+  assert.match(OFFLINE_SHELL_FALLBACK_HTML, /Conversations/);
+  assert.match(OFFLINE_SHELL_FALLBACK_HTML, /Mes décisions/);
 });
 
 test('one failed secondary precache does not keep the previous service worker active', async () => {
@@ -126,8 +132,8 @@ test('one failed secondary precache does not keep the previous service worker ac
   assert.ok(loaded.added.includes(APP_SHELL_URL));
   assert.ok(loaded.added.includes('/icons/icon-512.png'));
   assert.equal(loaded.skipWaitingCalls(), 1);
-  assert.equal(loaded.mod.CACHE_REVISION, 'offline-shell-02');
-  assert.match(loaded.mod.CACHE_STATIC, /v17-offline-shell-02$/);
+  assert.equal(loaded.mod.CACHE_REVISION, 'offline-shell-03');
+  assert.match(loaded.mod.CACHE_STATIC, /v17-offline-shell-03$/);
 });
 
 test('Android scenario: online load is persisted then offline refresh returns Julvox shell', async () => {
@@ -148,5 +154,25 @@ test('Android scenario: online load is persisted then offline refresh returns Ju
   assert.equal(offlineResponse.status, 200);
   const html = await offlineResponse.text();
   assert.match(html, /Julvox/);
+  assert.doesNotMatch(html, /Application indisponible hors ligne/);
+});
+
+test('cold offline refresh never returns the historical text 503 even when Cache Storage is empty', async () => {
+  const loaded = loadServiceWorker({ startOnline: false });
+  const request = {
+    url: 'https://preview.example/?utm_source=pwa',
+    method: 'GET',
+    mode: 'navigate',
+  };
+
+  const response = await dispatchFetch(loaded.listeners.fetch, request);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('Content-Type') || '', /text\/html/i);
+  const html = await response.text();
+  assert.match(html, /Julvox/);
+  assert.match(html, /Mode hors ligne/);
+  assert.match(html, /Accueil/);
+  assert.match(html, /Conversations/);
+  assert.match(html, /Mes décisions/);
   assert.doesNotMatch(html, /Application indisponible hors ligne/);
 });
