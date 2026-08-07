@@ -65,6 +65,15 @@ test('offline flow can save a local draft and states that online analysis is req
   assert.ok(html.includes('readPhotoDraft'));
 });
 
+test('photo bytes are never auto-persisted by an offline identify or analyze attempt', () => {
+  const html = builtHtml();
+  hardening.verifySmartScanHardening(html);
+  assert.doesNotMatch(html, /saveDraft\(true\);/);
+  assert.ok((html.match(/saveDraft\(true,false\)/g) || []).length >= 2);
+  assert.ok(html.includes("includePhoto!==false&&currentMode==='photo'&&photoFile"));
+  assert.ok(html.includes("if(photoDraftId){await deletePhotoDraft(photoDraftId);photoDraftId='';}"));
+});
+
 test('accessibility keeps manual entry, keyboard tabs, focus trap, status and orientation layouts', () => {
   const html = builtHtml();
   assert.ok(html.includes('inputmode="numeric"'));
