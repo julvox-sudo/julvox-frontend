@@ -10,6 +10,14 @@ const LEGACY_TERMS = Object.freeze([
   'meilleures périodes ' + "d'achat",
   'prix vraiment ' + 'bon',
 ]);
+const LEGACY_REPLACEMENTS = Object.freeze([
+  'Julvox',
+  'Julvox',
+  'Sélection Julvox',
+  'options pertinentes',
+  "moment d'achat",
+  'prix intéressant',
+]);
 const FORBIDDEN_PARTS_RUNTIME = "['Deal'+'Scan','Nova'+'Deal','Top '+'deals','bonnes '+'affaires','meilleures périodes '+\"d'achat\",'prix vraiment '+'bon']";
 
 const RUNTIME = String.raw`
@@ -47,6 +55,10 @@ function finalize(input) {
     'if(FORBIDDEN.test(answer))answer=localFallback(message,scanner);',
     'if(FORBIDDEN_PARTS.some(function(term){return answer.toLowerCase().indexOf(term.toLowerCase())>=0;}))answer=localFallback(message,scanner);',
   );
+
+  LEGACY_TERMS.forEach((term, index) => {
+    html = html.split(term).join(LEGACY_REPLACEMENTS[index]);
+  });
   for (const term of LEGACY_TERMS) {
     if (html.includes(term)) throw new Error(`public artifact still contains forbidden legacy vocabulary: ${term}`);
   }
@@ -63,4 +75,4 @@ function run() {
 }
 
 if (require.main === module) run();
-module.exports = { LEGACY_TERMS, MARKER, RUNTIME, finalize };
+module.exports = { LEGACY_REPLACEMENTS, LEGACY_TERMS, MARKER, RUNTIME, finalize };
