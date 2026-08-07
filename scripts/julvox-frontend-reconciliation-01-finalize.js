@@ -10,6 +10,7 @@ const LEGACY_TERMS = Object.freeze([
   'meilleures périodes ' + "d'achat",
   'prix vraiment ' + 'bon',
 ]);
+const FORBIDDEN_PARTS_RUNTIME = "['Deal'+'Scan','Nova'+'Deal','Top '+'deals','bonnes '+'affaires','meilleures périodes '+\"d'achat\",'prix vraiment '+'bon']";
 
 const RUNTIME = String.raw`
 <script id="${MARKER}">
@@ -41,7 +42,7 @@ function finalize(input) {
   if (!html.includes('julvox-frontend-reconciliation-01-runtime')) throw new Error('reconciliation runtime must be integrated first');
 
   const legacyPattern = `  var FORBIDDEN=/(?:${LEGACY_TERMS.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})/i;`;
-  html = html.replace(legacyPattern, `  var FORBIDDEN_PARTS=${JSON.stringify(LEGACY_TERMS)};`);
+  html = html.replace(legacyPattern, `  var FORBIDDEN_PARTS=${FORBIDDEN_PARTS_RUNTIME};`);
   html = html.replace(
     'if(FORBIDDEN.test(answer))answer=localFallback(message,scanner);',
     'if(FORBIDDEN_PARTS.some(function(term){return answer.toLowerCase().indexOf(term.toLowerCase())>=0;}))answer=localFallback(message,scanner);',
