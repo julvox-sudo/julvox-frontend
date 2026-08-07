@@ -91,8 +91,8 @@ function applyOfflineRefreshHardening(input) {
   source = replaceExactlyOnce(source, CACHE_REVISION_FROM, CACHE_REVISION_TO, 'cache revision');
   source = replaceExactlyOnce(
     source,
-    "const PUBLIC_ORIGIN = 'https://julvox.com';",
-    `const PUBLIC_ORIGIN = 'https://julvox.com';\nconst APP_SHELL_URL = '${APP_SHELL_URL}';`,
+    'const STATIC_ASSETS = [',
+    `const APP_SHELL_URL = '${APP_SHELL_URL}';\n\nconst STATIC_ASSETS = [`,
     'app shell declaration',
   );
   source = replaceExactlyOnce(source, INSTALL_HANDLER_FROM, RESILIENT_RUNTIME, 'install handler');
