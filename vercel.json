@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = \"preview\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" = \"feat/julvox-frontend-reconciliation-01\" ]; then export JULVOX_BACKEND_API_BASE_URL=https://julvox-backend-reconciliation-01-production.up.railway.app; fi; npm run build",
   "headers": [
     {
       "source": "/(.*)",

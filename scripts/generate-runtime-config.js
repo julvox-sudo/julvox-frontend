@@ -33,12 +33,22 @@ try {
 
 const contractBackendApiBaseUrl = validateBackendApiBaseUrl(contract.backend?.api_base_url, 'contract backend.api_base_url');
 const explicitBackendOverride = process.env[PREVIEW_BACKEND_ENV] || '';
+const vercelEnvironment = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
+const isVercelPreview = vercelEnvironment === 'preview';
+
+if (isVercelPreview && !explicitBackendOverride) {
+  fail(`Vercel Preview requires ${PREVIEW_BACKEND_ENV}; falling back to the canonical production backend is forbidden`);
+}
+
 let backendApiBaseUrl = contract.backend?.api_base_url;
 if (explicitBackendOverride) {
   backendApiBaseUrl = validateBackendApiBaseUrl(explicitBackendOverride, PREVIEW_BACKEND_ENV);
   if (backendApiBaseUrl === contractBackendApiBaseUrl) {
     fail(`${PREVIEW_BACKEND_ENV} explicitly targets the canonical production backend`);
   }
+}
+if (isVercelPreview && backendApiBaseUrl === contractBackendApiBaseUrl) {
+  fail('Vercel Preview cannot use the canonical production backend');
 }
 
 const config = {
