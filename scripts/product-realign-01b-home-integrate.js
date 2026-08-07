@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const home = require('./product-realign-01b-home.js');
+const pwaInstallHardening = require('./product-realign-01b-pwa-install-hardening.js');
 const officialBrand = require('./product-realign-01b-brand-integrate.js');
 const legacyIdentityCleanup = require('./product-realign-01b-legacy-identity-cleanup.js');
 
@@ -10,9 +11,10 @@ if (!fs.existsSync(indexPath)) {
   throw new Error('PRODUCT-REALIGN-01B home integration failed: dist/index.html is missing');
 }
 
+const integratedHome = home.applyHomeExperience(fs.readFileSync(indexPath, 'utf8'));
 fs.writeFileSync(
   indexPath,
-  home.applyHomeExperience(fs.readFileSync(indexPath, 'utf8')),
+  pwaInstallHardening.applyPwaInstallHardening(integratedHome),
   'utf8',
 );
 
@@ -33,5 +35,5 @@ officialBrand.integrate(root);
 legacyIdentityCleanup.cleanupPublicIdentity(root);
 
 console.log(
-  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup, official A2.2 brand and legacy identity cleanup integrated into dist.',
+  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup, PWA install/offline hardening, official A2.2 brand and legacy identity cleanup integrated into dist.',
 );

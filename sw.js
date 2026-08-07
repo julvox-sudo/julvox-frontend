@@ -1,19 +1,27 @@
-// DEPLOY_MARKER_DEALSCAN_SW_V17
+// DEPLOY_MARKER_DEALSCAN_SW_V18
 // ============================================================
-//  Julvox — Service Worker v17 PWA
+//  Julvox — Service Worker v18 PWA
 //  Cache public GET uniquement + Push Notifications
 // ============================================================
 
-const CACHE_VERSION = 'v17';
+const CACHE_VERSION = 'v18';
 const CACHE_NAME = `dealscan-public-api-${CACHE_VERSION}`;
 const CACHE_STATIC = `dealscan-static-${CACHE_VERSION}`;
 const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */
 const PUBLIC_ORIGIN = 'https://julvox.com';
 
-const STATIC_ASSETS = [
+const STATIC_ASSETS = Object.freeze([
+  '/index.html',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
-];
+  '/runtime-config.js',
+  '/api-client.js',
+  '/ui-00-production-truth.js',
+  '/enhancements_v3.js',
+  '/brand/julvox-glyph-small.svg',
+  '/brand/julvox-logo-horizontal.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+]);
 
 const PUBLIC_API_PATHS = Object.freeze([
   /^\/deals(?:\/[^/]+)?\/?$/,
@@ -71,7 +79,7 @@ function safePublicUrl(value) {
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_STATIC)
-      .then(cache => cache.addAll(STATIC_ASSETS).catch(() => {}))
+      .then(cache => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
@@ -112,6 +120,10 @@ self.addEventListener('fetch', event => {
         });
       })
     );
+    return;
+  }
+  if (event.request.method === 'GET' && url.origin === self.location.origin) {
+    event.respondWith(cacheFirst(event.request, CACHE_STATIC));
     return;
   }
   event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
@@ -257,8 +269,10 @@ self.addEventListener('message', event => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    CACHE_VERSION,
     CACHE_NAME,
     CACHE_STATIC,
+    STATIC_ASSETS,
     BACKEND_ORIGIN,
     PUBLIC_API_PATHS,
     isCacheablePublicApiRequest,
@@ -267,5 +281,6 @@ if (typeof module !== 'undefined' && module.exports) {
     jsonError,
     networkOnlyApi,
     networkFirstPublicGet,
+    cacheFirst,
   };
 }

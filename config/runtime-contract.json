@@ -43,7 +43,7 @@
   "pwa": {
     "manifest_path": "/manifest.json",
     "service_worker_path": "/sw.js",
-    "cache_version": "v17"
+    "cache_version": "v18"
   },
   "runtime": {
     "environment": "production",
