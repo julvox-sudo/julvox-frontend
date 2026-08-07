@@ -133,7 +133,7 @@ const SCANNER_RUNTIME = String.raw`
 
   function normalizeBackendResponse(scan, response){
     if (!response || typeof response !== 'object') return scan;
-    var allowedIdentification = ['IDENTIFIE','IDENTIFICATION_PROBABLE','PLUSIEDRS_CORRESPONDANCES','NON_RECONNU'];
+    var allowedIdentification = ['IDENTIFIE','IDENTIFICATION_PROBABLE','PLUSIEURS_CORRESPONDANCES','NON_RECONNU'];
     var status = clean(response.identificationStatus || response.identification_status || '',60).toUpperCase();
     if (allowedIdentification.indexOf(status) < 0) status = scan.identificationStatus;
     var decision = response.decision && typeof response.decision === 'object' ? response.decision : null;
@@ -155,7 +155,7 @@ const SCANNER_RUNTIME = String.raw`
       renderResult(scan);
       return;
     }
-    setStatus('Code d√©tect√©. Recherche du produit‚Ä¶.');
+    setStatus('Code d√©tect√©. Recherche du produit‚Ä¶');
     try {
       var response = await adapter.lookup({ barcode: scan.barcode, barcodeType: scan.barcodeType, scannedAt: scan.scannedAt });
       var resolved = normalizeBackendResponse(scan, response);
@@ -173,7 +173,7 @@ const SCANNER_RUNTIME = String.raw`
   function acceptBarcode(rawValue, format){
     if (scanLocked) return;
     var barcode = clean(rawValue,32).replace(/\s/g,'');
-    if (!/^\d{6,14}$/.test(barcode)) { setStatus('Je n‚ÄôArrive pas √† lire ce code avec certitude. Essaie de rapprocher la cam√©ra.'); return; }
+    if (!/^\d{6,14}$/.test(barcode)) { setStatus('Je n‚Äôarrive pas √† lire ce code avec certitude. Essaie de rapprocher la cam√©ra.'); return; }
     scanLocked = true;
     stopCamera();
     if (navigator.vibrate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) { try { navigator.vibrate(45); } catch (_) {} }
@@ -211,4 +211,187 @@ const SCANNER_RUNTIME = String.raw`
     stopCamera();
     var result = byId('prscanResult'); if (result) result.hidden = true;
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
-      setStatus('La cam√©ra n‚ÄôïÕ–Å¡ÖÃÅë•Õ¡Ωπ•â±îÅ•ç§∏ÅMÖ•Õ•ÃÅ±îÅçΩëîÅµÖπ’ï±±ïµïπ–∏ú§Ï(ÄÄÄÄÄÅ…ï—’…∏Ï(ÄÄÄÅÙ(ÄÄÄÅ•òÄ†Ñ†ù	Ö…çΩëïï—ïç—Ω»úÅ•∏Å›•πëΩ‹§§ÅÏ(ÄÄÄÄÄÅÕï—M—Ö—’Ã†ù1ÑÅì•—ïç—•Ω∏ÅÖ’—ΩµÖ—•≈’îÅªäeïÕ–Å¡ÖÃÅë•Õ¡Ωπ•â±îÅëÖπÃÅçîÅπÖŸ•ùÖ—ï’»∏ÅMÖ•Õ•ÃÅ±îÅçΩëîÅµÖπ’ï±±ïµïπ–∏ú§Ï(ÄÄÄÄÄÅ…ï—’…∏Ï(ÄÄÄÅÙ(ÄÄÄÅ—…‰ÅÏ(ÄÄÄÄÄÅŸÖ»ÅÕ’¡¡Ω…—ïêÄÙÅ—Â¡ïΩòÅ›•πëΩ‹π	Ö…çΩëïï—ïç—Ω»πùï—M’¡¡Ω…—ïëΩ…µÖ—ÃÄÙÙÙÄùô’πç—•Ω∏úÄ¸ÅÖ›Ö•–Å›•πëΩ‹π	Ö…çΩëïï—ïç—Ω»πùï—M’¡¡Ω…—ïëΩ…µÖ—Ã†§ÄËÅM%I}=I5QLÏ(ÄÄÄÄÄÅŸÖ»ÅôΩ…µÖ—ÃÄÙÅM%I}=I5QLπô•±—ï»°ô’πç—•Ω∏°ôΩ…µÖ–•ÏÅ…ï—’…∏ÅÕ’¡¡Ω…—ïêπ•πëï·=ò°ôΩ…µÖ–§Ä¯ÙÄ¿ÏÅÙ§Ï(ÄÄÄÄÄÅ•òÄ†ÖôΩ…µÖ—Ãπ±ïπù—†§ÅÏÅÕï—M—Ö—’Ã†ù1ïÃÅôΩ…µÖ—ÃÅ8ΩUAÅπîÅÕΩπ–Å¡ÖÃÅ¡…•ÃÅï∏Åç°Ö…ùîÅ•ç§∏ÅMÖ•Õ•ÃÅ±îÅçΩëîÅµÖπ’ï±±ïµïπ–∏ú§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÄÄÅëï—ïç—Ω»ÄÙÅπï‹Å›•πëΩ‹π	Ö…çΩëïï—ïç—Ω»°ÏÅôΩ…µÖ—ÃËÅôΩ…µÖ—ÃÅÙ§Ï(ÄÄÄÄÄÅÕï—M—Ö—’Ã†ù’—Ω…•ÕîÅ±ÑÅçÖ∑•…ÑÅ¡Ω’»ÅÕçÖππï»Å±îÅçΩëîµâÖ……ïÃ∏ú§Ï(ÄÄÄÄÄÅÕ—…ïÖ¥ÄÙÅÖ›Ö•–ÅπÖŸ•ùÖ—Ω»πµïë•ÖïŸ•çïÃπùï—UÕï…5ïë•Ñ°ÏÅÖ’ë•ºÈôÖ±Õî∞ÅŸ•ëïºÈÏÅôÖç•πù5ΩëîÈÏÅ•ëïÖ∞ËùïπŸ•…Ωπµïπ–úÅÙ∞Å›•ë—†ÈÏÅ•ëïÖ∞Ëƒ»‡¿ÅÙ∞Å°ï•ù°–ÈÏÅ•ëïÖ∞Ë‹»¿ÅÙÅÙÅÙ§Ï(ÄÄÄÄÄÅŸÖ»ÅŸ•ëïºÄÙÅâÂ%ê†ù¡…ÕçÖπY•ëïºú§Ï(ÄÄÄÄÄÅŸ•ëïºπÕ…ç=â©ïç–ÄÙÅÕ—…ïÖ¥Ï(ÄÄÄÄÄÅÖ›Ö•–ÅŸ•ëïºπ¡±Ö‰†§Ï(ÄÄÄÄÄÅÕçÖππ•πúÄÙÅ—…’îÏ(ÄÄÄÄÄÅÕçÖπ1Ωç≠ïêÄÙÅôÖ±ÕîÏ(ÄÄÄÄÄÅÕï—M—Ö—’Ã†ùÖ∑•…ÑÅÖç—•Ÿî∏ÅA±ÖçîÅ±îÅçΩëîµâÖ……ïÃÅëÖπÃÅ±îÅçÖë…î∏ú§Ï(ÄÄÄÄÄÅëï—ïç—•Ωπ1ΩΩ¿†§Ï(ÄÄÄÅÙÅçÖ—ç†Ä°ï……Ω»§ÅÏ(ÄÄÄÄÄÅÕ—Ω¡Öµï…Ñ†§Ï(ÄÄÄÄÄÅ•òÄ°ï……Ω»ÄòòÄ°ï……Ω»ππÖµîÄÙÙÙÄù9Ω—±±Ω›ïë……Ω»úÅÒÅï……Ω»ππÖµîÄÙÙÙÄùMïç’…•—Â……Ω»ú§§Å≠ïÂM—Ö—’Ã†Äù’—Ω…•ÕîÅ±ÑÅçÖ∑•…ÑÅΩ‘ÅÕÖ•Õ•ÃÅ±îÅçΩëîÅµÖπ’ï±±ïµïπ–∏ú§Ï(ÄÄÄÄÄÅï±ÕîÅÕï—M—Ö—’Ã†ù1ÑÅçÖ∑•…ÑÅªäeÑÅ¡ÖÃÅ¡‘Å•µÖ……ï»∏ÅQ‘Å¡ï’‡ÅÕÖ•Õ•»Å±îÅçΩëîÅµÖπ’ï±±ïµïπ–∏ú§Ï(ÄÄÄÅÙ(ÄÅÙ((ÄÅô’πç—•Ω∏Åç…ïÖ—ï•Ö±Ωú†•Ï(ÄÄÄÅ•òÄ°âÂ%ê°M99I}%§§Å•µ¡Ω…–Ï((ÄÄÄÅŸÖ»Åë•Ö±ΩúÄÙÅëΩç’µïπ–πç…ïÖ—ï±ïµïπ–†ùÕïç—•Ω∏ú§Ï(ÄÄÄÅë•Ö±Ωúπ•êÄÙÅM99I}%Ï(ÄÄÄÅë•Ö±Ωúπ°•ëëï∏ÄÙÅ—…’îÏ(ÄÄÄÅë•Ö±ΩúπÕï———…•â’—î†ù…Ω±îú∞ùë•Ö±Ωúú§Ï(ÄÄÄÅë•Ö±ΩúπÕï———…•â’—î†ùÖ…•ÑµµΩëÖ∞ú∞ù—…’îú§Ï(ÄÄÄÅë•Ö±ΩúπÕï———…•â’—î†ùÖ…•Ñµ±Öâï±±ïëâ‰ú∞ù¡…ÕçÖπQ•—±îú§Ï(ÄÄÄÅë•Ö±Ωúπ•ππï…!Q50ÄÙÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µ¡Öπï∞àÅ—Öâ•πëï‡Ùà¥ƒà¯Òë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µ°ïÖêà¯Òë•ÿ¯Ò¿Åç±ÖÕÃÙâ¡…ÕçÖ∏µ≠•ç≠ï»à˘∏ÅµÖùÖÕ•∏Ω¿¯Ò†»Åç±ÖÕÃÙâ¡…ÕçÖ∏µ—•—±îàÅ•êÙâ¡…ÕçÖπQ•—±îà˘MçÖππï»Å’∏Å¡…Ωë’•–Ω†»¯Ωë•ÿ¯Òâ’——Ω∏Åç±ÖÕÃÙâ¡…ÕçÖ∏µç±ΩÕîàÅ—Â¡îÙââ’——Ω∏àÅëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ω∏Ùâç±ΩÕîàÅÖ…•Ñµ±Öâï∞Ùâï…µï»Å±îÅÕçÖππï»à˚\Ωâ’——Ω∏¯Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒ¿Åç±ÖÕÃÙâ¡…ÕçÖ∏µçΩ¡‰à˘1îÅçΩëîµâÖ……ïÃÅ•ëïπ—•ô•îÅ±îÅ¡…Ωë’•–∏Å1îÅ¡…•‡ÅÖôô•ç£§Åï∏Å…ÖÂΩ∏ÅÕîÅ…ïπÕï•ùπîÅœ•¡ÖÀ•µïπ–∏Å)’±ŸΩ‡ÅπîÅçΩπç±’–Å©ÖµÖ•œ†Å¡Ö…—•»Åìäe’∏Å…ÖâÖ•ÃÅÖôô•ç£§ÅÕï’∞∏Ω¿¯úÄ¨(ÄÄÄÄÄÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µÕ—Ö—’ÃàÅ•êÙâ¡…ÕçÖπM—Ö—’ÃàÅ…Ω±îÙâÕ—Ö—’ÃàÅÖ…•Ñµ±•ŸîÙâ¡Ω±•—îà˘AÀ©–ÉÄÅÕçÖππï»∏Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µçÖµï…Ñà¯ÒŸ•ëïºÅ•êÙâ¡…ÕçÖπY•ëïºàÅ¡±ÖÂÕ•π±•πîÅµ’—ïêÅÖ…•Ñµ±Öâï∞Ùâ¡ïÀù‘ÅëîÅ±ÑÅçÖ∑•…ÑÅ¡Ω’»ÅÕçÖππï»Å±îÅçΩëîµâÖ……ïÃà¯ΩŸ•ëïº¯Òë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µô…ÖµîàÅÖ…•Ñµ°•ëëï∏Ùâ—…’îà¯Ωë•ÿ¯Òë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µçÖµï…ÑµçΩ¡‰à˘±•ùπîÅ±ïÃÅâÖ……ïÃÉÄÅ≥äe•π”•…•ï’»Åë‘ÅçÖë…î∏Ωë•ÿ¯Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µÖç—•ΩπÃà¯Òâ’——Ω∏Åç±ÖÕÃÙâ¡…ÕçÖ∏µâ—∏Å¡…ÕçÖ∏µâ—∏µ¡…•µÖ…‰àÅ—Â¡îÙââ’——Ω∏àÅëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ω∏ÙâÕ—Ö…–à˘ç—•Ÿï»Å±ÑÅçÖ∑•…ÑΩâ’——Ω∏¯Òâ’——Ω∏Åç±ÖÕÃÙâ¡…ÕçÖ∏µâ—∏àÅ—Â¡îÙââ’——Ω∏àÅëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ω∏ÙâÕ—Ω¿à˘…À©—ï»Å±ÑÅçÖ∑•…ÑΩâ’——Ω∏¯Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µµÖπ’Ö∞à¯Ò±Öâï∞Åç±ÖÕÃÙâ¡…ÕçÖ∏µ±Öâï∞àÅôΩ»Ùâ¡…ÕçÖπ5Öπ’Ö±%π¡’–à˘=‘ÅÕÖ•Õ•»Å±îÅçΩëîÅµÖπ’ï±±ïµïπ–Ω±Öâï∞¯Òë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µ…Ω‹à¯Ò•π¡’–Åç±ÖÕÃÙâ¡…ÕçÖ∏µ•π¡’–àÅ•êÙâ¡…ÕçÖπ5Öπ’Ö±%π¡’–àÅ•π¡’—µΩëîÙâπ’µï…•åàÅÖ’—ΩçΩµ¡±ï—îÙâΩôòàÅ¡Ö——ï…∏Ùâl¿¥Ât®àÅµÖ·±ïπù—†Ùàƒ–àÅÖ…•ÑµëïÕç…•âïëâ‰Ùâ¡…ÕçÖπ5Öπ’Ö±!ï±¿à¯Òâ’——Ω∏Åç±ÖÕÃÙâ¡…ÕçÖ∏µâ—∏àÅ—Â¡îÙââ’——Ω∏àÅëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ω∏ÙâµÖπ’Ö∞à˘%ëïπ—•ô•ï»ÅçîÅçΩëîΩâ’——Ω∏¯Ωë•ÿ¯Ò¿Åç±ÖÕÃÙâ¡…ÕçÖ∏µπΩ—îàÅ•êÙâ¡…ÕçÖπ5Öπ’Ö±!ï±¿à˘8¥ƒÃ∞Å8¥‡∞ÅUAµÅï–ÅUAµÅÕΩπ–Å¡…•Ω…•—Ö•…ïÃ∏Å∏ÅÕÖ•Õ•îÅµÖπ’ï±±î∞Åçï…—Ö•πÃÅçΩëïÃÉÄÄ‡Åç°•ôô…ïÃÅ…ïÕ—ïπ–ÅŸΩ±Ωπ—Ö•…ïµïπ–ÅÖµâ•ù’Ã∏Ω¿¯Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒë•ÿÅç±ÖÕÃÙâ¡…ÕçÖ∏µ…ïÕ’±–àÅ•êÙâ¡…ÕçÖπIïÕ’±–àÅ°•ëëï∏¯Ωë•ÿ¯úÄ¨(ÄÄÄÄÄÄúÒ¿Åç±ÖÕÃÙâ¡…ÕçÖ∏µπΩ—îà˘Ωπô•ëïπ—•Ö±•”§ÄËÅ±îÅô±’‡ÅŸ•ì•ºÅªäeïÕ–Å¡ÖÃÅïπ…ïù•Õ—À§∏Å1ÑÅçÖ∑•…ÑÅïÕ–ÅçΩ’√•îÉÄÅ±ÑÅì•—ïç—•Ω∏∞ÉÄÅ±ÑÅôï…µï—’…îÅï–Å±Ω…Õ≈’îÅ)’±ŸΩ‡Å¡ÖÕÕîÅï∏ÅÖ……ß°…îµ¡±Ö∏∏Ω¿¯Ωë•ÿ¯úÏ(ÄÄÄÅëΩç’µïπ–πâΩë‰πÖ¡¡ïπë°•±ê°ë•Ö±Ωú§Ï(ÄÅÙ((ÄÅô’πç—•Ω∏Å•πÕ—Ö±±π—…ÂAΩ•π–†•Ï(ÄÄÄÅŸÖ»Åï·Öµ¡±ïÃÄÙÅëΩç’µïπ–π≈’ï…ÂMï±ïç—Ω»†úç©’±ŸΩ·ïç•Õ•Ωπ!ΩµîÄπ¡»¿≈àµï·Öµ¡±ïÃú§Ï(ÄÄÄÅ•òÄ†Öï·Öµ¡±ïÃÅÒÅï·Öµ¡±ïÃπ≈’ï…ÂMï±ïç—Ω»†ùmëÖ—Ñµ¡…ÕçÖ∏µΩ¡ïπtú§§Å…ï—’…∏Ï(ÄÄÄÅŸÖ»Åâ’——Ω∏ÄÙÅëΩç’µïπ–πç…ïÖ—ï±ïµïπ–†ùâ’——Ω∏ú§Ï(ÄÄÄÅâ’——Ω∏πç±ÖÕÕ9ÖµîÄÙÄù¡»¿≈àµï·Öµ¡±îÅ¡…ÕçÖ∏µïπ—…‰úÏ(ÄÄÄÅâ’——Ω∏π—Â¡îÄÙÄùâ’——Ω∏úÏ(ÄÄÄÅâ’——Ω∏πÕï———…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µΩ¡ï∏ú∞ù—…’îú§Ï(ÄÄÄÅâ’——Ω∏πÕï———…•â’—î†ùÖ…•Ñµ±Öâï∞ú∞ùMçÖππï»Å’∏Å¡…Ωë’•–ÅÖŸïåÅ±ÑÅçÖ∑•…Ñú§Ï(ÄÄÄÅâ’——Ω∏π•ππï…!Q50ÄÙÄúÒÕŸúÅŸ•ï›	Ω‡Ùà¿Ä¿Ä»–Ä»–àÅÖ…•Ñµ°•ëëï∏Ùâ—…’îà¯Ò¡Ö—†ÅêÙâ4–Ä›X’ÑƒÄƒÄ¿Ä¿ÄƒÄƒ¥≈†…4ƒ‹Ä—†…ÑƒÄƒÄ¿Ä¿ÄƒÄƒÄ≈ÿ…4»¿Äƒ›ÿ…ÑƒÄƒÄ¿Ä¿Äƒ¥ƒÄ≈†¥…4‹Ä»¡ ’ÑƒÄƒÄ¿Ä¿Äƒ¥ƒ¥≈ÿ¥…4‹ÄÂÿŸ4ƒ¿ÄÂÿŸ4ƒ–ÄÂÿŸ4ƒ‹ÄÂÿÿàº¯ΩÕŸú¯ÒÕ¡Ö∏˘MçÖππï»Å’∏Å¡…Ωë’•–ΩÕ¡Ö∏¯úÏ(ÄÄÄÅï·Öµ¡±ïÃπ•πÕï…—	ïôΩ…î°â’——Ω∏∞Åï·Öµ¡±ïÃπô•…Õ—°•±ê§Ï(ÄÅÙ((ÄÅô’πç—•Ω∏ÅΩ¡ïπMçÖππï»°—…•ùùï»•Ï(ÄÄÄÅç…ïÖ—ï•Ö±Ωú†§Ï(ÄÄÄÅ±ÖÕ—Q…•ùùï»ÄÙÅ—…•ùùï»ÅÒÅëΩç’µïπ–πÖç—•Ÿï±ïµïπ–Ï(ÄÄÄÅŸÖ»Åë•Ö±ΩúÄÙÅâÂ%ê°M99I}%§Ï(ÄÄÄÅë•Ö±Ωúπ°•ëëï∏ÄÙÅôÖ±ÕîÏ(ÄÄÄÅëΩç’µïπ–πëΩç’µïπ—±ïµïπ–πÕï———…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ÿîú∞ù—…’îú§Ï(ÄÄÄÅŸÖ»Å¡Öπï∞ÄÙÅë•Ö±Ωúπ≈’ï…ÂMï±ïç—Ω»†úπ¡…ÕçÖ∏µ¡Öπï∞ú§Ï(ÄÄÄÅ•òÄ°¡Öπï∞§Å¡Öπï∞πôΩç’Ã†§Ï(ÄÄÄÅÕï—M—Ö—’Ã°Ωπ±•πî†§Ä¸ÄùAÀ©–ÉÄÅÕçÖππï»∏úÄËÄù!Ω…ÃÅ±•ùπîÄËÅ±îÅçΩëîÅ¡ï’–É©—…îÅÕçÖπª§Åï–Åïπ…ïù•Õ—À§Å±ΩçÖ±ïµïπ–∏ú§Ï(ÄÅÙ((ÄÅô’πç—•Ω∏Åç±ΩÕïMçÖππï»†•Ï(ÄÄÄÅÕ—Ω¡Öµï…Ñ†§Ï(ÄÄÄÅŸÖ»Åë•Ö±ΩúÄÙÅâÂ%ê°M99I}%§ÏÅ•òÄ°ë•Ö±Ωú§Åë•Ö±Ωúπ°•ëëï∏ÄÙÅ—…’îÏ(ÄÄÄÅëΩç’µïπ–πëΩç’µïπ—±ïµïπ–π…ïµΩŸï——…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ÿîú§Ï(ÄÄÄÅ•òÄ°±ÖÕ—Q…•ùùï»ÄòòÅ—Â¡ïΩòÅ±ÖÕ—Q…•ùùï»πôΩç’ÃÄÙÙÙÄùô’πç—•Ω∏ú§ÅÏÅ—…‰ÅÏÅ±ÖÕ—Q…•ùùï»πôΩç’Ã†§ÏÅÙÅçÖ—ç†Ä°|§ÅÌÙÅÙ(ÄÅÙ((ÄÅô’πç—•Ω∏ÅÕÖŸïM—Ω…ïA…•çî†•Ï(ÄÄÄÅ•òÄ†Öç’……ïπ—MçÖ∏§Å…ï—’…∏Ï(ÄÄÄÅŸÖ»Å•π¡’–ÄÙÅâÂ%ê†ù¡…ÕçÖπM—Ω…ïA…•çîú§Ï(ÄÄÄÅŸÖ»Å…Ö‹ÄÙÅç±ïÖ∏°•π¡’–ÄòòÅ•π¡’–πŸÖ±’î∞Ã¿§π…ï¡±Öçî†ú∞ú∞ú∏ú§Ï(ÄÄÄÅŸÖ»ÅÖµΩ’π–ÄÙÅ9’µâï»°…Ö‹§Ï(ÄÄÄÅ•òÄ†Ö9’µâï»π•Õ•π•—î°ÖµΩ’π–§ÅÒÅÖµΩ’π–ÄÙÄ¿ÅÒÅÖµΩ’π–Ä¯Äƒ¿¿¿¿¿¿§ÅÏÅÕï—M—Ö—’Ã†ùMÖ•Õ•ÃÅ’∏Å¡…•‡ÅµÖùÖÕ•∏ÅŸÖ±•ëî∏ú§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÅç’……ïπ—MçÖ∏ÄÙÅ=â©ïç–πÖÕÕ•ù∏°ÌÙ∞Åç’……ïπ—MçÖ∏∞ÅÏÅÕ—Ω…ïA…•çîÈÏÅÖµΩ’π–È5Ö—†π…Ω’πê°ÖµΩ’π–Ä®Äƒ¿¿§ÄºÄƒ¿¿∞Åç’……ïπç‰ËùUHú∞ÅÕΩ’…çîËù’Õï…}Õ—Ω…ï}Õ°ï±òúÅÙÅÙ§Ï(ÄÄÄÅÕÖŸï’……ïπ–°ç’……ïπ—MçÖ∏§Ï(ÄÄÄÅ…ïπëï…IïÕ’±–°ç’……ïπ—MçÖ∏§Ï(ÄÄÄÅÕï—M—Ö—’Ã†ùA…•‡ÅµÖùÖÕ•∏Åïπ…ïù•Õ—À§Åœ•¡ÖÀ•µïπ–Åë‘ÅçΩëîµâÖ……ïÃ∏ú§Ï(ÄÅÙ((ÄÅô’πç—•Ω∏ÅÖÕ≠)’±ŸΩ‡†•Ï(ÄÄÄÅ•òÄ†Öç’……ïπ—MçÖ∏§Å…ï—’…∏Ï(ÄÄÄÅŸÖ»Å¡…•çïQï·–ÄÙÅç’……ïπ—MçÖ∏πÕ—Ω…ïA…•çîÄ¸ÅM—…•πú°ç’……ïπ—MçÖ∏πÕ—Ω…ïA…•çîπÖµΩ’π–§Ä¨ÄúÄúÄ¨Åç’……ïπ—MçÖ∏πÕ—Ω…ïA…•çîπç’……ïπç‰ÄËÄùπΩ∏Å…ïπÕï•ùª§úÏ(ÄÄÄÅŸÖ»Å¡…Ωµ¡–ÄÙÄùΩπ—ï·—îÅÕçÖππï»Å)’±ŸΩ‡∏ÅA…Ωë’•–ËÄúÄ¨Å¡…Ωë’ç—1Öâï∞°ç’……ïπ—MçÖ∏§Ä¨Äú∏ÅΩëîËÄúÄ¨Åç’……ïπ—MçÖ∏πâÖ…çΩëîÄ¨ÄúÄ†úÄ¨Åç’……ïπ—MçÖ∏πâÖ…çΩëïQÂ¡îÄ¨Äú§∏ÅA…•‡ÅÖôô•ç£§Åï∏ÅµÖùÖÕ•∏ËÄúÄ¨Å¡…•çïQï·–Ä¨Äú∏ÅM—Ö—’–Å•ëïπ—•ô•çÖ—•Ω∏ËÄúÄ¨Åç’……ïπ—MçÖ∏π•ëïπ—•ô•çÖ—•ΩπM—Ö—’ÃÄ¨Äú∏Å•ç•Õ•Ω∏Åë•Õ¡Ωπ•â±îËÄúÄ¨Ä°ç’……ïπ—MçÖ∏πëïç•Õ•Ω∏ÄòòÅç’……ïπ—MçÖ∏πëïç•Õ•Ω∏πÕ—Ö—’ÃÅÒÄù•πÕ’ôô•ç•ïπ—}ëÖ—Ñú§Ä¨Äú∏Å9îÅôÖâ…•≈’îÅÖ’ç’∏Å¡…•‡∞Å°•Õ—Ω…•≈’î∞Åë•Õ¡Ωπ•â•±•”§ÅΩ‘É•çΩπΩµ•î∏Å•ëîµµΩ§ÉÄÅì•ç•ëï»ÅÕ§Åçï–ÅÖç°Ö–ÅïÕ–Å¡ï…—•πïπ–ÅµÖ•π—ïπÖπ–ÅÖŸïåÅ±ïÃÅ•πôΩ…µÖ—•ΩπÃÅÀ•ï±±ïµïπ–Åë•Õ¡Ωπ•â±ïÃ∏úÏ(ÄÄÄÅç±ΩÕïMçÖππï»†§Ï(ÄÄÄÅ•òÄ°—Â¡ïΩòÅ›•πëΩ‹πΩ¡ïπ%°Ö–ÄÙÙÙÄùô’πç—•Ω∏ú§Å›•πëΩ‹πΩ¡ïπ%°Ö–†§Ï(ÄÄÄÅ•òÄ°—Â¡ïΩòÅ›•πëΩ‹πÕïπë%5ïÕÕÖùîÄÙÙÙÄùô’πç—•Ω∏ú§ÅÏÅ›•πëΩ‹πÕï—Q•µïΩ’–°ô’πç—•Ω∏†•ÏÅ›•πëΩ‹πÕïπë%5ïÕÕÖùî°¡…Ωµ¡–§ÏÅÙ∞‡¿§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÅŸÖ»Åç°Ö—%π¡’–ÄÙÅâÂ%ê†ùç°Ö—%π¡’–ú§ÏÅ•òÄ°ç°Ö—%π¡’–§ÅÏÅç°Ö—%π¡’–πŸÖ±’îÄÙÅ¡…Ωµ¡–ÏÅç°Ö—%π¡’–πôΩç’Ã†§ÏÅÙ(ÄÅÙ((ÄÅô’πç—•Ω∏ÅÖπÖ±ÂÈï9Ω‹†•Ï(ÄÄÄÅ•òÄ†Öç’……ïπ—MçÖ∏§Å…ï—’…∏Ï(ÄÄÄÅ•òÄ†ÖΩπ±•πî†§§ÅÏÅÕï—M—Ö—’Ã†ùΩππï·•Ω∏Å—Ω’©Ω’…ÃÅ•πë•Õ¡Ωπ•â±î∏Å1îÅÕçÖ∏Å…ïÕ—îÅïπ…ïù•Õ—À§Å±ΩçÖ±ïµïπ–∏ú§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÅ…ïµΩŸï1ΩçÖ∞°A9%9}-d§Ï(ÄÄÄÅ—…Â	Öç≠ïπë1ΩΩ≠’¿°ç’……ïπ—MçÖ∏§Ï(ÄÅÙ((ÄÅô’πç—•Ω∏Å°Öπë±ïç—•Ω∏°Öç—•Ω∏•Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùç±ΩÕîú§Å…ï—’…∏Åç±ΩÕïMçÖππï»†§Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùÕ—Ö…–ú§Å…ï—’…∏ÅÕ—Ö…—Öµï…Ñ†§Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùÕ—Ω¿ú§ÅÏÅÕ—Ω¡Öµï…Ñ†§ÏÅÕï—M—Ö—’Ã†ùÖ∑•…ÑÅÖ…À©”•î∏ú§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄù…ïÕ—Ö…–ú§ÅÏÅç’……ïπ—MçÖ∏ÄÙÅπ’±∞ÏÅŸÖ»Å…ïÕ’±–ÄÙÅâÂ%ê†ù¡…ÕçÖπIïÕ’±–ú§ÏÅ•òÄ°…ïÕ’±–§Å…ïÕ’±–π°•ëëï∏ÄÙÅ—…’îÏÅ…ï—’…∏ÅÕ—Ö…—Öµï…Ñ†§ÏÅÙ(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùÕÖŸîµ¡…•çîú§Å…ï—’…∏ÅÕÖŸïM—Ω…ïA…•çî†§Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùÖÕ¨µ©’±ŸΩ‡ú§Å…ï—’…∏ÅÖÕ≠)’±ŸΩ‡†§Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùÖπÖ±ÂÈîµπΩ‹ú§Å…ï—’…∏ÅÖπÖ±ÂÈï9Ω‹†§Ï(ÄÄÄÅ•òÄ°Öç—•Ω∏ÄÙÙÙÄùµÖπ’Ö∞ú§ÅÏ(ÄÄÄÄÄÅŸÖ»Å•π¡’–ÄÙÅâÂ%ê†ù¡…ÕçÖπ5Öπ’Ö±%π¡’–ú§ÏÅŸÖ»Åç±ÖÕÕ•ô•ïêÄÙÅç±ÖÕÕ•ôÂ5Öπ’Ö±	Ö…çΩëî°•π¡’–ÄòòÅ•π¡’–πŸÖ±’î§Ï(ÄÄÄÄÄÅ•òÄ†Öç±ÖÕÕ•ô•ïê§ÅÏÅÕï—M—Ö—’Ã†ùΩëîÅ•πŸÖ±•ëî∏Å[•…•ô•îÅ±ïÃÅç°•ôô…ïÃÅΩ‘Å…Ö¡¡…Ωç°îÅ±ÑÅçÖ∑•…ÑÅë‘ÅçΩëî∏ú§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÄÄÅÖççï¡—	Ö…çΩëî°ç±ÖÕÕ•ô•ïêπâÖ…çΩëî∞Åç±ÖÕÕ•ô•ïêπâÖ…çΩëïQÂ¡î§ÏÅ…ï—’…∏Ï(ÄÄÄÅÙ(ÄÅÙ((ÄÅëΩç’µïπ–πÖëëŸïπ—1•Õ—ïπï»†ùç±•ç¨ú∞Åô’πç—•Ω∏°ïŸïπ–•Ï(ÄÄÄÅŸÖ»ÅΩ¡ï∏ÄÙÅïŸïπ–π—Ö…ùï–πç±ΩÕïÕ–ÄòòÅïŸïπ–π—Ö…ùï–πç±ΩÕïÕ–†ùmëÖ—Ñµ¡…ÕçÖ∏µΩ¡ïπtú§Ï(ÄÄÄÅ•òÄ°Ω¡ï∏§ÅÏÅïŸïπ–π¡…ïŸïπ—ïôÖ’±–†§ÏÅΩ¡ïπMçÖππï»°Ω¡ï∏§ÏÅ…ï—’…∏ÏÅÙ(ÄÄÄÅŸÖ»ÅÖç—•Ωπ9ΩëîÄÙÅïŸïπ–π—Ö…ùï–πç±ΩÕïÕ–ÄòòÅïŸïπ–π—Ö…ùï–πç±ΩÕïÕ–†ùmëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ωπtú§Ï(ÄÄÄÅ•òÄ°Öç—•Ωπ9Ωëî§ÅÏÅïŸïπ–π¡…ïŸïπ—ïôÖ’±–†§ÏÅ°Öπë±ïç—•Ω∏°Öç—•Ωπ9Ωëîπùï———…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ω∏ú§§ÏÅÙ(ÄÅÙ§Ï(ÄÅëΩç’µïπ–πÖëëŸïπ—1•Õ—ïπï»†ù≠ïÂëΩ›∏ú∞Åô’πç—•Ω∏°ïŸïπ–•ÏÅ•òÄ°ïŸïπ–π≠ï‰ÄÙÙÙÄùÕçÖ¡îúÄòòÅâÂ%ê°M99I}%§ÄòòÄÖâÂ%ê°M99I}%§π°•ëëï∏§Åç±ΩÕïMçÖππï»†§ÏÅÙ§Ï(ÄÅëΩç’µïπ–πÖëëŸïπ—1•Õ—ïπï»†ùŸ•Õ•â•±•—Âç°Öπùîú∞Åô’πç—•Ω∏†•ÏÅ•òÄ°ëΩç’µïπ–π°•ëëï∏§ÅÕ—Ω¡Öµï…Ñ†§ÏÅÙ§Ï(ÄÅ›•πëΩ‹πÖëëŸïπ—1•Õ—ïπï»†ù¡Öùï°•ëîú∞ÅÕ—Ω¡Öµï…Ñ§Ï(ÄÅ›•πëΩ‹πÖëëŸïπ—1•Õ—ïπï»†ùΩôô±•πîú∞Åô’πç—•Ω∏†•ÏÅ•òÄ°âÂ%ê°M99I}%§ÄòòÄÖâÂ%ê°M99I}%§π°•ëëï∏§ÅÕï—M—Ö—’Ã†ù!Ω…ÃÅ±•ùπîÄËÅ±îÅÕçÖ∏Å…ïÕ—îÅ±ΩçÖ∞∏Å1q‘»¿ƒÂÖπÖ±ÂÕîÅçΩµ¡≥°—îÅÖ——ïπë…ÑÅ±ÑÅçΩππï·•Ω∏∏ú§ÏÅÙ§Ï(ÄÅ›•πëΩ‹πÖëëŸïπ—1•Õ—ïπï»†ùΩπ±•πîú∞Åô’πç—•Ω∏†•ÏÅ•òÄ°âÂ%ê°M99I}%§ÄòòÄÖâÂ%ê°M99I}%§π°•ëëï∏§ÅÕï—M—Ö—’Ã†ùΩππï·•Ω∏Å…ïŸïπ’î∏ÅQ‘Å¡ï’‡Å…ï±Öπçï»Å±q‘»¿ƒÂÖπÖ±ÂÕîÅë‘ÅÕçÖ∏Åïπ…ïù•Õ—À§∏ú§ÏÅÙ§Ï((ÄÅô’πç—•Ω∏ÅâΩΩ–†•ÏÅç…ïÖ—ï•Ö±Ωú†§ÏÅ•πÕ—Ö±±π—…ÂAΩ•π–†§ÏÅÙ(ÄÅ•òÄ°ëΩç’µïπ–π…ïÖëÂM—Ö—îÄÙÙÙÄù±ΩÖë•πúú§ÅëΩç’µïπ–πÖëëŸïπ—1•Õ—ïπï»†ù=5Ωπ—ïπ—1ΩÖëïêú∞ÅâΩΩ–∞ÅÏÅΩπçîÈ—…’îÅÙ§ÏÅï±ÕîÅâΩΩ–†§Ï(ÄÅ›•πëΩ‹πÕï—Q•µïΩ’–°•πÕ—Ö±±π—…ÂAΩ•π–∞Ã¿¿§Ï(ÄÅ›•πëΩ‹π)’±ŸΩ·A…Ωë’ç—MçÖππï»ÄÙÅ=â©ïç–πô…ïïÈî°ÏÅΩ¡ï∏ÈΩ¡ïπMçÖππï»∞ÅÕ—Ω¿ÈÕ—Ω¡Öµï…Ñ∞Åç±ÖÕÕ•ôÂ5Öπ’Ö±	Ö…çΩëîÈç±ÖÕÕ•ôÂ5Öπ’Ö±	Ö…çΩëîÅÙ§Ï)Ù§†§Ï(ΩÕç…•¡–˘ÄÏ()ô’πç—•Ω∏ÅôÖ•∞°µïÕÕÖùî§ÅÏ(ÄÅ—°…Ω‹Åπï‹Å……Ω»°Å)U1Y=`µAI=UPµ	I=µM99H¥¿ƒÅ•π—ïù…Ö—•Ω∏ÅôÖ•±ïêËÄëÌµïÕÕÖùïıÄ§Ï)Ù()ô’πç—•Ω∏ÅÖ¡¡±ÂMçÖππï…·¡ï…•ïπçî°•π¡’–§ÅÏ(ÄÅ•òÄ°—Â¡ïΩòÅ•π¡’–ÄÑÙÙÄùÕ—…•πúúÅÒÄÖ•π¡’–π•πç±’ëïÃ†úΩ°ïÖê¯ú§ÅÒÄÖ•π¡’–π•πç±’ëïÃ†úΩâΩë‰¯ú§§ÅÏ(ÄÄÄÅôÖ•∞†ùï·¡ïç—ïêÅÑÅçΩµ¡±ï—îÅ!Q50ÅëΩç’µïπ–ú§Ï(ÄÅÙ(ÄÅ•òÄ°•π¡’–π•πç±’ëïÃ°5I-H§§Å…ï—’…∏Å•π¡’–Ï(ÄÅ•òÄ†Ö•π¡’–π•πç±’ëïÃ†ù•êÙâ©’±ŸΩ·ïç•Õ•Ωπ!Ωµîàú§§ÅôÖ•∞†ù)’±ŸΩ‡Åëïç•Õ•Ω∏Å°ΩµîÅµ’Õ–ÅâîÅ•π—ïù…Ö—ïêÅô•…Õ–ú§Ï(ÄÅ±ï–Å°—µ∞ÄÙÅ•π¡’–π…ï¡±Öçî†úΩ°ïÖê¯ú∞ÅÄëÌM99I}MMıq∏Ω°ïÖê˘Ä§Ï(ÄÅ°—µ∞ÄÙÅ°—µ∞π…ï¡±Öçî†úΩâΩë‰¯ú∞ÅÄëÌ5I-Iıq∏ëÌM99I}IU9Q%5ıq∏ΩâΩë‰˘Ä§Ï(ÄÅ…ï—’…∏Å°—µ∞Ï)Ù()ô’πç—•Ω∏ÅŸï…•ôÂMçÖππï…·¡ï…•ïπçî°°—µ∞§ÅÏ(ÄÅ•òÄ†°°—µ∞πµÖ—ç††Ω©’±ŸΩ‡µ¡…Ωë’ç–µâÖ…çΩëîµÕçÖππï»¥¿ƒΩú§ÅÒÅmt§π±ïπù—†ÄÄÃ§ÅôÖ•∞†ùÕçÖππï»ÅµÖ…≠ï»Ω…’π—•µîΩÕ—Â±ïÃÅÖ…îÅ•πçΩµ¡±ï—îú§Ï(ÄÅôΩ»Ä°çΩπÕ–Å—Ω≠ï∏ÅΩòÅl(ÄÄÄÄùMçÖππï»Å’∏Å¡…Ωë’•–ú∞(ÄÄÄÄâlùïÖπ|ƒÃú∞ùïÖπ|‡ú∞ù’¡ç}Ñú∞ù’¡ç}îùtà∞(ÄÄÄÄùπÖŸ•ùÖ—Ω»πµïë•ÖïŸ•çïÃπùï—UÕï…5ïë•Ñú∞(ÄÄÄÄù—…Öç¨πÕ—Ω¿†§ú∞(ÄÄÄÄùëΩç’µïπ–πÖëëŸïπ—1•Õ—ïπï»†ùpàùŸ•Õ•â•±•—Âç°Öπùïpúà∞(ÄÄÄÄùÕÖ•Õ•»Å±îÅçΩëîÅµÖπ’ï±±ïµïπ–ú∞(ÄÄÄÄù%9=I5Q%=9LÅ%9MU%M9QLú∞(ÄÄÄÄù›•πëΩ‹π)’±ŸΩ·A…Ωë’ç—MçÖπ	Öç≠ïπêú∞(ÄÄÄÄùïµÖπëï»ÉÄÅ)’±ŸΩ‡ú∞(ÄÄÄÄù9îÅôÖâ…•≈’îÅÖ’ç’∏Å¡…•‡∞Å°•Õ—Ω…•≈’î∞Åë•Õ¡Ωπ•â•±•”§ÅΩ‘É•çΩπΩµ•îú∞(ÄÄÄÄùA…Ωë’•–Åïπ…ïù•Õ—À§∏ÅΩππï·•Ω∏Åª•çïÕÕÖ•…îú∞(ÄÄÄÄâëΩç’µïπ–πëΩç’µïπ—±ïµïπ–πÕï———…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µÖç—•Ÿîú∞ù—…’îú§à∞(ÄÅt§ÅÏ(ÄÄÄÅ•òÄ†Ö°—µ∞π•πç±’ëïÃ°—Ω≠ï∏§§ÅôÖ•∞°Åµ•ÕÕ•πúÅÕçÖππï»ÅçΩπ—…Öç–Å—Ω≠ï∏ËÄëÌ—Ω≠ïπıÄ§Ï(ÄÅÙ(ÄÅ•òÄ°°—µ∞π•πç±’ëïÃ†âëΩç’µïπ–πëΩç’µïπ—±ïµïπ–πÕï———…•â’—î†ùëÖ—Ñµ¡…ÕçÖ∏µΩ¡ï∏ú∞ù—…’îú§à§§ÅôÖ•∞†ùÕçÖππï»ÅΩ¡ï∏µÕ—Ö—îÅµ’Õ–ÅπΩ–Å…ï’ÕîÅ—°îÅïπ—…‰Å—…•ùùï»ÅÖ——…•â’—îú§Ï(ÄÅ•òÄ†Ωç’……ïπ—}¡…•çïqÃ©p©qÃ®≈p∏»ºπ—ïÕ–°°—µ∞§§ÅôÖ•∞†ùôÖâ…•çÖ—ïêÅ…ïôï…ïπçîÅ¡…•çîÅ±Ωù•åÅ•ÃÅôΩ…â•ëëï∏ú§Ï(ÄÅ•òÄ†Ωç£°—î∞ÅçoädùuïÕ–Ω§π—ïÕ–°°—µ∞§§ÅôÖ•∞†ùÖ’—ΩµÖ—•åÅ¡…ΩµΩ—•ΩπÖ∞Åâ’‰Å›Ω…ë•πúÅ•ÃÅôΩ…â•ëëï∏ú§Ï(ÄÅ…ï—’…∏Å°—µ∞Ï)Ù()µΩë’±îπï·¡Ω…—ÃÄÙÅÏ(ÄÅ5I-H∞(ÄÅM99I}ML∞(ÄÅM99I}IU9Q%5∞(ÄÅÖ¡¡±ÂMçÖππï…·¡ï…•ïπçî∞(ÄÅŸï…•ôÂMçÖππï…·¡ï…•ïπçî∞)ÙÏ(
+      setStatus('La cam√©ra n‚Äôest pas disponible ici. Saisis le code manuellement.');
+      return;
+    }
+    if (!('BarcodeDetector' in window)) {
+      setStatus('La d√©tection automatique n‚Äôest pas disponible dans ce navigateur. Saisis le code manuellement.');
+      return;
+    }
+    try {
+      var supported = typeof window.BarcodeDetector.getSupportedFormats === 'function' ? await window.BarcodeDetector.getSupportedFormats() : DESIRED_FORMATS;
+      var formats = DESIRED_FORMATS.filter(function(format){ return supported.indexOf(format) >= 0; });
+      if (!formats.length) { setStatus('Les formats EAN/UPC ne sont pas pris en charge ici. Saisis le code manuellement.'); return; }
+      detector = new window.BarcodeDetector({ formats: formats });
+      setStatus('Autorise la cam√©ra pour scanner le code-barres.');
+      stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:720 } } });
+      var video = byId('prscanVideo');
+      video.srcObject = stream;
+      await video.play();
+      scanning = true;
+      scanLocked = false;
+      setStatus('Cam√©ra active. Place le code-barres dans le cadre.');
+      detectionLoop();
+    } catch (error) {
+      stopCamera();
+      if (error && (error.name === 'NotAllowedError' || error.name === 'SecurityError')) setStatus('Autorise la cam√©ra ou saisis le code manuellement.');
+      else setStatus('La cam√©ra n‚Äôa pas pu d√©marrer. Tu peux saisir le code manuellement.');
+    }
+  }
+
+  function createDialog(){
+    if (byId(SCANNER_ID)) return;
+    var dialog = document.createElement('section');
+    dialog.id = SCANNER_ID;
+    dialog.hidden = true;
+    dialog.setAttribute('role','dialog');
+    dialog.setAttribute('aria-modal','true');
+    dialog.setAttribute('aria-labelledby','prscanTitle');
+    dialog.innerHTML = '<div class="prscan-panel" tabindex="-1"><div class="prscan-head"><div><p class="prscan-kicker">En magasin</p><h2 class="prscan-title" id="prscanTitle">Scanner un produit</h2></div><button class="prscan-close" type="button" data-prscan-action="close" aria-label="Fermer le scanner">√ó</button></div>' +
+      '<p class="prscan-copy">Le code-barres identifie le produit. Le prix affich√© en rayon se renseigne s√©par√©ment. Julvox ne conclut jamais √† partir d‚Äôun rabais affich√© seul.</p>' +
+      '<div class="prscan-status" id="prscanStatus" role="status" aria-live="polite">Pr√™t √† scanner.</div>' +
+      '<div class="prscan-camera"><video id="prscanVideo" playsinline muted aria-label="Aper√ßu de la cam√©ra pour scanner le code-barres"></video><div class="prscan-frame" aria-hidden="true"></div><div class="prscan-camera-copy">Aligne les barres √† l‚Äôint√©rieur du cadre.</div></div>' +
+      '<div class="prscan-actions"><button class="prscan-btn prscan-btn-primary" type="button" data-prscan-action="start">Activer la cam√©ra</button><button class="prscan-btn" type="button" data-prscan-action="stop">Arr√™ter la cam√©ra</button></div>' +
+      '<div class="prscan-manual"><label class="prscan-label" for="prscanManualInput">Ou saisir le code manuellement</label><div class="prscan-row"><input class="prscan-input" id="prscanManualInput" inputmode="numeric" autocomplete="off" pattern="[0-9]*" maxlength="14" aria-describedby="prscanManualHelp"><button class="prscan-btn" type="button" data-prscan-action="manual">Identifier ce code</button></div><p class="prscan-note" id="prscanManualHelp">EAN-13, EAN-8, UPC-A et UPC-E sont prioritaires. En saisie manuelle, certains codes √† 8 chiffres restent volontairement ambigus.</p></div>' +
+      '<div class="prscan-result" id="prscanResult" hidden></div>' +
+      '<p class="prscan-note">Confidentialit√© : le flux vid√©o n‚Äôest pas enregistr√©. La cam√©ra est coup√©e √† la d√©tection, √† la fermeture et lorsque Julvox passe en arri√®re-plan.</p></div>';
+    document.body.appendChild(dialog);
+  }
+
+  function installEntryPoint(){
+    var examples = document.querySelector('#julvoxDecisionHome .pr01b-examples');
+    if (!examples || examples.querySelector('[data-prscan-open]')) return;
+    var button = document.createElement('button');
+    button.className = 'pr01b-example prscan-entry';
+    button.type = 'button';
+    button.setAttribute('data-prscan-open','true');
+    button.setAttribute('aria-label','Scanner un produit avec la cam√©ra');
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M7 9v6M10 9v6M14 9v6M17 9v6"/></svg><span>Scanner un produit</span>';
+    examples.insertBefore(button, examples.firstChild);
+  }
+
+  function openScanner(trigger){
+    createDialog();
+    lastTrigger = trigger || document.activeElement;
+    var dialog = byId(SCANNER_ID);
+    dialog.hidden = false;
+    document.documentElement.setAttribute('data-prscan-open','true');
+    var panel = dialog.querySelector('.prscan-panel');
+    if (panel) panel.focus();
+    setStatus(online() ? 'Pr√™t √† scanner.' : 'Hors ligne : le code peut √™tre scann√© et enregistr√© localement.');
+  }
+
+  function closeScanner(){
+    stopCamera();
+    var dialog = byId(SCANNER_ID); if (dialog) dialog.hidden = true;
+    document.documentElement.removeAttribute('data-prscan-open');
+    if (lastTrigger && typeof lastTrigger.focus === 'function') { try { lastTrigger.focus(); } catch (_) {} }
+  }
+
+  function saveStorePrice(){
+    if (!currentScan) return;
+    var input = byId('prscanStorePrice');
+    var raw = clean(input && input.value,30).replace(',','.');
+    var amount = Number(raw);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) { setStatus('Saisis un prix magasin valide.'); return; }
+    currentScan = Object.assign({}, currentScan, { storePrice:{ amount:Math.round(amount * 100) / 100, currency:'EUR', source:'user_store_shelf' } });
+    saveCurrent(currentScan);
+    renderResult(currentScan);
+    setStatus('Prix magasin enregistr√© s√©par√©ment du code-barres.');
+  }
+
+  function askJulvox(){
+    if (!currentScan) return;
+    var priceText = currentScan.storePrice ? String(currentScan.storePrice.amount) + ' ' + currentScan.storePrice.currency : 'non renseign√©';
+    var prompt = 'Contexte scanner Julvox. Produit: ' + productLabel(currentScan) + '. Code: ' + currentScan.barcode + ' (' + currentScan.barcodeType + '). Prix affich√© en magasin: ' + priceText + '. Statut identification: ' + currentScan.identificationStatus + '. D√©cision disponible: ' + (currentScan.decision && currentScan.decision.status || 'insufficient_data') + '. Ne fabrique aucun prix, historique, disponibilit√© ou √©conomie. Aide-moi √† d√©cider si cet achat est pertinent maintenant avec les informations r√©ellement disponibles.';
+    closeScanner();
+    if (typeof window.openAIChat === 'function') window.openAIChat();
+    if (typeof window.sendAIMessage === 'function') { window.setTimeout(function(){ window.sendAIMessage(prompt); },80); return; }
+    var chatInput = byId('chatInput'); if (chatInput) { chatInput.value = prompt; chatInput.focus(); }
+  }
+
+  function analyzeNow(){
+    if (!currentScan) return;
+    if (!online()) { setStatus('Connexion toujours indisponible. Le scan reste enregistr√© localement.'); return; }
+    removeLocal(PENDING_KEY);
+    tryBackendLookup(currentScan);
+  }
+
+  function handleAction(action){
+    if (action === 'close') return closeScanner();
+    if (action === 'start') return startCamera();
+    if (action === 'stop') { stopCamera(); setStatus('Cam√©ra arr√™t√©e.'); return; }
+    if (action === 'restart') { currentScan = null; var result = byId('prscanResult'); if (result) result.hidden = true; return startCamera(); }
+    if (action === 'save-price') return saveStorePrice();
+    if (action === 'ask-julvox') return askJulvox();
+    if (action === 'analyze-now') return analyzeNow();
+    if (action === 'manual') {
+      var input = byId('prscanManualInput'); var classified = classifyManualBarcode(input && input.value);
+      if (!classified) { setStatus('Code invalide. V√©rifie les chiffres ou rapproche la cam√©ra du code.'); return; }
+      acceptBarcode(classified.barcode, classified.barcodeType); return;
+    }
+  }
+
+  document.addEventListener('click', function(event){
+    var open = event.target.closest && event.target.closest('[data-prscan-open]');
+    if (open) { event.preventDefault(); openScanner(open); return; }
+    var actionNode = event.target.closest && event.target.closest('[data-prscan-action]');
+    if (actionNode) { event.preventDefault(); handleAction(actionNode.getAttribute('data-prscan-action')); }
+  });
+  document.addEventListener('keydown', function(event){ if (event.key === 'Escape' && byId(SCANNER_ID) && !byId(SCANNER_ID).hidden) closeScanner(); });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) stopCamera(); });
+  window.addEventListener('pagehide', stopCamera);
+  window.addEventListener('offline', function(){ if (byId(SCANNER_ID) && !byId(SCANNER_ID).hidden) setStatus('Hors ligne : le scan reste local. L‚Äôanalyse compl√®te attendra la connexion.'); });
+  window.addEventListener('online', function(){ if (byId(SCANNER_ID) && !byId(SCANNER_ID).hidden) setStatus('Connexion revenue. Tu peux relancer l‚Äôanalyse du scan enregistr√©.'); });
+
+  function boot(){ createDialog(); installEntryPoint(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
+  window.setTimeout(installEntryPoint,300);
+  window.JulvoxProductScanner = Object.freeze({ open:openScanner, stop:stopCamera, classifyManualBarcode:classifyManualBarcode });
+})();
+</script>`;
+
+function fail(message) {
+  throw new Error(`JULVOX-PRODUCT-BARCODE-SCANNER-01 integration failed: ${message}`);
+}
+
+function applyScannerExperience(input) {
+  if (typeof input !== 'string' || !input.includes('</head>') || !input.includes('</body>')) {
+    fail('expected a complete HTML document');
+  }
+  if (input.includes(MARKER)) return input;
+  if (!input.includes('id="julvoxDecisionHome"')) fail('Julvox decision home must be integrated first');
+  let html = input.replace('</head>', `${SCANNER_CSS}\n</head>`);
+  html = html.replace('</body>', `${MARKER}\n${SCANNER_RUNTIME}\n</body>`);
+  return html;
+}
+
+function verifyScannerExperience(html) {
+  if ((html.match(/julvox-product-barcode-scanner-01/g) || []).length < 3) fail('scanner marker/runtime/styles are incomplete');
+  for (const token of [
+    'Scanner un produit',
+    "['ean_13','ean_8','upc_a','upc_e']",
+    'navigator.mediaDevices.getUserMedia',
+    'track.stop()',
+    'document.addEventListener(\'visibilitychange\'',
+    'saisir le code manuellement',
+    'INFORMATIONS INSUFFISANTES',
+    'window.JulvoxProductScanBackend',
+    'Demander √† Julvox',
+    'Ne fabrique aucun prix, historique, disponibilit√© ou √©conomie',
+    'Produit enregistr√©. Connexion n√©cessaire',
+  ]) {
+    if (!html.includes(token)) fail(`missing scanner contract token: ${token}`);
+  }
+  if (/current_price\s*\*\s*1\.2/.test(html)) fail('fabricated reference price logic is forbidden');
+  if (/Ach√®te, c[‚Äô']est/i.test(html)) fail('automatic promotional buy wording is forbidden');
+  return html;
+}
+
+module.exports = {
+  MARKER,
+  SCANNER_CSS,
+  SCANNER_RUNTIME,
+  applyScannerExperience,
+  verifyScannerExperience,
+};
