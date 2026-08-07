@@ -10,8 +10,8 @@ if (!fs.existsSync(indexPath)) {
 }
 
 let integrated = smartScan.applySmartScanExperience(fs.readFileSync(indexPath, 'utf8'));
-integrated = hardening.hardenSmartScanExperience(integrated);
 smartScan.verifySmartScanExperience(integrated);
+integrated = hardening.hardenSmartScanExperience(integrated);
 hardening.verifySmartScanHardening(integrated);
 fs.writeFileSync(indexPath, integrated, 'utf8');
 
