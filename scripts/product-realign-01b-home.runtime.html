@@ -9,7 +9,8 @@
   var SECONDARY_ROUTES = Object.freeze({
     help: Object.freeze({ hash: '#aide', pageId: 'pr01bHelpPage' }),
     settings: Object.freeze({ hash: '#parametres', pageId: 'pr01bSettingsPage' }),
-    assistant: Object.freeze({ hash: '#assistant', pageId: null })
+    assistant: Object.freeze({ hash: '#assistant', pageId: null }),
+    accessibility: Object.freeze({ hash: '#accessibilite', pageId: 'pr01bAccessibilityPage' })
   });
   var lastSecondaryTrigger = null;
 
@@ -134,7 +135,8 @@
       '.pr01b-secondary-row{display:flex;justify-content:space-between;gap:18px;padding:15px 0;border-top:1px solid rgba(11,29,52,.08)}',
       '.pr01b-secondary-row:first-of-type{margin-top:20px}',
       '.pr01b-secondary-row span:last-child{color:#65717C;text-align:right}',
-      '@media (max-width:760px){#pr01bMobileSheet .pr01b-nav-label{position:static!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important;white-space:normal!important}.pr01b-secondary-page{padding:calc(16px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom))}.pr01b-secondary-card{border-radius:20px;padding:18px}.pr01b-secondary-title{font-size:22px}.pr01b-secondary-row{flex-direction:column;gap:5px}.pr01b-secondary-row span:last-child{text-align:left}}'
+      '@media (max-width:760px){#pr01bMobileSheet .pr01b-mobile-sheet-card{width:min(320px,calc(100vw - 28px));padding:8px;display:grid;gap:4px;align-content:start}#pr01bMobileSheet .pr01b-nav-btn{width:100%!important;height:56px;min-height:56px;justify-content:flex-start!important;align-items:center!important;padding:0 16px!important;gap:14px!important;border-radius:14px;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:rgba(14,167,161,.12);transition:background .14s ease,transform .14s ease}#pr01bMobileSheet .pr01b-nav-icon{position:static;flex:0 0 24px;width:24px;height:24px}#pr01bMobileSheet .pr01b-nav-icon svg{width:22px;height:22px}#pr01bMobileSheet .pr01b-nav-label{position:static!important;width:auto!important;height:auto!important;overflow:hidden!important;clip:auto!important;white-space:nowrap!important;flex:1 1 auto;min-width:0;text-overflow:ellipsis;text-align:left;font-size:15px;line-height:1.2}#pr01bMobileSheet .pr01b-nav-btn:hover,#pr01bMobileSheet .pr01b-nav-btn:focus-visible{background:rgba(14,167,161,.08);transform:none;outline:2px solid rgba(14,167,161,.20);outline-offset:-2px}#pr01bMobileSheet .pr01b-nav-btn:active{background:rgba(14,167,161,.16);transform:scale(.985)}.pr01b-secondary-page{padding:calc(16px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom))}.pr01b-secondary-card{border-radius:20px;padding:18px}.pr01b-secondary-title{font-size:22px}.pr01b-secondary-row{flex-direction:column;gap:5px}.pr01b-secondary-row span:last-child{text-align:left}}',
+      '@media (max-width:760px) and (orientation:landscape){#pr01bMobileSheet{padding-top:68px;padding-bottom:12px;overflow:auto}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -157,6 +159,21 @@
     return '<span class="pr01b-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5.5 4v-4.8A2.5 2.5 0 0 1 4 13.7z"/><path d="M8 9h.01M12 9h.01M16 9h.01"/></svg></span><span class="pr01b-nav-label">Assistant</span>';
   }
 
+  function accessibilityButtonMarkup() {
+    return '<span class="pr01b-nav-icon" aria-hidden="true" style="font-size:22px;line-height:1">♿</span><span class="pr01b-nav-label">Accessibilité</span>';
+  }
+
+  function appendSecondaryButton(container, action, ariaLabel, markup) {
+    if (container.querySelector('[data-home-action="' + action + '"]')) return;
+    var button = document.createElement('button');
+    button.className = 'pr01b-nav-btn';
+    button.type = 'button';
+    button.dataset.homeAction = action;
+    button.setAttribute('aria-label', ariaLabel);
+    button.innerHTML = markup;
+    container.appendChild(button);
+  }
+
   function installSecondaryNavigation() {
     installSecondaryRouteStyles();
 
@@ -165,14 +182,8 @@
     root.querySelectorAll('[data-home-action="settings"]').forEach(function(button){ button.setAttribute('aria-label', 'Paramètres utilisateur'); });
 
     root.querySelectorAll('.pr01b-nav-secondary, .pr01b-mobile-sheet-card').forEach(function(container){
-      if (container.querySelector('[data-home-action="assistant"]')) return;
-      var button = document.createElement('button');
-      button.className = 'pr01b-nav-btn';
-      button.type = 'button';
-      button.dataset.homeAction = 'assistant';
-      button.setAttribute('aria-label', 'Assistant IA');
-      button.innerHTML = assistantButtonMarkup();
-      container.appendChild(button);
+      appendSecondaryButton(container, 'assistant', 'Assistant IA', assistantButtonMarkup());
+      appendSecondaryButton(container, 'accessibility', 'Accessibilité', accessibilityButtonMarkup());
     });
 
     createSecondaryPage(
@@ -187,6 +198,19 @@
       '<div class="pr01b-secondary-row"><strong>Langue</strong><span>Français</span></div>' +
       '<div class="pr01b-secondary-row"><strong>Navigation</strong><span>Accueil, conversations et décisions</span></div>' +
       '<div class="pr01b-secondary-row"><strong>Compte</strong><span>Une connexion est demandée uniquement lorsqu’une action liée au compte l’exige.</span></div></div>'
+    );
+    createSecondaryPage(
+      SECONDARY_ROUTES.accessibility.pageId,
+      'Accessibilité',
+      '<div class="pr01b-secondary-copy"><p><strong>Les réglages d’accessibilité seront regroupés ici.</strong> Cette première étape crée une destination dédiée sans activer de préférence non implémentée.</p>' +
+      '<div class="pr01b-secondary-row"><strong>Texte agrandi</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Contraste renforcé</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Mode daltonien</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Police dyslexie</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Lecture vocale</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Réduction des animations</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>Boutons agrandis</strong><span>À venir</span></div>' +
+      '<div class="pr01b-secondary-row"><strong>TalkBack</strong><span>Compatibilité à renforcer</span></div></div>'
     );
   }
 
@@ -230,6 +254,7 @@
     if (action === 'help') { openSecondaryPage(SECONDARY_ROUTES.help.pageId, SECONDARY_ROUTES.help.hash, trigger); return; }
     if (action === 'settings') { openSecondaryPage(SECONDARY_ROUTES.settings.pageId, SECONDARY_ROUTES.settings.hash, trigger); return; }
     if (action === 'assistant') { openAssistant(trigger); return; }
+    if (action === 'accessibility') { openSecondaryPage(SECONDARY_ROUTES.accessibility.pageId, SECONDARY_ROUTES.accessibility.hash, trigger); return; }
     if (action === 'close-secondary') { closeSecondaryPage(); return; }
     if (action === 'toggle-menu') {
       var sheet = document.getElementById('pr01bMobileSheet');
