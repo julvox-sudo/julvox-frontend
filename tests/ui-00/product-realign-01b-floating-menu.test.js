@@ -28,6 +28,7 @@ test('conserve Assistant comme seule action secondaire ouvrant l Assistant IA', 
 test('crée une destination Accessibilité sans prétendre activer les fonctions futures', () => {
   assert.match(HOME_RUNTIME, /appendSecondaryButton\(container, 'accessibility', 'Accessibilité', accessibilityButtonMarkup\(\)\)/);
   assert.match(HOME_RUNTIME, /'Accessibilité'/);
+  assert.match(HOME_RUNTIME, /function accessibilityButtonMarkup\(\)[\s\S]*?<svg viewBox="0 0 24 24"/);
   for (const label of ['Texte agrandi', 'Contraste renforcé', 'Mode daltonien', 'Police dyslexie', 'Lecture vocale', 'Réduction des animations', 'Boutons agrandis', 'TalkBack']) {
     assert.match(HOME_RUNTIME, new RegExp(label));
   }
@@ -47,9 +48,16 @@ test('compacte le panneau et fournit un retour visuel au toucher', () => {
   assert.match(HOME_RUNTIME, /touch-action:manipulation/);
 });
 
-test('prévoit le paysage Android et reste compatible avec le zoom texte', () => {
-  assert.match(HOME_RUNTIME, /@media \(max-width:760px\) and \(orientation:landscape\)/);
-  assert.match(HOME_RUNTIME, /#pr01bMobileSheet\{padding-top:68px;padding-bottom:12px;overflow:auto\}/);
+test('conserve le menu mobile sur les téléphones Android en paysage', () => {
+  assert.match(HOME_RUNTIME, /@media \(orientation:landscape\) and \(max-height:500px\) and \(max-width:960px\)/);
+  assert.match(HOME_RUNTIME, /#julvoxDecisionHome \.pr01b-mobilebar\{display:flex/);
+  assert.match(HOME_RUNTIME, /#julvoxDecisionHome \.pr01b-mobile-nav\{display:grid/);
+  assert.match(HOME_RUNTIME, /#pr01bMobileSheet\{position:fixed;z-index:60;inset:0;/);
+  assert.match(HOME_RUNTIME, /#pr01bMobileSheet\[data-open="true"\]\{display:flex\}/);
+});
+
+test('reste compatible avec le zoom texte sans sortir les libellés de leur ligne', () => {
   assert.match(HOME_RUNTIME, /white-space:nowrap!important/);
   assert.match(HOME_RUNTIME, /text-overflow:ellipsis/);
+  assert.match(HOME_RUNTIME, /overflow:hidden!important/);
 });
