@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const home = require('./product-realign-01b-home.js');
 const pwaInstallHardening = require('./product-realign-01b-pwa-install-hardening.js');
+const pwaRefreshHardening = require('./product-realign-01b-pwa-refresh-hardening.js');
 const officialBrand = require('./product-realign-01b-brand-integrate.js');
 const legacyIdentityCleanup = require('./product-realign-01b-legacy-identity-cleanup.js');
 
@@ -34,16 +35,17 @@ if (fs.existsSync(manifestPath)) {
 officialBrand.integrate(root);
 
 const serviceWorkerPath = path.join(root, 'dist', 'sw.js');
+const serviceWorkerWithShell = pwaInstallHardening.applyOfflineShellToServiceWorker(
+  fs.readFileSync(serviceWorkerPath, 'utf8'),
+);
 fs.writeFileSync(
   serviceWorkerPath,
-  pwaInstallHardening.applyOfflineShellToServiceWorker(
-    fs.readFileSync(serviceWorkerPath, 'utf8'),
-  ),
+  pwaRefreshHardening.applyOfflineRefreshHardening(serviceWorkerWithShell),
   'utf8',
 );
 
 legacyIdentityCleanup.cleanupPublicIdentity(root);
 
 console.log(
-  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup, PWA install/offline hardening, official A2.2 brand and legacy identity cleanup integrated into dist.',
+  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup, PWA install/offline refresh hardening, official A2.2 brand and legacy identity cleanup integrated into dist.',
 );
