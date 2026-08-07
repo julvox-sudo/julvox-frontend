@@ -20,6 +20,7 @@ function fixture() {
 function runGenerator(root, variables = {}) {
   const env = { ...process.env };
   delete env.JULVOX_BACKEND_API_BASE_URL;
+  delete env.VERCEL_ENV;
   Object.assign(env, variables);
   return spawnSync(process.execPath, [generator], { cwd: root, env, encoding: 'utf8' });
 }
@@ -40,12 +41,19 @@ test('production generation uses the canonical backend when no override is suppl
   assert.equal(readRuntime(root).backend.apiBaseUrl, contract.backend.api_base_url);
 });
 
+test('Vercel Preview refuses to build without an explicit Preview backend', () => {
+  const root = fixture();
+  const result = runGenerator(root, { VERCEL_ENV: 'preview' });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Vercel Preview requires JULVOX_BACKEND_API_BASE_URL/);
+});
+
 test('preview generation uses only an explicit backend URL override without mutating the canonical contract', () => {
   const root = fixture();
   const contractPath = path.join(root, 'config/runtime-contract.json');
   const before = fs.readFileSync(contractPath, 'utf8');
   const previewUrl = 'https://julvox-backend-pr62-production.up.railway.app';
-  const result = runGenerator(root, { JULVOX_BACKEND_API_BASE_URL: previewUrl });
+  const result = runGenerator(root, { VERCEL_ENV: 'preview', JULVOX_BACKEND_API_BASE_URL: previewUrl });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(readRuntime(root).backend.apiBaseUrl, previewUrl);
   assert.equal(fs.readFileSync(contractPath, 'utf8'), before);
@@ -59,6 +67,7 @@ test('runtime generation does not publish unrelated build secrets', () => {
     'postgresql://private:password@private.invalid/db',
   ];
   const result = runGenerator(root, {
+    VERCEL_ENV: 'preview',
     JULVOX_BACKEND_API_BASE_URL: 'https://julvox-backend-pr62-production.up.railway.app',
     GOOGLE_API_KEY: secretValues[0],
     JWT_SECRET: secretValues[1],
@@ -75,7 +84,7 @@ test('runtime generation does not publish unrelated build secrets', () => {
 test('an explicit preview override cannot silently target the canonical production backend', () => {
   const root = fixture();
   const contract = JSON.parse(fs.readFileSync(path.join(root, 'config/runtime-contract.json'), 'utf8'));
-  const result = runGenerator(root, { JULVOX_BACKEND_API_BASE_URL: contract.backend.api_base_url });
+  const result = runGenerator(root, { VERCEL_ENV: 'preview', JULVOX_BACKEND_API_BASE_URL: contract.backend.api_base_url });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /explicitly targets the canonical production backend/);
 });
@@ -88,7 +97,7 @@ test('the explicit override rejects URLs that could expose credentials or secret
     'https://preview.invalid/#secret',
   ]) {
     const root = fixture();
-    const result = runGenerator(root, { JULVOX_BACKEND_API_BASE_URL: previewUrl });
+    const result = runGenerator(root, { VERCEL_ENV: 'preview', JULVOX_BACKEND_API_BASE_URL: previewUrl });
     assert.notEqual(result.status, 0, previewUrl);
   }
 });
