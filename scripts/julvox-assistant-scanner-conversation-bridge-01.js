@@ -19,7 +19,7 @@ const RUNTIME = `<script id="${MARKER}">
   }
   function openScannerConversation(scanner){
     if(!scanner || !/^\\d{8,14}$/.test(String(scanner.code||''))) return false;
-    if(typeof window.startNewJulvoxAssistantConversation==='function') window.startNewJulvoxAssistantConversation();
+    if(typeof window.ensureJulvoxAssistantConversation==='function') window.ensureJulvoxAssistantConversation();
     if(typeof window.openAIChat==='function') window.openAIChat();
     if(typeof window.sendJulvoxScannerMessage==='function') return window.sendJulvoxScannerMessage(scanner);
     return false;
@@ -76,10 +76,13 @@ function verify(input) {
     "source.found===true&&Boolean(name)",
     "verified:true,product:safeProduct",
     "verified:false",
-    'startNewJulvoxAssistantConversation',
+    'ensureJulvoxAssistantConversation',
     'sendJulvoxScannerMessage',
   ]) {
     if (!html.includes(required)) throw new Error(`Scanner conversation bridge missing contract: ${required}`);
+  }
+  if (html.includes("if(typeof window.startNewJulvoxAssistantConversation==='function') window.startNewJulvoxAssistantConversation();")) {
+    throw new Error('Scanner conversation bridge must not create a new conversation implicitly');
   }
   return html;
 }
