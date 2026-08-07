@@ -26,12 +26,13 @@ async function searchBarcode(barcode) {
 </script>
 </body></html>`;
 
-test('verified /scan/barcode result is forwarded to the Assistant conversation', () => {
+test('verified /scan/barcode result is forwarded to the active Assistant conversation', () => {
   const output = bridge.integrate(fixture);
   assert.match(output, /JULVOX_FORWARD_VERIFIED_SCANNER_LOOKUP\(normalizedEan, result\.data\)/);
   assert.match(output, /source\.found===true&&Boolean\(name\)/);
   assert.match(output, /verified:true,product:safeProduct/);
-  assert.match(output, /startNewJulvoxAssistantConversation/);
+  assert.match(output, /ensureJulvoxAssistantConversation/);
+  assert.doesNotMatch(output, /startNewJulvoxAssistantConversation/);
   assert.match(output, /sendJulvoxScannerMessage/);
 });
 
