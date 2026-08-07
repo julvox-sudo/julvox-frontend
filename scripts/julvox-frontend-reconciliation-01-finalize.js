@@ -55,6 +55,7 @@ function finalize(input) {
     'if(FORBIDDEN.test(answer))answer=localFallback(message,scanner);',
     'if(FORBIDDEN_PARTS.some(function(term){return answer.toLowerCase().indexOf(term.toLowerCase())>=0;}))answer=localFallback(message,scanner);',
   );
+  html = html.replaceAll('replace(/\\\\/+$/', 'replace(/\\/+$/');
 
   LEGACY_TERMS.forEach((term, index) => {
     html = html.split(term).join(LEGACY_REPLACEMENTS[index]);
