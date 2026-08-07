@@ -1,4 +1,8 @@
 const MARKER = '<!-- julvox-product-barcode-scanner-01-hardening -->';
+const OPEN_STATE_BUG = "document.documentElement.setAttribute('data-prscan-open','true');";
+const OPEN_STATE_FIX = "document.documentElement.setAttribute('data-prscan-active','true');";
+const CLOSE_STATE_BUG = "document.documentElement.removeAttribute('data-prscan-open');";
+const CLOSE_STATE_FIX = "document.documentElement.removeAttribute('data-prscan-active');";
 
 function gtinModulo10Valid(value) {
   const digits = String(value || '').replace(/\D/g, '');
@@ -157,7 +161,12 @@ function applyScannerHardening(input) {
   if (typeof input !== 'string' || !input.includes('</body>')) fail('expected a complete HTML document');
   if (!input.includes('julvox-product-barcode-scanner-01-runtime')) fail('scanner runtime must be integrated first');
   if (input.includes(MARKER)) return input;
-  return input.replace('</body>', `${MARKER}\n${HARDENING_RUNTIME}\n</body>`);
+  if (!input.includes(OPEN_STATE_BUG) || !input.includes(CLOSE_STATE_BUG)) {
+    fail('scanner state/trigger collision anchors are missing');
+  }
+  let hardened = input.replace(OPEN_STATE_BUG, OPEN_STATE_FIX).replace(CLOSE_STATE_BUG, CLOSE_STATE_FIX);
+  hardened = hardened.replace('</body>', `${MARKER}\n${HARDENING_RUNTIME}\n</body>`);
+  return hardened;
 }
 
 function verifyScannerHardening(html) {
@@ -170,8 +179,13 @@ function verifyScannerHardening(html) {
     "history.back()",
     "window.addEventListener('popstate'",
     "input.setAttribute('aria-invalid','true')",
+    OPEN_STATE_FIX,
+    CLOSE_STATE_FIX,
   ]) {
     if (!html.includes(token)) fail(`missing hardening token: ${token}`);
+  }
+  if (html.includes(OPEN_STATE_BUG) || html.includes(CLOSE_STATE_BUG)) {
+    fail('scanner active state still reuses the delegated open trigger attribute');
   }
   return html;
 }
@@ -179,6 +193,10 @@ function verifyScannerHardening(html) {
 module.exports = {
   MARKER,
   HARDENING_RUNTIME,
+  OPEN_STATE_BUG,
+  OPEN_STATE_FIX,
+  CLOSE_STATE_BUG,
+  CLOSE_STATE_FIX,
   gtinModulo10Valid,
   expandUpce,
   isValidManualBarcode,
