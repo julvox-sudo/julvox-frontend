@@ -21,6 +21,7 @@ const RUNTIME = String.raw`
   var MAX_OUTBOX=50;
   var loading=false;
   var smartScanWrapped=false;
+  var conversationCardsObserver=null;
   var DEFAULT_PREFERENCES={identity:'neutral',tone:'warm',address_mode:'tu'};
   var currentPreferences=normalizePreferences(window.JULVOX_ASSISTANT_PREFERENCES||DEFAULT_PREFERENCES);
 
@@ -77,7 +78,10 @@ const RUNTIME = String.raw`
 
   async function migrateLegacy(){var base=apiBase();if(!base)return;var legacy=readLegacy();for(var i=0;i<legacy.length;i+=1){var item=legacy[i];if(!safeId(item.id)||cached(item.id))continue;try{var response=await fetch(base+'/ai/conversations/import',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(legacyPayload(item))});var data=null;try{data=await response.json();}catch(_){}if(response.ok&&data&&validConversation(data.conversation)&&data.conversation.id===item.id)cacheConversation(data.conversation);}catch(_){/* Leave the legacy entry untouched and retry on a later boot. */}}writeLegacyProjection();decorateCards();}
 
-  function decorateCards(){var rows=readLegacy();var cards=document.querySelectorAll('#pr01bConversationList .pr01b-conversation');cards.forEach(function(card,index){var row=rows[index];if(!row||!safeId(row.id))return;card.setAttribute('data-conversation-id',row.id);card.setAttribute('role','button');card.setAttribute('tabindex','0');card.setAttribute('aria-label','Reprendre la conversation '+clean(row.need,80));});}
+  function decorateCard(card,index){var row=readLegacy()[index];if(!card||!row||!safeId(row.id))return'';card.setAttribute('data-conversation-id',row.id);card.setAttribute('role','button');card.setAttribute('tabindex','0');card.setAttribute('aria-label','Reprendre la conversation '+clean(row.need,80));return row.id;}
+  function decorateCards(){var cards=document.querySelectorAll('#pr01bConversationList .pr01b-conversation');cards.forEach(function(card,index){decorateCard(card,index);});}
+  function conversationCardId(card){var direct=safeId(card&&card.getAttribute&&card.getAttribute('data-conversation-id'));if(direct)return direct;var cards=Array.from(document.querySelectorAll('#pr01bConversationList .pr01b-conversation'));var index=cards.indexOf(card);return index>=0?decorateCard(card,index):'';}
+  function observeConversationCards(){var list=document.getElementById('pr01bConversationList');if(!list||conversationCardsObserver||typeof MutationObserver!=='function')return;conversationCardsObserver=new MutationObserver(function(){decorateCards();});conversationCardsObserver.observe(list,{childList:true});}
   function selectedSmartScanMode(){var tab=document.querySelector('#julvoxSmartScan .jvss-tab[aria-selected="true"]');if(!tab)return null;var id=clean(tab.id,80);return id.indexOf('jvssTab-')===0?id.slice('jvssTab-'.length):null;}
   function wrapSmartScan(){if(smartScanWrapped)return;var backend=window.JulvoxSmartScanBackend;if(!backend||typeof backend.post!=='function')return;var original=backend.post.bind(backend);backend.post=async function(route,payload){var id=ensureConversation();var next=Object.assign({},payload||{},{conversationId:id});if(route==='/smart-scan/confirm'){var mode=selectedSmartScanMode();if(mode)next.scanMode=mode;if(mode==='barcode'){var input=document.getElementById('jvssBarcode');var code=clean(input&&input.value,32).replace(/\s/g,'');if(code)next.scanCode=code;}}return original(route,next);};backend.__julvoxConversationCanonical=true;smartScanWrapped=true;}
 
@@ -90,10 +94,10 @@ const RUNTIME = String.raw`
     migrateLegacy:migrateLegacy
   };
 
-  document.addEventListener('click',function(event){var card=event.target.closest&&event.target.closest('#pr01bConversationList [data-conversation-id]');if(card){event.preventDefault();resume(card.getAttribute('data-conversation-id'));return;}var preset=event.target.closest&&event.target.closest('[data-assistant-preset]');if(preset){event.preventDefault();window.sendAIMessage(preset.getAttribute('data-assistant-preset')||'');}},true);
-  document.addEventListener('keydown',function(event){var card=event.target.closest&&event.target.closest('#pr01bConversationList [data-conversation-id]');if(card&&(event.key==='Enter'||event.key===' ')){event.preventDefault();resume(card.getAttribute('data-conversation-id'));return;}if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendAIMessage();}},true);
+  document.addEventListener('click',function(event){var card=event.target.closest&&event.target.closest('#pr01bConversationList .pr01b-conversation');if(card){var id=conversationCardId(card);if(id){event.preventDefault();resume(id);return;}}var preset=event.target.closest&&event.target.closest('[data-assistant-preset]');if(preset){event.preventDefault();window.sendAIMessage(preset.getAttribute('data-assistant-preset')||'');}},true);
+  document.addEventListener('keydown',function(event){var card=event.target.closest&&event.target.closest('#pr01bConversationList .pr01b-conversation');if(card&&(event.key==='Enter'||event.key===' ')){var id=conversationCardId(card);if(id){event.preventDefault();resume(id);return;}}if(event.target&&event.target.id==='chatInput'&&event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendAIMessage();}},true);
 
-  function boot(){decorateCards();wrapSmartScan();migrateLegacy();window.setTimeout(wrapSmartScan,350);window.setTimeout(decorateCards,350);}
+  function boot(){decorateCards();observeConversationCards();wrapSmartScan();migrateLegacy();window.setTimeout(wrapSmartScan,350);window.setTimeout(decorateCards,350);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>`;
@@ -128,6 +132,8 @@ function verify(input) {
     "aucune réponse métier locale n’est inventée",
     "julvox:decision-home:conversations:v1",
     "julvox:conversations:v2",
+    "conversationCardId(card)",
+    "new MutationObserver(function(){decorateCards();})",
   ]) {
     if (!runtime.includes(required)) throw new Error(`canonical conversation runtime missing contract: ${required}`);
   }

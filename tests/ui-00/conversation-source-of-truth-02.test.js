@@ -58,6 +58,14 @@ test('legacy localStorage is migration input and compatibility projection, never
   assert.ok(RUNTIME.includes('if(response.ok&&data&&validConversation(data.conversation)&&data.conversation.id===item.id)'));
 });
 
+test('conversation cards stay resumable when the home runtime recreates their DOM', () => {
+  assert.ok(RUNTIME.includes("closest('#pr01bConversationList .pr01b-conversation')"));
+  assert.ok(RUNTIME.includes('conversationCardId(card)'));
+  assert.ok(RUNTIME.includes('new MutationObserver(function(){decorateCards();})'));
+  assert.ok(RUNTIME.includes("conversationCardsObserver.observe(list,{childList:true})"));
+  assert.equal(RUNTIME.includes("closest('#pr01bConversationList [data-conversation-id]')"), false);
+});
+
 test('scanner and Smart Scan propagate the active canonical conversation id', () => {
   assert.ok(RUNTIME.includes("source:'scanner'"));
   assert.ok(RUNTIME.includes('conversationId:id'));
