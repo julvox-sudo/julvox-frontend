@@ -12,6 +12,8 @@ const RESTORE_TARGET = "if(row&&row.blob){photoFile=new File([row.blob],row.name
 const RESTORE_FIX = "if(row&&row.blob){photoDraftId=id;photoFile=new File([row.blob],row.name||'photo-produit',{type:row.type||row.blob.type});";
 const PROCESS_TARGET = "if(currentMode==='photo') resetPhotoMemory();";
 const PROCESS_FIX = "if(currentMode==='photo'){ if(photoDraftId){await deletePhotoDraft(photoDraftId);photoDraftId='';} resetPhotoMemory(); }";
+const FROZEN_SCANNER_MUTATION_TARGET = "var scanner=window.JulvoxProductScanner||{};scanner.open=function(){open('barcode');};scanner.stop=function(){close();};window.JulvoxProductScanner=scanner;";
+const FROZEN_SCANNER_MUTATION_FIX = "var scanner=window.JulvoxProductScanner||{};window.JulvoxProductScanner=Object.assign({},scanner,{open:function(){open('barcode');},stop:function(){close();}});";
 
 function replaceRequired(html, target, replacement, label) {
   if (html.includes(replacement)) return html;
@@ -29,6 +31,12 @@ function hardenSmartScanExperience(html) {
   hardened = hardened.split(AUTO_SAVE_TARGET).join(AUTO_SAVE_FIX);
   hardened = replaceRequired(hardened, RESTORE_TARGET, RESTORE_FIX, 'restored photo tracking');
   hardened = hardened.split(PROCESS_TARGET).join(PROCESS_FIX);
+  hardened = replaceRequired(
+    hardened,
+    FROZEN_SCANNER_MUTATION_TARGET,
+    FROZEN_SCANNER_MUTATION_FIX,
+    'frozen scanner API replacement',
+  );
   return hardened;
 }
 
@@ -42,6 +50,8 @@ function verifySmartScanHardening(html) {
   if (autoSafeCount < 2) throw new Error('Smart Scan offline paths must save metadata without auto-persisting photos');
   if (!html.includes(RESTORE_FIX)) throw new Error('Smart Scan restored photo draft is not tracked');
   if (!html.includes(PROCESS_FIX)) throw new Error('Smart Scan processed photo draft is not deleted immediately');
+  if (html.includes(FROZEN_SCANNER_MUTATION_TARGET)) throw new Error('Smart Scan still mutates the frozen legacy scanner API');
+  if (!html.includes(FROZEN_SCANNER_MUTATION_FIX)) throw new Error('Smart Scan frozen scanner API replacement hardening missing');
   return true;
 }
 
@@ -51,6 +61,8 @@ module.exports = {
   AUTO_SAVE_TARGET,
   AUTO_SAVE_FIX,
   PROCESS_FIX,
+  FROZEN_SCANNER_MUTATION_TARGET,
+  FROZEN_SCANNER_MUTATION_FIX,
   hardenSmartScanExperience,
   verifySmartScanHardening,
 };
