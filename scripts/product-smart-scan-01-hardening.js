@@ -14,6 +14,10 @@ const PROCESS_TARGET = "if(currentMode==='photo') resetPhotoMemory();";
 const PROCESS_FIX = "if(currentMode==='photo'){ if(photoDraftId){await deletePhotoDraft(photoDraftId);photoDraftId='';} resetPhotoMemory(); }";
 const FROZEN_SCANNER_MUTATION_TARGET = "var scanner=window.JulvoxProductScanner||{};scanner.open=function(){open('barcode');};scanner.stop=function(){close();};window.JulvoxProductScanner=scanner;";
 const FROZEN_SCANNER_MUTATION_FIX = "var scanner=window.JulvoxProductScanner||{};window.JulvoxProductScanner=Object.assign({},scanner,{open:function(){open('barcode');},stop:function(){close();}});";
+const BARCODE_LENGTH_TARGET = "[8,12,13].indexOf(digits.length)<0";
+const BARCODE_LENGTH_FIX = "[8,12,13,14].indexOf(digits.length)<0";
+const BARCODE_MESSAGE_TARGET = "Le code-barres doit contenir 8, 12 ou 13 chiffres.";
+const BARCODE_MESSAGE_FIX = "Le code-barres doit contenir 8, 12, 13 ou 14 chiffres.";
 
 function replaceRequired(html, target, replacement, label) {
   if (html.includes(replacement)) return html;
@@ -37,6 +41,8 @@ function hardenSmartScanExperience(html) {
     FROZEN_SCANNER_MUTATION_FIX,
     'frozen scanner API replacement',
   );
+  hardened = replaceRequired(hardened, BARCODE_LENGTH_TARGET, BARCODE_LENGTH_FIX, 'GTIN-14 length acceptance');
+  hardened = replaceRequired(hardened, BARCODE_MESSAGE_TARGET, BARCODE_MESSAGE_FIX, 'GTIN-14 validation message');
   return hardened;
 }
 
@@ -52,6 +58,8 @@ function verifySmartScanHardening(html) {
   if (!html.includes(PROCESS_FIX)) throw new Error('Smart Scan processed photo draft is not deleted immediately');
   if (html.includes(FROZEN_SCANNER_MUTATION_TARGET)) throw new Error('Smart Scan still mutates the frozen legacy scanner API');
   if (!html.includes(FROZEN_SCANNER_MUTATION_FIX)) throw new Error('Smart Scan frozen scanner API replacement hardening missing');
+  if (html.includes(BARCODE_LENGTH_TARGET) || !html.includes(BARCODE_LENGTH_FIX)) throw new Error('Smart Scan still rejects GTIN-14 before backend validation');
+  if (html.includes(BARCODE_MESSAGE_TARGET) || !html.includes(BARCODE_MESSAGE_FIX)) throw new Error('Smart Scan GTIN validation message is stale');
   return true;
 }
 
@@ -63,6 +71,10 @@ module.exports = {
   PROCESS_FIX,
   FROZEN_SCANNER_MUTATION_TARGET,
   FROZEN_SCANNER_MUTATION_FIX,
+  BARCODE_LENGTH_TARGET,
+  BARCODE_LENGTH_FIX,
+  BARCODE_MESSAGE_TARGET,
+  BARCODE_MESSAGE_FIX,
   hardenSmartScanExperience,
   verifySmartScanHardening,
 };
