@@ -7,6 +7,8 @@ const {
   INSTALL_STATE_KEY,
   PWA_INSTALL_RUNTIME,
   RUNTIME_MARKER,
+  STATIC_SHELL_ASSETS,
+  applyOfflineShellToServiceWorker,
   applyPwaInstallHardening,
 } = require('../../scripts/product-realign-01b-pwa-install-hardening.js');
 
@@ -145,18 +147,7 @@ test('service worker atomically precaches the essential app shell', async () => 
   await promise;
   const assets = loaded.installedAssets();
   assert.ok(Array.isArray(assets));
-  for (const asset of [
-    '/index.html',
-    '/manifest.json',
-    '/runtime-config.js',
-    '/api-client.js',
-    '/ui-00-production-truth.js',
-    '/enhancements_v3.js',
-    '/brand/julvox-glyph-small.svg',
-    '/brand/julvox-logo-horizontal.svg',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
-  ]) {
+  for (const asset of STATIC_SHELL_ASSETS) {
     assert.ok(assets.includes(asset), `missing shell asset ${asset}`);
   }
   assert.equal(assets.some(asset => /fonts\.googleapis\.com/.test(asset)), false);
@@ -195,6 +186,29 @@ test('same-origin static resources are served from cache while offline', async (
   const response = await responsePromise;
   assert.equal(response.status, 200);
   assert.match(await response.text(), /JULVOX_RUNTIME_CONFIG/);
+});
+
+test('post-brand service-worker hardening restores the full offline shell', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../sw.js'), 'utf8');
+  const branded = source.replace(
+    /const STATIC_ASSETS = \[[\s\S]*?\];/,
+    `const STATIC_ASSETS = ${JSON.stringify([
+      '/manifest.json',
+      '/brand/julvox-logo-horizontal.svg',
+      '/brand/julvox-logo-horizontal-negative.svg',
+      '/brand/julvox-glyph-small.svg',
+      '/icons/icon-192.png',
+      '/icons/icon-512.png',
+      '/icons/julvox-favicon-16-transparent.png',
+      '/icons/julvox-favicon-32-transparent.png',
+      'https://fonts.googleapis.com/css?family=Inter',
+    ], null, 2)};`,
+  );
+  const hardened = applyOfflineShellToServiceWorker(branded);
+  for (const asset of STATIC_SHELL_ASSETS) assert.ok(hardened.includes(`"${asset}"`));
+  const block = hardened.match(/const STATIC_ASSETS = \[([\s\S]*?)\];/);
+  assert.ok(block);
+  assert.doesNotMatch(block[1], /fonts\.googleapis\.com/);
 });
 
 test('manifest and service-worker cache version stay aligned with standalone scope', () => {

@@ -1,5 +1,20 @@
 const RUNTIME_MARKER = 'product-realign-01b-pwa-install-hardening-v1';
 const INSTALL_STATE_KEY = 'julvox:pwa:installed:v1';
+const STATIC_SHELL_ASSETS = Object.freeze([
+  '/index.html',
+  '/manifest.json',
+  '/runtime-config.js',
+  '/api-client.js',
+  '/ui-00-production-truth.js',
+  '/enhancements_v3.js',
+  '/brand/julvox-glyph-small.svg',
+  '/brand/julvox-logo-horizontal.svg',
+  '/brand/julvox-logo-horizontal-negative.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/julvox-favicon-16-transparent.png',
+  '/icons/julvox-favicon-32-transparent.png',
+]);
 
 const PWA_INSTALL_RUNTIME = `
 <script id="${RUNTIME_MARKER}">
@@ -95,9 +110,21 @@ function applyPwaInstallHardening(input) {
   return `${html.slice(0, bodyEnd)}${PWA_INSTALL_RUNTIME}\n${html.slice(bodyEnd)}`;
 }
 
+function applyOfflineShellToServiceWorker(input) {
+  const source = String(input);
+  const pattern = /const STATIC_ASSETS = \[[\s\S]*?\];/;
+  const matches = source.match(new RegExp(pattern.source, 'g')) || [];
+  if (matches.length !== 1) {
+    throw new Error(`PWA offline shell hardening failed: expected exactly one STATIC_ASSETS declaration, found ${matches.length}`);
+  }
+  return source.replace(pattern, `const STATIC_ASSETS = ${JSON.stringify(STATIC_SHELL_ASSETS, null, 2)};`);
+}
+
 module.exports = {
   INSTALL_STATE_KEY,
   PWA_INSTALL_RUNTIME,
   RUNTIME_MARKER,
+  STATIC_SHELL_ASSETS,
+  applyOfflineShellToServiceWorker,
   applyPwaInstallHardening,
 };

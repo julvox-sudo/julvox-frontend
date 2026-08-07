@@ -10,7 +10,7 @@ const CACHE_STATIC = `dealscan-static-${CACHE_VERSION}`;
 const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */
 const PUBLIC_ORIGIN = 'https://julvox.com';
 
-const STATIC_ASSETS = Object.freeze([
+const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/runtime-config.js',
@@ -19,9 +19,12 @@ const STATIC_ASSETS = Object.freeze([
   '/enhancements_v3.js',
   '/brand/julvox-glyph-small.svg',
   '/brand/julvox-logo-horizontal.svg',
+  '/brand/julvox-logo-horizontal-negative.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-]);
+  '/icons/julvox-favicon-16-transparent.png',
+  '/icons/julvox-favicon-32-transparent.png',
+];
 
 const PUBLIC_API_PATHS = Object.freeze([
   /^\/deals(?:\/[^/]+)?\/?$/,

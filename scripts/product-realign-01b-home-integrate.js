@@ -32,6 +32,16 @@ if (fs.existsSync(manifestPath)) {
 }
 
 officialBrand.integrate(root);
+
+const serviceWorkerPath = path.join(root, 'dist', 'sw.js');
+fs.writeFileSync(
+  serviceWorkerPath,
+  pwaInstallHardening.applyOfflineShellToServiceWorker(
+    fs.readFileSync(serviceWorkerPath, 'utf8'),
+  ),
+  'utf8',
+);
+
 legacyIdentityCleanup.cleanupPublicIdentity(root);
 
 console.log(
