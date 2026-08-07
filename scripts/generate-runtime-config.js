@@ -4,10 +4,22 @@ const path = require('path');
 const root = process.cwd();
 const contractPath = path.join(root, 'config', 'runtime-contract.json');
 const outputPath = path.join(root, 'runtime-config.js');
+const PREVIEW_BACKEND_ENV = 'JULVOX_BACKEND_API_BASE_URL';
 
 function fail(message) {
   console.error(`Runtime config generation failed: ${message}`);
   process.exit(1);
+}
+
+function validateBackendApiBaseUrl(value, label) {
+  if (typeof value !== 'string' || !value || value !== value.trim()) fail(`${label} must be a non-empty trimmed URL`);
+  let parsed;
+  try { parsed = new URL(value); }
+  catch (error) { fail(`${label} is not a valid URL: ${error.message}`); }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.search || parsed.hash) {
+    fail(`${label} must be an HTTPS URL without credentials, query string or fragment`);
+  }
+  return value.replace(/\/+$/u, '');
 }
 
 if (!fs.existsSync(contractPath)) fail('config/runtime-contract.json is missing');
@@ -19,6 +31,16 @@ try {
   fail(`invalid JSON: ${error.message}`);
 }
 
+const contractBackendApiBaseUrl = validateBackendApiBaseUrl(contract.backend?.api_base_url, 'contract backend.api_base_url');
+const explicitBackendOverride = process.env[PREVIEW_BACKEND_ENV] || '';
+let backendApiBaseUrl = contract.backend?.api_base_url;
+if (explicitBackendOverride) {
+  backendApiBaseUrl = validateBackendApiBaseUrl(explicitBackendOverride, PREVIEW_BACKEND_ENV);
+  if (backendApiBaseUrl === contractBackendApiBaseUrl) {
+    fail(`${PREVIEW_BACKEND_ENV} explicitly targets the canonical production backend`);
+  }
+}
+
 const config = {
   schemaVersion: contract.schema_version,
   application: {
@@ -27,7 +49,7 @@ const config = {
     capabilities: contract.application?.capabilities,
   },
   backend: {
-    apiBaseUrl: contract.backend?.api_base_url,
+    apiBaseUrl: backendApiBaseUrl,
     healthPath: contract.backend?.health_path,
   },
   pwa: {
@@ -76,4 +98,4 @@ const content = `// Generated from config/runtime-contract.json. Do not edit man
   `})(typeof window !== 'undefined' ? window : globalThis);\n`;
 
 fs.writeFileSync(outputPath, content, 'utf8');
-console.log('Generated runtime-config.js from config/runtime-contract.json.');
+console.log(`Generated runtime-config.js from config/runtime-contract.json${explicitBackendOverride ? ` with ${PREVIEW_BACKEND_ENV}` : ''}.`);

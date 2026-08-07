@@ -27,6 +27,10 @@ if (!failures.length) {
     descriptor = Object.getOwnPropertyDescriptor(sandbox.globalThis, 'JULVOX_RUNTIME_CONFIG');
   } catch (error) { fail(`runtime-config.js cannot execute: ${error.message}`); }
 }
+const explicitBackendOverride = process.env.JULVOX_BACKEND_API_BASE_URL || '';
+const expectedBackendApiBaseUrl = explicitBackendOverride
+  ? explicitBackendOverride.replace(/\/+$/u, '')
+  : contract.backend?.api_base_url;
 const expected = {
   schemaVersion: contract.schema_version,
   application: {
@@ -35,7 +39,7 @@ const expected = {
     capabilities: contract.application?.capabilities,
   },
   backend: {
-    apiBaseUrl: contract.backend?.api_base_url,
+    apiBaseUrl: expectedBackendApiBaseUrl,
     healthPath: contract.backend?.health_path,
   },
   pwa: {
@@ -48,7 +52,7 @@ const expected = {
     enhancementsScript: contract.runtime?.enhancements_script,
   },
 };
-if (actual && JSON.stringify(actual) !== JSON.stringify(expected)) fail('generated runtime config differs from runtime contract');
+if (actual && JSON.stringify(actual) !== JSON.stringify(expected)) fail('generated runtime config differs from runtime contract plus the explicit backend override');
 if (descriptor && (descriptor.writable !== false || descriptor.configurable !== false || descriptor.enumerable !== true)) {
   fail('JULVOX_RUNTIME_CONFIG property descriptor is not immutable');
 }
