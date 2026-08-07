@@ -43,7 +43,7 @@ test('donne à chaque ligne mobile une vraie zone tactile compacte et alignée',
 });
 
 test('compacte le panneau et fournit un retour visuel au toucher', () => {
-  assert.match(HOME_RUNTIME, /#pr01bMobileSheet \.pr01b-mobile-sheet-card\{width:min\(320px,calc\(100vw - 28px\)\);padding:8px;display:grid;gap:4px;align-content:start\}/);
+  assert.match(HOME_RUNTIME, /#pr01bMobileSheet \.pr01b-mobile-sheet-card\{width:min\(320px,calc\(100vw - 28px\)\);padding:8px;display:grid;gap:4px;align-content:start;background:#fffdf9;border-radius:20px;box-shadow:var\(--pr01b-shadow\)\}/);
   assert.match(HOME_RUNTIME, /#pr01bMobileSheet \.pr01b-nav-btn:active\{background:rgba\(14,167,161,\.16\);transform:scale\(\.985\)\}/);
   assert.match(HOME_RUNTIME, /touch-action:manipulation/);
 });
@@ -51,6 +51,7 @@ test('compacte le panneau et fournit un retour visuel au toucher', () => {
 test('conserve le menu mobile sur les téléphones Android en paysage', () => {
   assert.match(HOME_RUNTIME, /@media \(orientation:landscape\) and \(max-height:500px\) and \(max-width:960px\)/);
   assert.match(HOME_RUNTIME, /#julvoxDecisionHome \.pr01b-mobilebar\{display:flex/);
+  assert.match(HOME_RUNTIME, /#julvoxDecisionHome \.pr01b-mobile-menu\{border:1px solid var\(--pr01b-line\);background:#fff;border-radius:12px/);
   assert.match(HOME_RUNTIME, /#julvoxDecisionHome \.pr01b-mobile-nav\{display:grid/);
   assert.match(HOME_RUNTIME, /#pr01bMobileSheet\{position:fixed;z-index:60;inset:0;/);
   assert.match(HOME_RUNTIME, /#pr01bMobileSheet\[data-open="true"\]\{display:flex\}/);
