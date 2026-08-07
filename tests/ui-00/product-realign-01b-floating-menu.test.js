@@ -19,7 +19,7 @@ test('ne réutilise aucune destination historique DealScan pour Aide ou Paramèt
 
 test('conserve Assistant comme seule action secondaire ouvrant l Assistant IA', () => {
   assert.match(HOME_RUNTIME, /function openAssistant\(trigger\)[\s\S]*?typeof window\.openAIChat === 'function'\) window\.openAIChat\(\)/);
-  assert.match(HOME_RUNTIME, /data\.homeAction = 'assistant'/);
+  assert.match(HOME_RUNTIME, /dataset\.homeAction = 'assistant'/);
   assert.match(HOME_RUNTIME, /Assistant IA/);
 });
 
