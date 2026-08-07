@@ -32,12 +32,15 @@ function normalizeAssistantPreferences(input) {
 
 function fallbackSelfReference(preferences) {
   const prefs = normalizeAssistantPreferences(preferences);
-  const objectPronoun = prefs.address_mode === 'vous' ? 'vous' : 't’';
   if (prefs.identity === 'feminine') {
-    return `Je suis ravie de ${objectPronoun}aider et prête à comparer les options avec ${prefs.address_mode === 'vous' ? 'vous' : 'toi'}.`;
+    return prefs.address_mode === 'vous'
+      ? 'Je suis ravie de vous aider et prête à comparer les options avec vous.'
+      : 'Je suis ravie de t’aider et prête à comparer les options avec toi.';
   }
   if (prefs.identity === 'masculine') {
-    return `Je suis ravi de ${objectPronoun}aider et prêt à comparer les options avec ${prefs.address_mode === 'vous' ? 'vous' : 'toi'}.`;
+    return prefs.address_mode === 'vous'
+      ? 'Je suis ravi de vous aider et prêt à comparer les options avec vous.'
+      : 'Je suis ravi de t’aider et prêt à comparer les options avec toi.';
   }
   return prefs.address_mode === 'vous'
     ? 'Je peux vous aider à y voir plus clair et comparer les options avec vous.'
