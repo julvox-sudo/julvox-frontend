@@ -25,6 +25,16 @@ const PUBLIC_FILES = Object.freeze([
   'icons/julvox-favicon-32-transparent.png',
 ]);
 
+const COOKIE_BANNER_CSS = `.cookie-banner{position:fixed;bottom:0;left:0;right:0;background:#fffdf9;border-top:1px solid rgba(11,29,52,.12);padding:16px 20px calc(16px + env(safe-area-inset-bottom));z-index:9999;display:none;box-shadow:0 -12px 34px rgba(43,34,23,.10);color:#0B1D34}
+.cookie-banner.show{display:block}
+.cookie-title{font-family:'Sora','Inter',sans-serif;font-size:15px;font-weight:650;margin-bottom:6px;color:#0B1D34}
+.cookie-text{font-size:12px;color:#52616b;margin-bottom:12px;line-height:1.5}
+.cookie-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cookie-accept{background:#0B1D34;color:#fff;border:1px solid #0B1D34;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:650;cursor:pointer;font-family:'Inter',sans-serif}
+.cookie-refuse{background:#fff;color:#0B1D34;border:1px solid rgba(11,29,52,.18);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.cookie-link{background:none;color:#0b6764;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:520px){.cookie-banner{padding:14px 16px calc(14px + env(safe-area-inset-bottom))}.cookie-btns{display:grid;grid-template-columns:1fr 1fr}.cookie-link{grid-column:1/-1;min-height:38px;text-align:left}.cookie-accept,.cookie-refuse{min-height:44px}}`;
+
 function sha256(buffer) {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
@@ -87,6 +97,23 @@ function replaceExactlyOnce(text, pattern, replacement, label) {
   return text.replace(pattern, replacement);
 }
 
+function applyCookieBannerBrand(input) {
+  let html = input;
+  html = replaceExactlyOnce(
+    html,
+    /\.cookie-banner\{position:fixed;bottom:68px;[\s\S]*?\.cookie-link\{background:none;color:var\(--txt3\);border:none;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline\}/,
+    COOKIE_BANNER_CSS,
+    'legacy cookie banner styles',
+  );
+  html = replaceExactlyOnce(
+    html,
+    /<div class="cookie-banner" id="cookieBanner">[\s\S]*?<\/div>\s*<\/div>/,
+    `<div class="cookie-banner" id="cookieBanner"><div class="cookie-title">Cookies et vie privée</div><div class="cookie-text">Julvox utilise des cookies essentiels pour le fonctionnement, la connexion et tes préférences. Avec ton accord, des mesures d’audience anonymes peuvent aussi être utilisées. Tes données ne sont jamais vendues.</div><div class="cookie-btns"><button class="cookie-accept" onclick="acceptCookies(true)">Accepter</button><button class="cookie-refuse" onclick="acceptCookies(false)">Refuser</button><button class="cookie-link" onclick="openPage('privacyPage');hideCookieBanner()">En savoir plus</button></div></div>`,
+    'legacy cookie banner markup',
+  );
+  return html;
+}
+
 function applyBrandToHtml(input) {
   if (input.includes(`data-brand-integration="${BRAND_MARKER}"`)) return verifyBrandedHtml(input);
   let html = input;
@@ -109,6 +136,8 @@ function applyBrandToHtml(input) {
     `<div class="pr01b-boot-lockup">${officialLockupMarkup('pr01b-boot-brand', 'Julvox')}<span class="pr01b-boot-tagline">Compagnon de décision avant achat</span></div>`,
     'startup provisional logo',
   );
+
+  html = applyCookieBannerBrand(html);
 
   html = html.replace(
     /<use\s+href=["']#pr01b-glyph-a22["']\s*\/?>/gi,
@@ -145,6 +174,8 @@ function verifyBrandedHtml(html) {
     '/icons/julvox-favicon-16-transparent.png',
     '/icons/julvox-favicon-32-transparent.png',
     `data-brand-integration="${BRAND_MARKER}"`,
+    'Julvox utilise des cookies essentiels',
+    '.cookie-banner{position:fixed;bottom:0;left:0;right:0;background:#fffdf9',
   ];
   for (const token of required) if (!html.includes(token)) throw new Error(`Branded HTML is missing ${token}`);
   const forbidden = [/#pr01b-glyph-a22/i, /id="pr01b-glyph-a22"/i, /pr01b-symbol-defs/i, /julvox-logo-horizontal-editable/i];
