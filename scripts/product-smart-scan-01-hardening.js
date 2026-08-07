@@ -1,19 +1,56 @@
 const PHOTO_BUG = "function photoChanged(event){ resetPhotoMemory(); var file=event.target.files&&event.target.files[0];";
-const PHOTO_FIX = "function photoChanged(event){ var file=event.target.files&&event.target.files[0]; resetPhotoMemory();";
+const PHOTO_FIX = "function photoChanged(event){ var file=event.target.files&&event.target.files[0]; resetPhotoMemory(); photoDraftId='';";
+const PHOTO_DRAFT_STATE_TARGET = "var photoObjectUrl = '';\n  var cameraPoll = 0;";
+const PHOTO_DRAFT_STATE_FIX = "var photoObjectUrl = '';\n  var photoDraftId = '';\n  var cameraPoll = 0;";
+const SAVE_SIGNATURE_TARGET = 'async function saveDraft(silent){';
+const SAVE_SIGNATURE_FIX = 'async function saveDraft(silent,includePhoto){';
+const SAVE_PHOTO_TARGET = "if(currentMode==='photo'&&photoFile){ try{await savePhotoDraft(id,photoFile);data.photoLocal=true;";
+const SAVE_PHOTO_FIX = "if(includePhoto!==false&&currentMode==='photo'&&photoFile){ try{await savePhotoDraft(id,photoFile);photoDraftId=id;data.photoLocal=true;";
+const AUTO_SAVE_TARGET = 'await saveDraft(true);';
+const AUTO_SAVE_FIX = 'await saveDraft(true,false);';
+const RESTORE_TARGET = "if(row&&row.blob){photoFile=new File([row.blob],row.name||'photo-produit',{type:row.type||row.blob.type});";
+const RESTORE_FIX = "if(row&&row.blob){photoDraftId=id;photoFile=new File([row.blob],row.name||'photo-produit',{type:row.type||row.blob.type});";
+const PROCESS_TARGET = "if(currentMode==='photo') resetPhotoMemory();";
+const PROCESS_FIX = "if(currentMode==='photo'){ if(photoDraftId){await deletePhotoDraft(photoDraftId);photoDraftId='';} resetPhotoMemory(); }";
+
+function replaceRequired(html, target, replacement, label) {
+  if (html.includes(replacement)) return html;
+  if (!html.includes(target)) throw new Error(`Smart Scan hardening target not found: ${label}`);
+  return html.replace(target, replacement);
+}
 
 function hardenSmartScanExperience(html) {
   if (typeof html !== 'string') throw new Error('Smart Scan hardening expects HTML text');
-  if (!html.includes(PHOTO_BUG)) {
-    if (html.includes(PHOTO_FIX)) return html;
-    throw new Error('Smart Scan photo input hardening target not found');
-  }
-  return html.replace(PHOTO_BUG, PHOTO_FIX);
+  let hardened = html;
+  hardened = replaceRequired(hardened, PHOTO_BUG, PHOTO_FIX, 'photo file capture');
+  hardened = replaceRequired(hardened, PHOTO_DRAFT_STATE_TARGET, PHOTO_DRAFT_STATE_FIX, 'photo draft state');
+  hardened = replaceRequired(hardened, SAVE_SIGNATURE_TARGET, SAVE_SIGNATURE_FIX, 'save draft signature');
+  hardened = replaceRequired(hardened, SAVE_PHOTO_TARGET, SAVE_PHOTO_FIX, 'explicit photo persistence');
+  hardened = hardened.split(AUTO_SAVE_TARGET).join(AUTO_SAVE_FIX);
+  hardened = replaceRequired(hardened, RESTORE_TARGET, RESTORE_FIX, 'restored photo tracking');
+  hardened = hardened.split(PROCESS_TARGET).join(PROCESS_FIX);
+  return hardened;
 }
 
 function verifySmartScanHardening(html) {
   if (html.includes(PHOTO_BUG)) throw new Error('Smart Scan photo input still clears before capture');
   if (!html.includes(PHOTO_FIX)) throw new Error('Smart Scan photo input hardening missing');
+  if (!html.includes(PHOTO_DRAFT_STATE_FIX)) throw new Error('Smart Scan does not track restored photo drafts');
+  if (!html.includes(SAVE_SIGNATURE_FIX) || !html.includes(SAVE_PHOTO_FIX)) throw new Error('Smart Scan explicit photo draft persistence hardening missing');
+  if (html.includes(AUTO_SAVE_TARGET)) throw new Error('Smart Scan still auto-persists photo-capable drafts while offline');
+  const autoSafeCount = (html.match(/saveDraft\(true,false\)/g) || []).length;
+  if (autoSafeCount < 2) throw new Error('Smart Scan offline paths must save metadata without auto-persisting photos');
+  if (!html.includes(RESTORE_FIX)) throw new Error('Smart Scan restored photo draft is not tracked');
+  if (!html.includes(PROCESS_FIX)) throw new Error('Smart Scan processed photo draft is not deleted immediately');
   return true;
 }
 
-module.exports = { PHOTO_BUG, PHOTO_FIX, hardenSmartScanExperience, verifySmartScanHardening };
+module.exports = {
+  PHOTO_BUG,
+  PHOTO_FIX,
+  AUTO_SAVE_TARGET,
+  AUTO_SAVE_FIX,
+  PROCESS_FIX,
+  hardenSmartScanExperience,
+  verifySmartScanHardening,
+};
