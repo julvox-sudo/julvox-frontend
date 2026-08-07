@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const scanner = require('../../scripts/product-barcode-scanner-01.js');
+const hardening = require('../../scripts/product-barcode-scanner-01-hardening.js');
 
 class FakeElement {
   constructor(tag = 'div', parent = null) {
@@ -102,9 +103,13 @@ class FakeDocument {
 }
 
 function runtimeSource() {
-  return scanner.SCANNER_RUNTIME
-    .replace(/^<script[^>]*>\s*/, '')
-    .replace(/\s*<\/script>$/, '');
+  const fixture = '<!doctype html><html><head></head><body><div id="julvoxDecisionHome"></div></body></html>';
+  const integrated = scanner.applyScannerExperience(fixture);
+  const delivered = hardening.applyScannerHardening(integrated);
+  hardening.verifyScannerHardening(delivered);
+  const match = delivered.match(/<script id="julvox-product-barcode-scanner-01-runtime">([\s\S]*?)<\/script>/);
+  assert.ok(match, 'delivered scanner runtime must be present');
+  return match[1];
 }
 
 function createHarness() {
