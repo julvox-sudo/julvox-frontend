@@ -7,7 +7,7 @@
     },
     {
       "path": "brand/julvox-glyph-small.svg",
-      "classification": "provisional-brand-glyph"
+      "classification": "official-brand-glyph-small"
     },
     {
       "path": "brand/julvox-logo-horizontal-negative.svg",
@@ -27,19 +27,19 @@
     },
     {
       "path": "icons/icon-192.png",
-      "classification": "provisional-pwa-icon"
+      "classification": "official-pwa-icon"
     },
     {
       "path": "icons/icon-512.png",
-      "classification": "provisional-pwa-icon"
+      "classification": "official-pwa-icon"
     },
     {
       "path": "icons/julvox-favicon-16-transparent.png",
-      "classification": "nonconformant-favicon"
+      "classification": "official-favicon"
     },
     {
       "path": "icons/julvox-favicon-32-transparent.png",
-      "classification": "nonconformant-favicon"
+      "classification": "official-favicon"
     },
     {
       "path": "index.html",
