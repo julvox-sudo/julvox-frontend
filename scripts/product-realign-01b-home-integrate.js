@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const home = require('./product-realign-01b-home.js');
 const officialBrand = require('./product-realign-01b-brand-integrate.js');
+const legacyIdentityCleanup = require('./product-realign-01b-legacy-identity-cleanup.js');
 
 const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
@@ -29,7 +30,8 @@ if (fs.existsSync(manifestPath)) {
 }
 
 officialBrand.integrate(root);
+legacyIdentityCleanup.cleanupPublicIdentity(root);
 
 console.log(
-  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup and official A2.2 brand integrated into dist.',
+  'PRODUCT-REALIGN-01B locked home, HOTFIX-05 startup, official A2.2 brand and legacy identity cleanup integrated into dist.',
 );
