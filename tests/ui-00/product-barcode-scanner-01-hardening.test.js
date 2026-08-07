@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const hardening = require('../../scripts/product-barcode-scanner-01-hardening.js');
 
 function scannerFixture() {
-  return '<!doctype html><html><head></head><body><script id="julvox-product-barcode-scanner-01-runtime"></script></body></html>';
+  return '<!doctype html><html><head></head><body><script id="julvox-product-barcode-scanner-01-runtime">document.documentElement.setAttribute(\'data-prscan-open\',\'true\');document.documentElement.removeAttribute(\'data-prscan-open\');</script></body></html>';
 }
 
 test('validates EAN-13, UPC-A and EAN-8 check digits', () => {
@@ -33,6 +33,7 @@ test('hardening runtime intercepts invalid manual input before scanner lookup', 
   assert.match(html, /Code invalide\. Vérifie tous les chiffres, y compris le chiffre de contrôle\./);
   assert.match(html, /event\.stopImmediatePropagation\(\)/);
   assert.match(html, /aria-invalid/);
+  assert.match(html, /data-prscan-active/);
   assert.doesNotThrow(() => hardening.verifyScannerHardening(html));
 });
 
