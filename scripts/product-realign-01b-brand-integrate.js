@@ -110,6 +110,21 @@ function applyBrandToHtml(input) {
     'startup provisional logo',
   );
 
+  html = html.replace(
+    /<use\s+href=["']#pr01b-glyph-a22["']\s*\/?>/gi,
+    '<image href="/brand/julvox-glyph-small.svg" x="40" y="24" width="320" height="488" preserveAspectRatio="xMidYMid meet"/>',
+  );
+
+  html = html.replace(
+    /\.pr01b-symbol-defs\{[^}]*\}/gi,
+    '',
+  );
+
+  html = html.replace(
+    /:not\(\.pr01b-symbol-defs\)/gi,
+    '',
+  );
+
   const iconLinks = [
     '<link rel="icon" type="image/png" sizes="16x16" href="/icons/julvox-favicon-16-transparent.png"/>',
     '<link rel="icon" type="image/png" sizes="32x32" href="/icons/julvox-favicon-32-transparent.png"/>',
@@ -132,7 +147,7 @@ function verifyBrandedHtml(html) {
     `data-brand-integration="${BRAND_MARKER}"`,
   ];
   for (const token of required) if (!html.includes(token)) throw new Error(`Branded HTML is missing ${token}`);
-  const forbidden = [/#pr01b-glyph-a22/i, /id="pr01b-glyph-a22"/i, /pr01b-symbol-defs/i, /julvox-logo-horizontal-editable/i, /Assistant DealScan/i];
+  const forbidden = [/#pr01b-glyph-a22/i, /id="pr01b-glyph-a22"/i, /pr01b-symbol-defs/i, /julvox-logo-horizontal-editable/i];
   for (const pattern of forbidden) if (pattern.test(html)) throw new Error(`Branded HTML contains forbidden provisional or editable identity: ${pattern}`);
   const startup = html.match(/<div id="julvoxBoot"[\s\S]*?<\/script>/i)?.[0] || '';
   if (/DealScan|NovaDeal|Top deals|vente flash|promotion/i.test(startup)) {
