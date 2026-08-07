@@ -95,7 +95,7 @@ function loadServiceWorker({ fetchImpl, cachedIndex, cachedStatic } = {}) {
       "const BACKEND_ORIGIN = 'https://backend.example';",
     );
   vm.runInNewContext(source, context, { filename: 'sw.js' });
-  return { listeners, installedAssets: () => installedAssets };
+  return { listeners, installedAssets: () => installedAssets, mod: context.module.exports };
 }
 
 test('build hardening is injected once before body close', () => {
@@ -151,6 +151,9 @@ test('service worker atomically precaches the essential app shell', async () => 
     assert.ok(assets.includes(asset), `missing shell asset ${asset}`);
   }
   assert.equal(assets.some(asset => /fonts\.googleapis\.com/.test(asset)), false);
+  assert.equal(loaded.mod.CACHE_VERSION, 'v17');
+  assert.equal(loaded.mod.CACHE_REVISION, 'offline-shell-01');
+  assert.match(loaded.mod.CACHE_STATIC, /v17-offline-shell-01$/);
 });
 
 test('offline navigation returns cached Julvox shell instead of the 503 fallback', async () => {
@@ -211,10 +214,12 @@ test('post-brand service-worker hardening restores the full offline shell', () =
   assert.doesNotMatch(block[1], /fonts\.googleapis\.com/);
 });
 
-test('manifest and service-worker cache version stay aligned with standalone scope', () => {
+test('manifest, frontend contract and service-worker cache major stay aligned', () => {
   const sw = fs.readFileSync(path.join(__dirname, '../../sw.js'), 'utf8');
   const contract = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/runtime-contract.json'), 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../../manifest.json'), 'utf8'));
+  const expectedCacheVersion = `v${contract.application.frontend_version.split('.')[0]}`;
+  assert.equal(contract.pwa.cache_version, expectedCacheVersion);
   assert.match(sw, new RegExp(`const CACHE_VERSION = '${contract.pwa.cache_version}'`));
   assert.equal(manifest.display, 'standalone');
   assert.equal(manifest.scope, '/');
