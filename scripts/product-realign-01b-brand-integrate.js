@@ -181,7 +181,7 @@ function verifyManifest(manifest) {
 }
 
 function applyBrandToServiceWorker(input) {
-  let output = input.replace(/const CACHE_VERSION = '[^']+';/, "const CACHE_VERSION = 'v17-brand-a22';");
+  let output = input;
   const assets = [
     '/manifest.json',
     '/brand/julvox-logo-horizontal.svg',
@@ -194,7 +194,6 @@ function applyBrandToServiceWorker(input) {
     'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap',
   ];
   output = output.replace(/const STATIC_ASSETS = \[[\s\S]*?\];/, `const STATIC_ASSETS = ${JSON.stringify(assets, null, 2)};`);
-  if (!output.includes("const CACHE_VERSION = 'v17-brand-a22';")) throw new Error('Service worker brand cache version was not updated');
   for (const asset of assets.slice(0, -1)) if (!output.includes(`'${asset}'`) && !output.includes(`"${asset}"`)) throw new Error(`Service worker does not cache ${asset}`);
   return output;
 }
