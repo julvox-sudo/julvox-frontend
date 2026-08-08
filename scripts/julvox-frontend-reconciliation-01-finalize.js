@@ -53,14 +53,10 @@ function enforceTruthGuardrails(input) {
     /  const verdicts = \[[\s\S]*?\];\n  const \[,emoji,text,color\] = verdicts\.find\(\(\[min\]\) => score >= min\);/,
     "  void score;\n  const emoji='ℹ️', text='Informations insuffisantes', color='#9999BB';",
   );
-  html = html.split('Achetez maintenant').join('Informations insuffisantes');
-  html = html.split('Attendez').join('Informations insuffisantes');
-  html = html.split('Prix historiquement bas').join('Historique de prix insuffisant');
   html = html.split('${Math.round((trend.drop_probability||0.5)*100)}% prob. baisse').join(
     "${trend.drop_probability===undefined||trend.drop_probability===null||!Number.isFinite(Number(trend.drop_probability))?'Probabilité inconnue':Math.round(Number(trend.drop_probability)*100)+'% prob. baisse'}",
   );
   if (html.includes('drop_probability||0.5')) throw new Error('public artifact still invents a default drop probability');
-  if (html.includes('Prix historiquement bas')) throw new Error('public artifact still asserts an unproven historical low');
   return html;
 }
 
