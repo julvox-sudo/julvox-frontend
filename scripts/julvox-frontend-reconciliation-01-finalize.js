@@ -45,6 +45,25 @@ const RUNTIME = String.raw`
 })();
 </script>`;
 
+function enforceTruthGuardrails(input) {
+  let html = String(input);
+  const neutralVerdict = "function getVerdict(s) {\n  void s;\n  return {emoji:'ℹ️',text:'Informations insuffisantes',detail:'Aucun verdict sans preuve du Decision Engine'};\n}";
+  html = html.replace(/function getVerdict\(s\) \{[\s\S]*?\n\}/, neutralVerdict);
+  html = html.replace(
+    /  const verdicts = \[[\s\S]*?\];\n  const \[,emoji,text,color\] = verdicts\.find\(\(\[min\]\) => score >= min\);/,
+    "  void score;\n  const emoji='ℹ️', text='Informations insuffisantes', color='#9999BB';",
+  );
+  html = html.split('Achetez maintenant').join('Informations insuffisantes');
+  html = html.split('Attendez').join('Informations insuffisantes');
+  html = html.split('Prix historiquement bas').join('Historique de prix insuffisant');
+  html = html.split('${Math.round((trend.drop_probability||0.5)*100)}% prob. baisse').join(
+    "${trend.drop_probability===undefined||trend.drop_probability===null||!Number.isFinite(Number(trend.drop_probability))?'Probabilité inconnue':Math.round(Number(trend.drop_probability)*100)+'% prob. baisse'}",
+  );
+  if (html.includes('drop_probability||0.5')) throw new Error('public artifact still invents a default drop probability');
+  if (html.includes('Prix historiquement bas')) throw new Error('public artifact still asserts an unproven historical low');
+  return html;
+}
+
 function finalize(input) {
   let html = String(input);
   if (!html.includes('julvox-frontend-reconciliation-01-runtime')) throw new Error('reconciliation runtime must be integrated first');
@@ -63,6 +82,7 @@ function finalize(input) {
   for (const term of LEGACY_TERMS) {
     if (html.includes(term)) throw new Error(`public artifact still contains forbidden legacy vocabulary: ${term}`);
   }
+  html = enforceTruthGuardrails(html);
   if (!html.includes(`id="${MARKER}"`)) html = html.replace('</body>', `${RUNTIME}\n</body>`);
   return html;
 }
@@ -76,4 +96,4 @@ function run() {
 }
 
 if (require.main === module) run();
-module.exports = { LEGACY_REPLACEMENTS, LEGACY_TERMS, MARKER, RUNTIME, finalize };
+module.exports = { LEGACY_REPLACEMENTS, LEGACY_TERMS, MARKER, RUNTIME, enforceTruthGuardrails, finalize };
