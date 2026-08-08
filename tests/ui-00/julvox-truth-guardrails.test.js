@@ -72,3 +72,8 @@ test('Decision Engine absent ou non invoqué laisse la donnée décisionnelle in
     assert.match(context.getVerdict(score).detail, /Decision Engine/);
   }
 });
+
+test('un verdict textuel provenant explicitement du Decision Engine n est pas réécrit globalement', () => {
+  const engineBackedText = '<p data-source="decision-engine">Achetez maintenant</p><p>Attendez</p>';
+  assert.equal(enforceTruthGuardrails(engineBackedText), engineBackedText);
+});
