@@ -133,11 +133,28 @@ function materializeServiceWorkerBackendOrigin(source, backendOrigin) {
   );
 }
 
+function readGeneratedRuntimeConfig() {
+  const runtimeConfigPath = path.join(root, 'runtime-config.js');
+  if (!fs.existsSync(runtimeConfigPath)) {
+    throw new Error('Cannot integrate runtime config: runtime-config.js is missing');
+  }
+  const source = fs.readFileSync(runtimeConfigPath, 'utf8');
+  const vm = require('vm');
+  const context = { globalThis: {} };
+  vm.runInNewContext(source, context, { filename: 'runtime-config.js' });
+  const config = context.globalThis.JULVOX_RUNTIME_CONFIG;
+  if (!config?.backend?.apiBaseUrl) {
+    throw new Error('Cannot integrate runtime config: generated backend.apiBaseUrl is missing');
+  }
+  return config;
+}
+
 function integrateServiceWorkerRuntime() {
   const serviceWorkerPath = path.join(out, 'sw.js');
   let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
   const contract = readRuntimeContract();
-  const backendOrigin = readHttpUrl(contract.backend.api_base_url, 'backend.api_base_url').origin;
+  const generatedRuntimeConfig = readGeneratedRuntimeConfig();
+  const backendOrigin = readHttpUrl(generatedRuntimeConfig.backend.apiBaseUrl, 'generated backend.apiBaseUrl').origin;
   const publicOrigin = readHttpUrl(contract.application.public_base_url, 'application.public_base_url').origin;
   serviceWorker = materializeServiceWorkerBackendOrigin(serviceWorker, backendOrigin);
   serviceWorker = replaceExactlyOnce(

@@ -65,14 +65,26 @@ function verifyServiceWorkerBackendContract({ source, built, backendOrigin }) {
   return failures;
 }
 
+function readGeneratedBackendOrigin(root) {
+  const runtimeConfigPath = path.join(root, 'runtime-config.js');
+  const runtimeSource = fs.readFileSync(runtimeConfigPath, 'utf8');
+  const vm = require('vm');
+  const context = { globalThis: {} };
+  vm.runInNewContext(runtimeSource, context, { filename: 'runtime-config.js' });
+  const backendApiBaseUrl = context.globalThis.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl;
+  if (!backendApiBaseUrl) {
+    throw new Error('Generated runtime backend.apiBaseUrl is missing');
+  }
+  return new URL(backendApiBaseUrl).origin;
+}
+
 function runVerification(root = process.cwd()) {
-  const contract = JSON.parse(fs.readFileSync(path.join(root, 'config', 'runtime-contract.json'), 'utf8'));
   const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   const built = fs.readFileSync(path.join(root, 'dist', 'sw.js'), 'utf8');
   const failures = verifyServiceWorkerBackendContract({
     source,
     built,
-    backendOrigin: contract.backend.api_base_url,
+    backendOrigin: readGeneratedBackendOrigin(root),
   });
   if (failures.length) {
     throw new Error(`Service worker backend contract consumption failed:\n- ${failures.join('\n- ')}`);
@@ -87,6 +99,7 @@ module.exports = {
   SOURCE_ANCHOR,
   TRACEABILITY_MARKER,
   count,
+  readGeneratedBackendOrigin,
   runVerification,
   verifyServiceWorkerBackendContract,
 };

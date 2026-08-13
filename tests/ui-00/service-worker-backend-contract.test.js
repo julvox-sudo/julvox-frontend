@@ -18,7 +18,15 @@ const {
 const root = path.join(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const contract = JSON.parse(fs.readFileSync(path.join(root, 'config/runtime-contract.json'), 'utf8'));
-const backendOrigin = new URL(contract.backend.api_base_url).origin;
+
+function readGeneratedBackendOrigin() {
+  const runtimeSource = fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8');
+  const context = { globalThis: {} };
+  vm.runInNewContext(runtimeSource, context, { filename: 'runtime-config.js' });
+  return new URL(context.globalThis.JULVOX_RUNTIME_CONFIG.backend.apiBaseUrl).origin;
+}
+
+const backendOrigin = readGeneratedBackendOrigin();
 
 function failuresFor(candidateSource, candidateBuilt) {
   return verifyServiceWorkerBackendContract({
@@ -64,10 +72,7 @@ test('build derives the only backend origin from the runtime contract determinis
 });
 
 test('runtime backend.apiBaseUrl and built service worker resolve to the same authority', () => {
-  const runtimeSource = fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8');
-  const context = { globalThis: {} };
-  vm.runInNewContext(runtimeSource, context, { filename: 'runtime-config.js' });
-  assert.equal(new URL(context.globalThis.JULVOX_RUNTIME_CONFIG.backend.apiBaseUrl).origin, backendOrigin);
+  assert.equal(readGeneratedBackendOrigin(), backendOrigin);
   assert.deepEqual(failuresFor(source, validBuilt()), []);
 });
 
