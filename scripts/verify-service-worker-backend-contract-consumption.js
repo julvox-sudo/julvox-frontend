@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readGeneratedRuntimeConfig } = require('./runtime-config-reader');
 
 const SOURCE_ANCHOR = "const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */";
 const TRACEABILITY_MARKER = 'runtime-contract:backend.api_base_url';
@@ -43,7 +44,7 @@ function verifyServiceWorkerBackendContract({ source, built, backendOrigin }) {
     failures.push('Built sw.js must contain exactly one backend contract traceability marker');
   }
   if (count(built, configuredDeclaration) !== 1) {
-    failures.push('Built sw.js must contain exactly one backend origin derived from backend.api_base_url');
+    failures.push('Built sw.js must contain exactly one backend origin derived from generated runtime config');
   }
   if (count(built, configuredCondition) !== 1) {
     failures.push('Built sw.js must compare request origins against BACKEND_ORIGIN exactly once');
@@ -66,18 +67,18 @@ function verifyServiceWorkerBackendContract({ source, built, backendOrigin }) {
 }
 
 function runVerification(root = process.cwd()) {
-  const contract = JSON.parse(fs.readFileSync(path.join(root, 'config', 'runtime-contract.json'), 'utf8'));
+  const runtimeConfig = readGeneratedRuntimeConfig(path.join(root, 'dist', 'runtime-config.js'));
   const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   const built = fs.readFileSync(path.join(root, 'dist', 'sw.js'), 'utf8');
   const failures = verifyServiceWorkerBackendContract({
     source,
     built,
-    backendOrigin: contract.backend.api_base_url,
+    backendOrigin: runtimeConfig.backend.apiBaseUrl,
   });
   if (failures.length) {
     throw new Error(`Service worker backend contract consumption failed:\n- ${failures.join('\n- ')}`);
   }
-  console.log('Service worker backend contract consumption verified.');
+  console.log('Service worker generated backend authority verified.');
 }
 
 if (require.main === module) runVerification();
