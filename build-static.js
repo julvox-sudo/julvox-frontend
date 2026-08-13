@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadPublicArtifactManifest, resolveWithinRoot } = require('./scripts/public-artifact-utils');
+const { readGeneratedRuntimeConfig } = require('./scripts/runtime-config-reader');
 
 const root = process.cwd();
 const out = path.join(root, 'dist');
@@ -44,6 +45,8 @@ function integrateRuntimeConfig() {
   const indexPath = path.join(out, 'index.html');
   let html = fs.readFileSync(indexPath, 'utf8');
   const contract = readRuntimeContract();
+  const runtimeConfig = readGeneratedRuntimeConfig(path.join(root, 'runtime-config.js'));
+  const backendApiBaseUrl = readHttpUrl(runtimeConfig.backend.apiBaseUrl, 'generated runtime backend.apiBaseUrl').origin;
   const publicUrl = readHttpUrl(contract.application.public_base_url, 'application.public_base_url');
   const publicBaseUrl = publicUrl.origin;
   const headClose = '</head>';
@@ -51,9 +54,9 @@ function integrateRuntimeConfig() {
   const legacyApi = "const API = 'https://julvox-dealscan-backend-production.up.railway.app';";
   const configuredApi = "const API = window.JULVOX_RUNTIME_CONFIG?.backend?.apiBaseUrl || '';";
   const legacyDnsPrefetch = '<link rel="dns-prefetch" href="https://julvox-dealscan-backend-production.up.railway.app"/>';
-  const configuredDnsPrefetch = `<!-- runtime-contract:backend.api_base_url -->\n<link rel="dns-prefetch" href="${contract.backend.api_base_url}"/>`;
+  const configuredDnsPrefetch = `<!-- runtime-contract:backend.api_base_url -->\n<link rel="dns-prefetch" href="${backendApiBaseUrl}"/>`;
   const legacyPreconnect = '<link rel="preconnect" href="https://julvox-dealscan-backend-production.up.railway.app" crossorigin/>';
-  const configuredPreconnect = `<link rel="preconnect" href="${contract.backend.api_base_url}" crossorigin/>`;
+  const configuredPreconnect = `<link rel="preconnect" href="${backendApiBaseUrl}" crossorigin/>`;
   const legacyManifest = '<link rel="manifest" href="/manifest.json"/>';
   const configuredManifest = `<!-- runtime-contract:pwa.manifest_path -->\n<link rel="manifest" href="${contract.pwa.manifest_path}"/>`;
   const legacyServiceWorker = "navigator.serviceWorker.register('/sw.js?v=17', { scope: '/' })";
@@ -137,7 +140,8 @@ function integrateServiceWorkerRuntime() {
   const serviceWorkerPath = path.join(out, 'sw.js');
   let serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf8');
   const contract = readRuntimeContract();
-  const backendOrigin = readHttpUrl(contract.backend.api_base_url, 'backend.api_base_url').origin;
+  const runtimeConfig = readGeneratedRuntimeConfig(path.join(root, 'runtime-config.js'));
+  const backendOrigin = readHttpUrl(runtimeConfig.backend.apiBaseUrl, 'generated runtime backend.apiBaseUrl').origin;
   const publicOrigin = readHttpUrl(contract.application.public_base_url, 'application.public_base_url').origin;
   serviceWorker = materializeServiceWorkerBackendOrigin(serviceWorker, backendOrigin);
   serviceWorker = replaceExactlyOnce(
