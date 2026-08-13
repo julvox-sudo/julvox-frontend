@@ -44,7 +44,7 @@ function verifyServiceWorkerBackendContract({ source, built, backendOrigin }) {
     failures.push('Built sw.js must contain exactly one backend contract traceability marker');
   }
   if (count(built, configuredDeclaration) !== 1) {
-    failures.push('Built sw.js must contain exactly one backend origin derived from generated runtime config');
+    failures.push('Built sw.js must contain exactly one backend origin derived from backend.api_base_url via generated runtime config');
   }
   if (count(built, configuredCondition) !== 1) {
     failures.push('Built sw.js must compare request origins against BACKEND_ORIGIN exactly once');
