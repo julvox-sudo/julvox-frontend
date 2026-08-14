@@ -49,6 +49,17 @@ test('analysis authority comes from the server confirmation proof, not the clien
   assert.doesNotMatch(html, /confirmationProof\s*=\s*(?:crypto|Math\.random|Date\.now)/);
 });
 
+test('displayed price is not promoted to total payable without explicit user confirmation', () => {
+  const html = builtHtml();
+  hardening.verifySmartScanHardening(html);
+  assert.ok(html.includes('id="jvssTotalPayable"'));
+  assert.ok(html.includes('Ce prix est bien le total à payer'));
+  assert.ok(html.includes('aucun frais obligatoire connu'));
+  assert.ok(html.includes("var totalPayable=!!(byId('jvssTotalPayable')&&byId('jvssTotalPayable').checked)"));
+  assert.ok(html.includes('if(price&&totalPayable)payload.storePriceIsTotalPayable=true;'));
+  assert.doesNotMatch(html, /storePriceIsTotalPayable\s*:\s*true/);
+});
+
 test('a new product hypothesis invalidates any previous confirmation proof', () => {
   const html = builtHtml();
   assert.ok(html.includes("currentMode=mode; currentIdentification=null; confirmedProduct=null; confirmationProof='';"));
