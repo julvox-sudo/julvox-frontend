@@ -37,6 +37,25 @@ test('all online paths converge on identify, confirmation and analysis endpoints
   assert.ok(html.includes('Ce n’est pas le bon produit'));
 });
 
+test('analysis authority comes from the server confirmation proof, not the client boolean', () => {
+  const html = builtHtml();
+  hardening.verifySmartScanHardening(html);
+  assert.ok(html.includes("var confirmationProof = '';"));
+  assert.ok(html.includes('confirmation&&confirmation.confirmationProof'));
+  assert.ok(html.includes('confirmation&&confirmation.confirmedProduct'));
+  assert.ok(html.includes("!confirmedProduct || !currentIdentification || !confirmationProof"));
+  assert.ok(html.includes('confirmationProof:confirmationProof'));
+  assert.ok(html.includes("confirmationProof=''"));
+  assert.doesNotMatch(html, /confirmationProof\s*=\s*(?:crypto|Math\.random|Date\.now)/);
+});
+
+test('a new product hypothesis invalidates any previous confirmation proof', () => {
+  const html = builtHtml();
+  assert.ok(html.includes("currentMode=mode; currentIdentification=null; confirmedProduct=null; confirmationProof='';"));
+  assert.ok(html.includes("currentIdentification=response; confirmedProduct=null; confirmationProof='';"));
+  assert.ok(html.includes("currentIdentification=null; confirmedProduct=null; confirmationProof='';"));
+});
+
 test('manual barcode accepts GTIN-14 and delegates checksum validation to backend', () => {
   const html = builtHtml();
   assert.ok(html.includes('^\\d{14}$'));
