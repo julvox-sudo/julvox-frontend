@@ -23,9 +23,28 @@ const CANDIDATE_RENDER_FIX = "var confidence=Number(c&&c.confidence); var confid
 const CONFIRM_ACTIONS_TARGET = '<div class="jvss-actions"><button class="jvss-btn jvss-btn-accent" id="jvssConfirmBtn" type="button" data-jvss-action="confirm">C’est ce produit</button></div>';
 const CONFIRM_ACTIONS_FIX = '<div class="jvss-actions"><button class="jvss-btn jvss-btn-accent" id="jvssConfirmBtn" type="button" data-jvss-action="confirm">C’est bien ce produit</button><button class="jvss-btn" type="button" data-jvss-action="reject">Ce n’est pas le bon produit</button></div>';
 const CONFIRM_FUNCTION_TARGET = '  async function confirmCandidate(){';
-const CONFIRM_FUNCTION_FIX = "  function rejectCandidate(){ currentIdentification=null; confirmedProduct=null; var card=byId('jvssCandidatesCard'); if(card) card.hidden=true; var analysis=byId('jvssAnalysisCard'); if(analysis) analysis.hidden=true; setStatus('Produit refusé. Modifie le code ou relance une identification.'); var input=byId(currentMode==='barcode'?'jvssBarcode':currentMode==='text'?'jvssText':currentMode==='link'?'jvssLink':'jvssPhoto'); if(input&&input.focus) input.focus(); }\n\n  async function confirmCandidate(){";
+const CONFIRM_FUNCTION_FIX = "  function rejectCandidate(){ currentIdentification=null; confirmedProduct=null; confirmationProof=''; var card=byId('jvssCandidatesCard'); if(card) card.hidden=true; var analysis=byId('jvssAnalysisCard'); if(analysis) analysis.hidden=true; setStatus('Produit refusé. Modifie le code ou relance une identification.'); var input=byId(currentMode==='barcode'?'jvssBarcode':currentMode==='text'?'jvssText':currentMode==='link'?'jvssLink':'jvssPhoto'); if(input&&input.focus) input.focus(); }\n\n  async function confirmCandidate(){";
 const ACTION_DISPATCH_TARGET = "if(type==='close')close();else if(type==='identify')identify();else if(type==='confirm')confirmCandidate();else if(type==='analyze')analyze();";
 const ACTION_DISPATCH_FIX = "if(type==='close')close();else if(type==='identify')identify();else if(type==='confirm')confirmCandidate();else if(type==='reject')rejectCandidate();else if(type==='analyze')analyze();";
+
+// P0 confirmation-authority hardening. `confirmed:true` is only UI intent; the
+// backend owns the actual confirmation authority and returns a short-lived proof.
+const CONFIRMATION_STATE_TARGET = "var confirmedProduct = null;\n  var photoFile = null;";
+const CONFIRMATION_STATE_FIX = "var confirmedProduct = null;\n  var confirmationProof = '';\n  var photoFile = null;";
+const MODE_RESET_TARGET = "currentMode=mode; currentIdentification=null; confirmedProduct=null;";
+const MODE_RESET_FIX = "currentMode=mode; currentIdentification=null; confirmedProduct=null; confirmationProof='';";
+const CLOSE_RESET_TARGET = "resetPhotoMemory(); currentIdentification=null; confirmedProduct=null;";
+const CLOSE_RESET_FIX = "resetPhotoMemory(); currentIdentification=null; confirmedProduct=null; confirmationProof='';";
+const RENDER_RESET_TARGET = "currentIdentification=response; confirmedProduct=null;";
+const RENDER_RESET_FIX = "currentIdentification=response; confirmedProduct=null; confirmationProof='';";
+const IDENTIFY_RESET_TARGET = "currentIdentification=null; confirmedProduct=null;\n    var analysis=byId('jvssAnalysisCard');";
+const IDENTIFY_RESET_FIX = "currentIdentification=null; confirmedProduct=null; confirmationProof='';\n    var analysis=byId('jvssAnalysisCard');";
+const CONFIRM_POST_TARGET = "await apiPost('/smart-scan/confirm',{identificationId:currentIdentification.identificationId,candidate:candidate,confirmed:true});\n      confirmedProduct=candidate;";
+const CONFIRM_POST_FIX = "var confirmation=await apiPost('/smart-scan/confirm',{identificationId:currentIdentification.identificationId,candidate:candidate,confirmed:true});\n      var proof=clean(confirmation&&confirmation.confirmationProof,8192); var canonical=confirmation&&confirmation.confirmedProduct; if(!proof||!canonical){ confirmationProof=''; confirmedProduct=null; throw new Error('Confirmation backend incomplète'); } confirmationProof=proof; confirmedProduct=canonical; candidate=canonical;";
+const ANALYZE_GUARD_TARGET = "if(!confirmedProduct || !currentIdentification){setStatus('Confirme d’abord le produit identifié.');return;}";
+const ANALYZE_GUARD_FIX = "if(!confirmedProduct || !currentIdentification || !confirmationProof){setStatus('Confirme d’abord le produit identifié.');return;}";
+const ANALYZE_PAYLOAD_TARGET = "var payload={identificationId:currentIdentification.identificationId,confirmedProduct:confirmedProduct,confirmed:true,urgency:urgency};";
+const ANALYZE_PAYLOAD_FIX = "var payload={identificationId:currentIdentification.identificationId,confirmedProduct:confirmedProduct,confirmed:true,confirmationProof:confirmationProof,urgency:urgency};";
 
 function replaceRequired(html, target, replacement, label) {
   if (html.includes(replacement)) return html;
@@ -50,6 +69,14 @@ function hardenSmartScanExperience(html) {
   hardened = replaceRequired(hardened, CONFIRM_ACTIONS_TARGET, CONFIRM_ACTIONS_FIX, 'explicit product confirmation actions');
   hardened = replaceRequired(hardened, CONFIRM_FUNCTION_TARGET, CONFIRM_FUNCTION_FIX, 'product rejection owner');
   hardened = replaceRequired(hardened, ACTION_DISPATCH_TARGET, ACTION_DISPATCH_FIX, 'product rejection dispatch');
+  hardened = replaceRequired(hardened, CONFIRMATION_STATE_TARGET, CONFIRMATION_STATE_FIX, 'confirmation proof state');
+  hardened = replaceRequired(hardened, MODE_RESET_TARGET, MODE_RESET_FIX, 'mode confirmation reset');
+  hardened = replaceRequired(hardened, CLOSE_RESET_TARGET, CLOSE_RESET_FIX, 'close confirmation reset');
+  hardened = replaceRequired(hardened, RENDER_RESET_TARGET, RENDER_RESET_FIX, 'identification confirmation reset');
+  hardened = replaceRequired(hardened, IDENTIFY_RESET_TARGET, IDENTIFY_RESET_FIX, 'identify confirmation reset');
+  hardened = replaceRequired(hardened, CONFIRM_POST_TARGET, CONFIRM_POST_FIX, 'server confirmation proof capture');
+  hardened = replaceRequired(hardened, ANALYZE_GUARD_TARGET, ANALYZE_GUARD_FIX, 'analysis confirmation proof guard');
+  hardened = replaceRequired(hardened, ANALYZE_PAYLOAD_TARGET, ANALYZE_PAYLOAD_FIX, 'analysis confirmation proof payload');
   return hardened;
 }
 
@@ -69,6 +96,11 @@ function verifySmartScanHardening(html) {
   if (!html.includes(BARCODE_PLACEHOLDER_FIX)) throw new Error('Smart Scan GTIN-14 input hint is missing');
   if (!html.includes('C’est bien ce produit') || !html.includes('Ce n’est pas le bon produit')) throw new Error('Smart Scan product confirmation actions are incomplete');
   if (!html.includes('Source :') || !html.includes('Code-barres :')) throw new Error('Smart Scan product card does not expose provenance facts');
+  if (!html.includes(CONFIRMATION_STATE_FIX)) throw new Error('Smart Scan confirmation proof state missing');
+  if (!html.includes(CONFIRM_POST_FIX)) throw new Error('Smart Scan does not capture canonical server confirmation proof');
+  if (!html.includes(ANALYZE_GUARD_FIX)) throw new Error('Smart Scan analysis is not fail-closed without confirmation proof');
+  if (!html.includes(ANALYZE_PAYLOAD_FIX)) throw new Error('Smart Scan analysis does not propagate confirmation proof');
+  if (!html.includes("confirmationProof=''")) throw new Error('Smart Scan confirmation proof reset missing');
   return true;
 }
 
@@ -82,6 +114,10 @@ module.exports = {
   FROZEN_SCANNER_MUTATION_FIX,
   BARCODE_VALIDATION_TARGET,
   BARCODE_VALIDATION_FIX,
+  CONFIRMATION_STATE_FIX,
+  CONFIRM_POST_FIX,
+  ANALYZE_GUARD_FIX,
+  ANALYZE_PAYLOAD_FIX,
   hardenSmartScanExperience,
   verifySmartScanHardening,
 };
