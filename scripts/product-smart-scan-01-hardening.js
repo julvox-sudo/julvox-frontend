@@ -44,7 +44,15 @@ const CONFIRM_POST_FIX = "var confirmation=await apiPost('/smart-scan/confirm',{
 const ANALYZE_GUARD_TARGET = "if(!confirmedProduct || !currentIdentification){setStatus('Confirme d’abord le produit identifié.');return;}";
 const ANALYZE_GUARD_FIX = "if(!confirmedProduct || !currentIdentification || !confirmationProof){setStatus('Confirme d’abord le produit identifié.');return;}";
 const ANALYZE_PAYLOAD_TARGET = "var payload={identificationId:currentIdentification.identificationId,confirmedProduct:confirmedProduct,confirmed:true,urgency:urgency};";
-const ANALYZE_PAYLOAD_FIX = "var payload={identificationId:currentIdentification.identificationId,confirmedProduct:confirmedProduct,confirmed:true,confirmationProof:confirmationProof,urgency:urgency};";
+const ANALYZE_PAYLOAD_FIX = "var payload={identificationId:currentIdentification.identificationId,confirmedProduct:confirmedProduct,confirmed:true,confirmationProof:confirmationProof,urgency:urgency}; if(price&&totalPayable)payload.storePriceIsTotalPayable=true;";
+
+// P1 factual-authority hardening. A displayed amount is not automatically the
+// total payable used by PricePositionRule. Ask only the extra question that can
+// change the decision, and propagate an affirmative answer explicitly.
+const TOTAL_PAYABLE_UI_TARGET = '<div style="margin-top:10px"><label class="jvss-label" for="jvssUrgency">Urgence du besoin</label>';
+const TOTAL_PAYABLE_UI_FIX = '<div style="margin-top:10px"><label class="jvss-candidate" for="jvssTotalPayable" style="align-items:center"><input id="jvssTotalPayable" type="checkbox"><span><strong>Ce prix est bien le total à payer</strong><span>Confirme uniquement si aucun frais obligatoire connu ne doit encore s’ajouter.</span></span></label></div><div style="margin-top:10px"><label class="jvss-label" for="jvssUrgency">Urgence du besoin</label>';
+const ANALYZE_INPUT_TARGET = "var price=moneyMinor(byId('jvssPrice')&&byId('jvssPrice').value); var budget=moneyMinor(byId('jvssBudget')&&byId('jvssBudget').value); var currency=clean(byId('jvssCurrency')&&byId('jvssCurrency').value,3).toUpperCase();";
+const ANALYZE_INPUT_FIX = "var price=moneyMinor(byId('jvssPrice')&&byId('jvssPrice').value); var totalPayable=!!(byId('jvssTotalPayable')&&byId('jvssTotalPayable').checked); var budget=moneyMinor(byId('jvssBudget')&&byId('jvssBudget').value); var currency=clean(byId('jvssCurrency')&&byId('jvssCurrency').value,3).toUpperCase();";
 
 function replaceRequired(html, target, replacement, label) {
   if (html.includes(replacement)) return html;
@@ -76,7 +84,9 @@ function hardenSmartScanExperience(html) {
   hardened = replaceRequired(hardened, IDENTIFY_RESET_TARGET, IDENTIFY_RESET_FIX, 'identify confirmation reset');
   hardened = replaceRequired(hardened, CONFIRM_POST_TARGET, CONFIRM_POST_FIX, 'server confirmation proof capture');
   hardened = replaceRequired(hardened, ANALYZE_GUARD_TARGET, ANALYZE_GUARD_FIX, 'analysis confirmation proof guard');
-  hardened = replaceRequired(hardened, ANALYZE_PAYLOAD_TARGET, ANALYZE_PAYLOAD_FIX, 'analysis confirmation proof payload');
+  hardened = replaceRequired(hardened, TOTAL_PAYABLE_UI_TARGET, TOTAL_PAYABLE_UI_FIX, 'total payable confirmation UI');
+  hardened = replaceRequired(hardened, ANALYZE_INPUT_TARGET, ANALYZE_INPUT_FIX, 'total payable confirmation input');
+  hardened = replaceRequired(hardened, ANALYZE_PAYLOAD_TARGET, ANALYZE_PAYLOAD_FIX, 'analysis confirmation proof and price authority payload');
   return hardened;
 }
 
@@ -99,8 +109,11 @@ function verifySmartScanHardening(html) {
   if (!html.includes(CONFIRMATION_STATE_FIX)) throw new Error('Smart Scan confirmation proof state missing');
   if (!html.includes(CONFIRM_POST_FIX)) throw new Error('Smart Scan does not capture canonical server confirmation proof');
   if (!html.includes(ANALYZE_GUARD_FIX)) throw new Error('Smart Scan analysis is not fail-closed without confirmation proof');
-  if (!html.includes(ANALYZE_PAYLOAD_FIX)) throw new Error('Smart Scan analysis does not propagate confirmation proof');
+  if (!html.includes(ANALYZE_PAYLOAD_FIX)) throw new Error('Smart Scan analysis does not propagate confirmation proof and price authority');
   if (!html.includes("confirmationProof=''")) throw new Error('Smart Scan confirmation proof reset missing');
+  if (!html.includes('id="jvssTotalPayable"')) throw new Error('Smart Scan total-payable confirmation control missing');
+  if (!html.includes('aucun frais obligatoire connu')) throw new Error('Smart Scan total-payable explanation missing');
+  if (!html.includes('storePriceIsTotalPayable=true')) throw new Error('Smart Scan does not propagate explicit total-payable authority');
   return true;
 }
 
@@ -118,6 +131,8 @@ module.exports = {
   CONFIRM_POST_FIX,
   ANALYZE_GUARD_FIX,
   ANALYZE_PAYLOAD_FIX,
+  TOTAL_PAYABLE_UI_FIX,
+  ANALYZE_INPUT_FIX,
   hardenSmartScanExperience,
   verifySmartScanHardening,
 };
