@@ -3,7 +3,7 @@ const path = require('path');
 
 const root = process.cwd();
 const contractPath = path.join(root, 'config', 'runtime-contract.json');
-const outputPath = path.join(root, 'runtime-config.js');
+const outputPath = path.join(root, 'dist', 'runtime-config.js');
 const PREVIEW_BACKEND_ENV = 'JULVOX_BACKEND_API_BASE_URL';
 
 function fail(message) {
@@ -107,5 +107,6 @@ const content = `// Generated from config/runtime-contract.json. Do not edit man
   `  });\n` +
   `})(typeof window !== 'undefined' ? window : globalThis);\n`;
 
+fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, content, 'utf8');
-console.log(`Generated runtime-config.js from config/runtime-contract.json${explicitBackendOverride ? ` with ${PREVIEW_BACKEND_ENV}` : ''}.`);
+console.log(`Generated dist/runtime-config.js from config/runtime-contract.json${explicitBackendOverride ? ` with ${PREVIEW_BACKEND_ENV}` : ''}.`);
