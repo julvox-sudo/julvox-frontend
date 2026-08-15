@@ -11,6 +11,7 @@ const { ensureDealCounterGuard } = require('./ui00-transforms/ensure-deal-counte
 const { activatePriceHistoryRuntime } = require('./ui00-transforms/activate-price-history-runtime');
 const { ensureMobileSearchFeedback } = require('./ui00-transforms/ensure-mobile-search-feedback');
 const { ensureGlobalErrorBoundary } = require('./ui00-transforms/ensure-global-error-boundary');
+const { removeUnverifiedJwtIdentity } = require('./ui00-transforms/remove-unverified-jwt-identity');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -32,6 +33,7 @@ function applyProductionTruth(input) {
     return helpers.verifyAppliedOutput(html, enhancements);
   }
   html = ensureGlobalErrorBoundary(html);
+  html = removeUnverifiedJwtIdentity(html);
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
   html = activatePriceHistoryRuntime(html);
   html = repairFlashUrlGuard(html);
@@ -69,5 +71,6 @@ module.exports = {
   activatePriceHistoryRuntime,
   ensureMobileSearchFeedback,
   ensureGlobalErrorBoundary,
+  removeUnverifiedJwtIdentity,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };
