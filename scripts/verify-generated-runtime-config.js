@@ -13,8 +13,8 @@ function readJson(relativePath) {
 }
 
 const contract = readJson('config/runtime-contract.json');
-const generatedPath = path.join(root, 'runtime-config.js');
-if (!fs.existsSync(generatedPath)) fail('runtime-config.js is missing');
+const generatedPath = path.join(root, 'dist', 'runtime-config.js');
+if (!fs.existsSync(generatedPath)) fail('dist/runtime-config.js is missing');
 let actual = null;
 let descriptor = null;
 if (!failures.length) {
@@ -22,10 +22,10 @@ if (!failures.length) {
   sandbox.window = sandbox.globalThis;
   vm.createContext(sandbox);
   try {
-    vm.runInContext(fs.readFileSync(generatedPath, 'utf8'), sandbox, { filename: 'runtime-config.js' });
+    vm.runInContext(fs.readFileSync(generatedPath, 'utf8'), sandbox, { filename: 'dist/runtime-config.js' });
     actual = sandbox.globalThis.JULVOX_RUNTIME_CONFIG;
     descriptor = Object.getOwnPropertyDescriptor(sandbox.globalThis, 'JULVOX_RUNTIME_CONFIG');
-  } catch (error) { fail(`runtime-config.js cannot execute: ${error.message}`); }
+  } catch (error) { fail(`dist/runtime-config.js cannot execute: ${error.message}`); }
 }
 const explicitBackendOverride = process.env.JULVOX_BACKEND_API_BASE_URL || '';
 const expectedBackendApiBaseUrl = explicitBackendOverride
