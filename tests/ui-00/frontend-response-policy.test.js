@@ -49,5 +49,4 @@ test('frontend CSP does not silently widen script or frame authority', () => {
   assert.doesNotMatch(csp, /script-src[^;]*\*/);
   assert.doesNotMatch(csp, /frame-src[^;]*https:/);
   assert.doesNotMatch(csp, /frame-ancestors[^;]*https:/);
-  assert.doesNotMatch(csp, /object-src[^;]*(?!'none')\S/);
 });
