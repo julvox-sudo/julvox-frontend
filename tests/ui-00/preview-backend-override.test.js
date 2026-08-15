@@ -25,13 +25,27 @@ function runGenerator(root, variables = {}) {
   return spawnSync(process.execPath, [generator], { cwd: root, env, encoding: 'utf8' });
 }
 
+function generatedPath(root) {
+  return path.join(root, 'dist', 'runtime-config.js');
+}
+
 function readRuntime(root) {
   const sandbox = { globalThis: {} };
   sandbox.window = sandbox.globalThis;
   vm.createContext(sandbox);
-  vm.runInContext(fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8'), sandbox);
+  vm.runInContext(fs.readFileSync(generatedPath(root), 'utf8'), sandbox);
   return sandbox.globalThis.JULVOX_RUNTIME_CONFIG;
 }
+
+test('runtime generation never writes a tracked source-tree runtime config', () => {
+  const root = fixture();
+  fs.writeFileSync(path.join(root, 'runtime-config.js'), 'tracked-source-sentinel\n', 'utf8');
+  const before = fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8');
+  const result = runGenerator(root);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8'), before);
+  assert.equal(fs.existsSync(generatedPath(root)), true);
+});
 
 test('production generation uses the canonical backend when no override is supplied', () => {
   const root = fixture();
@@ -74,7 +88,7 @@ test('runtime generation does not publish unrelated build secrets', () => {
     DATABASE_URL: secretValues[2],
   });
   assert.equal(result.status, 0, result.stderr);
-  const generated = fs.readFileSync(path.join(root, 'runtime-config.js'), 'utf8');
+  const generated = fs.readFileSync(generatedPath(root), 'utf8');
   for (const secret of secretValues) assert.equal(generated.includes(secret), false);
   assert.equal(generated.includes('GOOGLE_API_KEY'), false);
   assert.equal(generated.includes('JWT_SECRET'), false);
