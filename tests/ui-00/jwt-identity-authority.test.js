@@ -32,9 +32,18 @@ test('alert identity comes from authenticated server profile, never an unverifie
   assert.match(output, /\/alerts\/\$\{encodeURIComponent\(alertsUid\)\}/);
 });
 
-test('transform fails closed if the historical authority boundary drifts', () => {
+test('generic build-transform fixtures without auth code remain unchanged', () => {
+  const input = '<html><head></head><body>fixture</body></html>';
+  assert.equal(removeUnverifiedJwtIdentity(input), input);
+});
+
+test('partial historical identity drift fails closed', () => {
+  const partial = fixture.replace(
+    /\s*const alertsUid = getUidFromToken[\s\S]*?\n  \}\);/,
+    '',
+  );
   assert.throws(
-    () => removeUnverifiedJwtIdentity('<html><head></head><body>changed</body></html>'),
-    /expected exactly one match/,
+    () => removeUnverifiedJwtIdentity(partial),
+    /identity boundary drift/,
   );
 });
