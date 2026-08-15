@@ -10,6 +10,7 @@ const { ensureLoadingStateHelper } = require('./ui00-transforms/ensure-loading-s
 const { ensureDealCounterGuard } = require('./ui00-transforms/ensure-deal-counter-guard');
 const { activatePriceHistoryRuntime } = require('./ui00-transforms/activate-price-history-runtime');
 const { ensureMobileSearchFeedback } = require('./ui00-transforms/ensure-mobile-search-feedback');
+const { ensureGlobalErrorBoundary } = require('./ui00-transforms/ensure-global-error-boundary');
 const stages = [
   require('./ui00-transforms/stage-1'),
   require('./ui00-transforms/stage-2'),
@@ -30,6 +31,7 @@ function applyProductionTruth(input) {
     if (!htmlMarked || !enhancementsMarked) helpers.fail('partial prior transformation detected');
     return helpers.verifyAppliedOutput(html, enhancements);
   }
+  html = ensureGlobalErrorBoundary(html);
   for (const stage of stages) ({ html, enhancements } = stage(html, enhancements, helpers));
   html = activatePriceHistoryRuntime(html);
   html = repairFlashUrlGuard(html);
@@ -66,5 +68,6 @@ module.exports = {
   ensureDealCounterGuard,
   activatePriceHistoryRuntime,
   ensureMobileSearchFeedback,
+  ensureGlobalErrorBoundary,
   verifyAppliedOutput: helpers.verifyAppliedOutput,
 };
