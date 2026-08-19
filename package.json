@@ -49,6 +49,6 @@
     "verify:all": "npm run build && npm run verify:public-determinism"
   },
   "engines": {
-    "node": ">=18"
+    "node": "24.x"
   }
 }
