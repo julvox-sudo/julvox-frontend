@@ -54,6 +54,15 @@ test('identified product remains the authoritative known need', () => {
   assert.equal(summary.need, 'Roomba Combo X');
 });
 
+test('resume cue respects the existing tu-vous address mode without creating memory', () => {
+  const summary = feature.buildResumeContext(conversation({
+    context: { product_type: 'aspirateur robot' },
+  }));
+  assert.match(feature.buildResumeCueText(summary, 'tu'), /Tu cherchais : aspirateur robot/);
+  assert.match(feature.buildResumeCueText(summary, 'vous'), /Vous cherchiez : aspirateur robot/);
+  assert.doesNotMatch(feature.buildResumeCueText(summary, 'vous'), /Tu cherchais/);
+});
+
 test('recap pending and confirmed come only from persisted clarification state', () => {
   assert.equal(feature.resumeStage(conversation({
     clarification: { readiness: 'awaiting_recap_confirmation', recap_confirmed: false },
@@ -117,9 +126,10 @@ test('closed conversation stage uses persisted conversation status', () => {
 });
 
 test('integration patches only the canonical active runtime despite inert duplicate anchors', () => {
-  const html = `<script id="legacy-one" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-conversation-source-of-truth-02-runtime">${feature.RENDER_ANCHOR}${feature.SEND_ANCHOR}var input=document.getElementById('chatInput');</script><script id="legacy-two" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-p5-decision-history-01-runtime"></script><script id="julvox-p5-decision-timeline-01-runtime"></script><script id="julvox-p5-structured-explainability-01-runtime"></script>`;
+  const html = `<script id="legacy-one" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-conversation-source-of-truth-02-runtime">var currentPreferences={address_mode:'tu'};${feature.RENDER_ANCHOR}${feature.SEND_ANCHOR}var input=document.getElementById('chatInput');</script><script id="legacy-two" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-p5-decision-history-01-runtime"></script><script id="julvox-p5-decision-timeline-01-runtime"></script><script id="julvox-p5-structured-explainability-01-runtime"></script>`;
   const once = feature.integrate(html);
   assert.match(once, /data-julvox-resume-context/);
+  assert.match(once, /currentPreferences&&currentPreferences\.address_mode/);
   assert.ok(once.includes(feature.SEND_ANCHOR + 'clearResumeContext();'));
   assert.equal((once.match(new RegExp(feature.MARKER, 'g')) || []).length, 1);
   assert.equal(feature.integrate(once), once);
