@@ -1,6 +1,7 @@
 const MARKER = 'julvox-p5-conversation-resume-01';
 const RENDER_ANCHOR = "  function renderConversation(conversation){resetDom();var history=conversation&&Array.isArray(conversation.messages)?conversation.messages:[];if(history.length)hideWelcome();history.forEach(function(item){if(item&&(item.role==='user'||item.role==='assistant'))append(item.role,item.content);});}";
 const SEND_ANCHOR = "window.sendAIMessage=async function(preset,options){if(loading)return;";
+const CANONICAL_OPEN = '<script id="julvox-conversation-source-of-truth-02-runtime">';
 
 function cleanResumeValue(value, limit) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, limit || 500);
@@ -47,12 +48,10 @@ function resumeConstraints(context) {
   if (usage) rows.push(`usage : ${usage}`);
   if (preferredFormat) rows.push(`format : ${preferredFormat}`);
   if (brand) rows.push(`marque indiquée ici : ${brand}`);
-
   const priorities = uniqueResumeValues(Array.isArray(source.priorities) ? source.priorities : []);
   if (priorities.length) rows.push(`priorités : ${priorities.join(', ')}`);
   const exclusions = uniqueResumeValues(Array.isArray(source.exclusions) ? source.exclusions : []);
   if (exclusions.length) rows.push(`à éviter : ${exclusions.join(', ')}`);
-
   const constraints = source.constraints && typeof source.constraints === 'object' ? source.constraints : {};
   if (Number.isInteger(constraints.tv_size_inches)) rows.push(`taille TV : ${constraints.tv_size_inches} pouces`);
   if (
@@ -184,6 +183,14 @@ function fail(message) {
   throw new Error(`JULVOX-P5-CONVERSATION-RESUME-01 integration failed: ${message}`);
 }
 
+function canonicalBounds(html) {
+  const start = html.indexOf(CANONICAL_OPEN);
+  if (start < 0) fail('canonical conversation runtime is missing');
+  const end = html.indexOf('</script>', start + CANONICAL_OPEN.length);
+  if (end < 0) fail('canonical conversation runtime is not closed');
+  return { start, end };
+}
+
 function verify(input) {
   const html = String(input || '');
   if ((html.match(new RegExp(MARKER, 'g')) || []).length !== 1) fail('marker must appear exactly once');
@@ -195,9 +202,12 @@ function verify(input) {
   ]) {
     if (!html.includes(prerequisite)) fail(`missing prerequisite ${prerequisite}`);
   }
-  if (html.includes(RENDER_ANCHOR)) fail('canonical render anchor was not upgraded');
-  if (!html.includes('data-julvox-resume-context')) fail('resume cue is missing');
-  if (!html.includes(SEND_ANCHOR + 'clearResumeContext();')) {
+  const bounds = canonicalBounds(html);
+  const canonical = html.slice(bounds.start, bounds.end);
+  if (!canonical.includes(MARKER)) fail('resume patch must live inside canonical conversation runtime');
+  if (canonical.includes(RENDER_ANCHOR)) fail('canonical render anchor was not upgraded');
+  if (!canonical.includes('data-julvox-resume-context')) fail('resume cue is missing');
+  if (!canonical.includes(SEND_ANCHOR + 'clearResumeContext();')) {
     fail('resume cue must be transient once the user sends a new turn');
   }
   for (const forbidden of ['fetch(', 'localStorage', 'POST', 'PATCH', 'preference memory', 'DecisionEngine']) {
@@ -217,12 +227,15 @@ function integrate(input) {
   ]) {
     if (!html.includes(prerequisite)) fail(`missing prerequisite ${prerequisite}`);
   }
-  const renderCount = html.split(RENDER_ANCHOR).length - 1;
+  const bounds = canonicalBounds(html);
+  let canonical = html.slice(bounds.start, bounds.end);
+  const renderCount = canonical.split(RENDER_ANCHOR).length - 1;
   if (renderCount !== 1) fail(`canonical render anchor count is ${renderCount}`);
-  const sendCount = html.split(SEND_ANCHOR).length - 1;
-  if (sendCount !== 1) fail(`send anchor count is ${sendCount}`);
-  html = html.replace(RENDER_ANCHOR, RUNTIME_PATCH);
-  html = html.replace(SEND_ANCHOR, `${SEND_ANCHOR}clearResumeContext();`);
+  const sendCount = canonical.split(SEND_ANCHOR).length - 1;
+  if (sendCount !== 1) fail(`canonical send anchor count is ${sendCount}`);
+  canonical = canonical.replace(RENDER_ANCHOR, RUNTIME_PATCH);
+  canonical = canonical.replace(SEND_ANCHOR, `${SEND_ANCHOR}clearResumeContext();`);
+  html = `${html.slice(0, bounds.start)}${canonical}${html.slice(bounds.end)}`;
   return verify(html);
 }
 
@@ -230,6 +243,7 @@ module.exports = {
   MARKER,
   RENDER_ANCHOR,
   SEND_ANCHOR,
+  CANONICAL_OPEN,
   RUNTIME_PATCH,
   cleanResumeValue,
   formatResumeBudget,
