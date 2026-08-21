@@ -139,10 +139,13 @@ function buildResumeContext(conversation) {
   };
 }
 
-function buildResumeCueText(summary) {
+function buildResumeCueText(summary, addressMode = 'tu') {
   const data = summary && typeof summary === 'object' ? summary : {};
+  const vous = cleanResumeValue(addressMode, 10) === 'vous';
   const lines = ['Reprise de cette conversation'];
-  if (cleanResumeValue(data.need, 300)) lines.push(`Tu cherchais : ${cleanResumeValue(data.need, 300)}`);
+  if (cleanResumeValue(data.need, 300)) {
+    lines.push(`${vous ? 'Vous cherchiez' : 'Tu cherchais'} : ${cleanResumeValue(data.need, 300)}`);
+  }
   if (cleanResumeValue(data.budget, 80)) lines.push(`Budget connu ici : ${cleanResumeValue(data.budget, 80)}`);
   const constraints = Array.isArray(data.constraints)
     ? data.constraints.map((value) => cleanResumeValue(value, 300)).filter(Boolean)
@@ -176,7 +179,7 @@ const RUNTIME_PATCH = `  /* ${MARKER} */
   ${buildResumeContext.toString()}
   ${buildResumeCueText.toString()}
   function clearResumeContext(){var existing=document.querySelector('[data-julvox-resume-context="true"]');if(existing)existing.remove();}
-  function appendResumeContext(conversation){var container=messages();if(!container)return;clearResumeContext();var summary=buildResumeContext(conversation);var text=buildResumeCueText(summary);if(!text)return;hideWelcome();var row=document.createElement('div');row.className='julvox-assistant-message assistant julvox-p5-resume-context';row.setAttribute('role','status');row.setAttribute('aria-label','Reprise de cette conversation');var bubble=document.createElement('div');bubble.className='julvox-assistant-bubble';bubble.setAttribute('data-julvox-resume-context','true');bubble.style.whiteSpace='pre-line';bubble.textContent=text;row.appendChild(bubble);container.appendChild(row);container.scrollTop=container.scrollHeight;}
+  function appendResumeContext(conversation){var container=messages();if(!container)return;clearResumeContext();var summary=buildResumeContext(conversation);var text=buildResumeCueText(summary,currentPreferences&&currentPreferences.address_mode);if(!text)return;hideWelcome();var row=document.createElement('div');row.className='julvox-assistant-message assistant julvox-p5-resume-context';row.setAttribute('role','status');row.setAttribute('aria-label','Reprise de cette conversation');var bubble=document.createElement('div');bubble.className='julvox-assistant-bubble';bubble.setAttribute('data-julvox-resume-context','true');bubble.style.whiteSpace='pre-line';bubble.textContent=text;row.appendChild(bubble);container.appendChild(row);container.scrollTop=container.scrollHeight;}
   function renderConversation(conversation){resetDom();var history=conversation&&Array.isArray(conversation.messages)?conversation.messages:[];if(history.length)hideWelcome();history.forEach(function(item){if(item&&(item.role==='user'||item.role==='assistant'))append(item.role,item.content);});appendResumeContext(conversation);}`;
 
 function fail(message) {
