@@ -116,11 +116,12 @@ test('closed conversation stage uses persisted conversation status', () => {
   assert.equal(feature.resumeStage(conversation({ status: 'closed' })).code, 'CONVERSATION_COMPLETED');
 });
 
-test('integration upgrades only canonical resume rendering and clears cue on next user turn', () => {
-  const html = `<script id="julvox-conversation-source-of-truth-02-runtime">${feature.RENDER_ANCHOR}${feature.SEND_ANCHOR}var input=document.getElementById('chatInput');</script><script id="julvox-p5-decision-history-01-runtime"></script><script id="julvox-p5-decision-timeline-01-runtime"></script><script id="julvox-p5-structured-explainability-01-runtime"></script>`;
+test('integration patches only the canonical active runtime despite inert duplicate anchors', () => {
+  const html = `<script id="legacy-one" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-conversation-source-of-truth-02-runtime">${feature.RENDER_ANCHOR}${feature.SEND_ANCHOR}var input=document.getElementById('chatInput');</script><script id="legacy-two" type="application/julvox-inert">${feature.SEND_ANCHOR}</script><script id="julvox-p5-decision-history-01-runtime"></script><script id="julvox-p5-decision-timeline-01-runtime"></script><script id="julvox-p5-structured-explainability-01-runtime"></script>`;
   const once = feature.integrate(html);
   assert.match(once, /data-julvox-resume-context/);
   assert.ok(once.includes(feature.SEND_ANCHOR + 'clearResumeContext();'));
+  assert.equal((once.match(new RegExp(feature.MARKER, 'g')) || []).length, 1);
   assert.equal(feature.integrate(once), once);
 });
 
