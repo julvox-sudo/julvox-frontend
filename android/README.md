@@ -63,9 +63,11 @@ The shell reuses the already validated responsive Julvox HTML semantics. Android
 
 ## Future boundaries — intentionally NOT_STARTED
 
-- **Barcode / EAN / camera: NOT_STARTED in P5.10.** Existing `BarcodeDetector`/getUserMedia web work is only architectural evidence. No CAMERA permission or native scanner is added here.
-- **Visual product recognition: NOT_STARTED in P5.10.** No native photo capture or Vision/Gemini identification flow is added here.
-- **Exhaustive Android hardening: NOT_STARTED in P5.10.** P5.10 provides the foundation and a basic emulator smoke test only; exhaustive device/permission/camera/crash matrices belong to a later authorized mission.
+The following labels are retained only as historical deferred-work markers from the P5.10 shell contract. They do not start those lots and do not override the later decision to build the real mobile application in a separate repository.
+
+- **P5.11 — barcode / EAN / camera: NOT_STARTED.** Existing `BarcodeDetector`/getUserMedia web work is only architectural evidence. No CAMERA permission or native scanner is added here.
+- **P5.12 — visual product recognition: NOT_STARTED.** No native photo capture or Vision/Gemini identification flow is added here.
+- **P5.13 — exhaustive Android hardening: NOT_STARTED.** P5.10 provides the foundation and a basic emulator smoke test only; exhaustive device/permission/camera/crash matrices belong to a later separately authorized mission.
 
 When later mobile work is explicitly authorized, camera/photo code may identify candidate products only. Product Retrieval resolves candidates, ProductReference establishes canonical identity, Market/World supplies observed facts, and **DecisionEngine remains backend authority** for the decision.
 
