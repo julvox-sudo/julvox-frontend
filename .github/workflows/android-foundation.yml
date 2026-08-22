@@ -46,6 +46,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - name: Install pinned Android SDK components
         run: |
@@ -93,7 +95,14 @@ jobs:
       - name: Create Android 15 emulator
         run: |
           EMULATOR_BIN="$ANDROID_HOME/emulator/emulator"
-          echo no | avdmanager create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
+          SDKMANAGER_BIN="$(command -v sdkmanager)"
+          AVDMANAGER_BIN="$(dirname "$SDKMANAGER_BIN")/avdmanager"
+          test -x "$AVDMANAGER_BIN"
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          echo no | "$AVDMANAGER_BIN" create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
+          test -f "$ANDROID_AVD_HOME/julvox_p510.ini"
           nohup "$EMULATOR_BIN" -avd julvox_p510 -accel "$JULVOX_EMULATOR_ACCEL" -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
           echo $! > /tmp/julvox-emulator.pid
           if ! timeout 120 adb wait-for-device; then
