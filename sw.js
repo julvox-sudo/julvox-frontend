@@ -223,7 +223,6 @@ function getTitle(type) {
 function getActions(type) {
   if (type === 'alert_price') return [
     { action: 'view', title: '🛒 Voir l’offre' },
-    { action: 'snooze', title: '⏰ Rappel +1h' },
     { action: 'dismiss', title: '✕ Ignorer' },
   ];
   if (type === 'flash_deal') return [
@@ -241,18 +240,6 @@ self.addEventListener('notificationclick', event => {
   if (event.action === 'dismiss') return;
   const data = event.notification.data || {};
   let url = safePublicUrl(data.url);
-  if (event.action === 'snooze') {
-    const tag = data.dealId ? `snooze-deal-${data.dealId}` : 'snooze-generic';
-    setTimeout(() => {
-      self.registration.showNotification(event.notification.title, {
-        body: event.notification.body,
-        icon: event.notification.icon,
-        data,
-        tag,
-      });
-    }, 3_600_000);
-    return;
-  }
   if (data.dealId) url = `${PUBLIC_ORIGIN}/?deal=${encodeURIComponent(data.dealId)}`;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
