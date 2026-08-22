@@ -9,6 +9,8 @@ const {
 const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
 const MARKER = '/* ui-00-final-product-truth:applied-v3 */';
+const LEGACY_WISHLIST_TARGET = "item.current_best_price <= item.target_price ? '✅ ATTEINT !' : '(encore ' + (item.current_best_price - item.target_price).toFixed(0) + '€ à baisser)'";
+const SAFE_WISHLIST_TARGET = "Number.isFinite(item.current_best_price) ? (item.current_best_price <= Number(item.target_price) ? '✅ ATTEINT !' : '(encore ' + (item.current_best_price - Number(item.target_price)).toFixed(0) + '€ à baisser)') : 'Prix actuel non observé'";
 
 function fail(message) {
   throw new Error(`UI-00 final product truth failed: ${message}`);
@@ -22,6 +24,7 @@ function verifyFinalized(html) {
   const scoreFallbacks = findArbitraryScoreFallbacks(html);
   if (scoreFallbacks.length) fail(`an arbitrary score fallback remains: ${scoreFallbacks[0]}`);
   if (/Score NovaDeal™\s+\$\{(?:deal|d)\.novadeal_score\}\/100/.test(html)) fail('undefined score rendering remains');
+  if (html.includes(LEGACY_WISHLIST_TARGET)) fail('wishlist can still treat a missing market price as a reached target');
   return html;
 }
 
@@ -40,6 +43,7 @@ function finalizeHtml(input) {
   );
 
   html = normalizeScoreFallbacks(html);
+  html = html.split(LEGACY_WISHLIST_TARGET).join(SAFE_WISHLIST_TARGET);
 
   html = html
     .replace(/const score\s*=\s*deal\.novadeal_score\s*\|\|\s*0;/g, 'const score = ui00ResolveScore(deal.novadeal_score, deal.score);')
@@ -65,4 +69,4 @@ if (require.main === module) {
   console.log('UI-00 final product truth applied to dist/index.html.');
 }
 
-module.exports = { MARKER, finalizeHtml, verifyFinalized };
+module.exports = { LEGACY_WISHLIST_TARGET, MARKER, SAFE_WISHLIST_TARGET, finalizeHtml, verifyFinalized };
