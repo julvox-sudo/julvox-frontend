@@ -77,10 +77,12 @@ jobs:
       - name: Configure Android emulator acceleration
         run: |
           set -u
+          EMULATOR_BIN="$ANDROID_HOME/emulator/emulator"
+          test -x "$EMULATOR_BIN"
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
           sudo udevadm control --reload-rules || true
           sudo udevadm trigger --name-match=kvm || true
-          if [ -e /dev/kvm ] && [ -r /dev/kvm ] && [ -w /dev/kvm ] && emulator -accel-check; then
+          if [ -e /dev/kvm ] && [ -r /dev/kvm ] && [ -w /dev/kvm ] && "$EMULATOR_BIN" -accel-check; then
             echo 'JULVOX_EMULATOR_ACCEL=on' >> "$GITHUB_ENV"
             echo 'Android emulator acceleration: KVM hardware acceleration available.'
           else
@@ -90,8 +92,9 @@ jobs:
 
       - name: Create Android 15 emulator
         run: |
+          EMULATOR_BIN="$ANDROID_HOME/emulator/emulator"
           echo no | avdmanager create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
-          nohup emulator -avd julvox_p510 -accel "$JULVOX_EMULATOR_ACCEL" -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
+          nohup "$EMULATOR_BIN" -avd julvox_p510 -accel "$JULVOX_EMULATOR_ACCEL" -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
           echo $! > /tmp/julvox-emulator.pid
           if ! timeout 120 adb wait-for-device; then
             echo 'Android emulator did not expose an adb device within 120 seconds' >&2
