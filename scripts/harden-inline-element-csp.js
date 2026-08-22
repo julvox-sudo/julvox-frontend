@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
-const META_PATTERN = /\s*<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>\s*/i;
+const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
 
 function sha256Source(text) {
   return `'sha256-${crypto.createHash('sha256').update(text, 'utf8').digest('base64')}'`;
@@ -68,15 +68,19 @@ function buildInlineElementPolicy(html) {
 }
 
 function hardenHtml(html) {
-  const withoutPrevious = html.replace(META_PATTERN, '\n');
-  const policy = buildInlineElementPolicy(withoutPrevious);
-  const meta = `<meta http-equiv="Content-Security-Policy" ${MARKER} content="${policy}">`;
-
-  if (!/<head(?:\s[^>]*)?>/i.test(withoutPrevious)) {
+  const withoutPrevious = html.replace(META_PATTERN, '');
+  const headPattern = /<head(\s[^>]*)?>/i;
+  if (!headPattern.test(withoutPrevious)) {
     throw new Error('P6.27 CSP hardening could not find <head> in public index');
   }
 
-  return withoutPrevious.replace(/<head(\s[^>]*)?>/i, match => `${match}\n  ${meta}`);
+  // Canonicalize only the whitespace directly after <head>. This makes a
+  // second hardening pass byte-identical without touching script/style bodies.
+  const canonical = withoutPrevious.replace(/(<head(?:\s[^>]*)?>)\s*/i, '$1');
+  const policy = buildInlineElementPolicy(canonical);
+  const meta = `<meta http-equiv="Content-Security-Policy" ${MARKER} content="${policy}">`;
+
+  return canonical.replace(headPattern, match => `${match}\n  ${meta}\n  `);
 }
 
 function assertHardened(html) {
