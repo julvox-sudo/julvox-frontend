@@ -60,6 +60,54 @@ function enforceTruthGuardrails(input) {
   return html;
 }
 
+function enforceFailureTruth(input) {
+  let html = String(input);
+
+  html = html.split(
+    "    const data = await res.json();\n    renderAchievements(data, el);\n  } catch(e) {\n    renderAchievements(getDemoAchievements(), el);\n  }",
+  ).join(
+    "    const data = await res.json();\n    if (!res.ok) throw new Error('achievements_unavailable');\n    renderAchievements(data, el);\n  } catch(e) {\n    if (el) el.innerHTML = '<div class=\"empty-state\">Progression indisponible pour le moment.</div>';\n    const progress = document.getElementById('achProgress');\n    if (progress) progress.textContent = 'Indisponible';\n  }",
+  );
+
+  html = html.split(
+    "    const data = await res.json();\n    showToast('✅ Squad créé ! Code : ' + data.squad_id);\n    renderActiveSquad(data);",
+  ).join(
+    "    const data = await res.json();\n    if (!res.ok || !data || !data.squad_id) throw new Error('squad_create_failed');\n    showToast('✅ Squad créé ! Code : ' + data.squad_id);\n    renderActiveSquad(data);",
+  );
+  html = html.replace(
+    /  } catch\(e\) \{\n    const mockId = Math\.random\(\)\.toString\(36\)\.substring\(2,10\)\.toUpperCase\(\);\n    showToast\('✅ Squad créé ! Code : ' \+ mockId\);\n    renderActiveSquad\(\{ squad_id: mockId, share_url: `https:\/\/julvox\.com\/\?squad=\$\{mockId\}`, progress: '1\/'\+count, product_name: product, target_count: count, current_count: 1 \}\);\n  \}/g,
+    "  } catch(e) {\n    showToast('⚠️ Création du squad impossible. Réessaie plus tard.');\n  }",
+  );
+
+  html = html.split(
+    "    const data = await res.json();\n    showToast(data.complete ? '🎉 Objectif atteint !' : `✅ Squad rejoint ! ${data.progress}`);\n  } catch(e) {\n    showToast('✅ Squad rejoint ! (démo)');\n  }",
+  ).join(
+    "    const data = await res.json();\n    if (!res.ok || !data || data.joined !== true) throw new Error('squad_join_failed');\n    showToast(data.complete ? '🎉 Objectif atteint !' : `✅ Squad rejoint ! ${data.progress}`);\n  } catch(e) {\n    showToast('⚠️ Impossible de rejoindre ce squad. Vérifie le code ou réessaie plus tard.');\n  }",
+  );
+
+  html = html.split(
+    "    await fetch(`${API}/deals/${reportDealId}/report`, {",
+  ).join(
+    "    const response = await fetch(`${API}/deals/${reportDealId}/report`, {",
+  );
+  html = html.split(
+    "      body: JSON.stringify({ reason: reportReason, deal_id: reportDealId })\n    });\n  } catch(e) {}\n  closeReport();\n  showToast('✅ Merci ! Signalement envoyé. On vérifie ce deal.');",
+  ).join(
+    "      body: JSON.stringify({ reason: reportReason, deal_id: reportDealId })\n    });\n    if (!response.ok) throw new Error('deal_report_failed');\n  } catch(e) {\n    showToast('⚠️ Signalement non envoyé. Réessaie plus tard.');\n    return;\n  }\n  closeReport();\n  showToast('✅ Merci ! Signalement envoyé. On vérifie ce deal.');",
+  );
+
+  const forbiddenFailureClaims = [
+    'renderAchievements(getDemoAchievements(), el)',
+    "showToast('✅ Squad rejoint ! (démo)')",
+    'const mockId = Math.random().toString(36)',
+    '} catch(e) {}\n  closeReport();\n  showToast(\'✅ Merci ! Signalement envoyé. On vérifie ce deal.\')',
+  ];
+  for (const marker of forbiddenFailureClaims) {
+    if (html.includes(marker)) throw new Error(`public artifact still contains deceptive failure fallback: ${marker}`);
+  }
+  return html;
+}
+
 function finalize(input) {
   let html = String(input);
   if (!html.includes('julvox-frontend-reconciliation-01-runtime')) throw new Error('reconciliation runtime must be integrated first');
@@ -79,6 +127,7 @@ function finalize(input) {
     if (html.includes(term)) throw new Error(`public artifact still contains forbidden legacy vocabulary: ${term}`);
   }
   html = enforceTruthGuardrails(html);
+  html = enforceFailureTruth(html);
   if (!html.includes(`id="${MARKER}"`)) html = html.replace('</body>', `${RUNTIME}\n</body>`);
   return html;
 }
@@ -92,4 +141,4 @@ function run() {
 }
 
 if (require.main === module) run();
-module.exports = { LEGACY_REPLACEMENTS, LEGACY_TERMS, MARKER, RUNTIME, enforceTruthGuardrails, finalize };
+module.exports = { LEGACY_REPLACEMENTS, LEGACY_TERMS, MARKER, RUNTIME, enforceTruthGuardrails, enforceFailureTruth, finalize };
