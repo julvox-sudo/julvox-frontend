@@ -74,62 +74,66 @@ jobs:
           unzip -p "$APK" | strings -a > /tmp/julvox-apk-strings.txt
           node scripts/android/verify-apk-secrets.js /tmp/julvox-apk-strings.txt
 
-      - name: Enable KVM for Android emulator
+      - name: Configure Android emulator acceleration
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          test -e /dev/kvm
-          test -r /dev/kvm
-          test -w /dev/kvm
-          emulator -accel-check
+          set -u
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules || true
+          sudo udevadm trigger --name-match=kvm || true
+          if [ -e /dev/kvm ] && [ -r /dev/kvm ] && [ -w /dev/kvm ] && emulator -accel-check; then
+            echo 'JULVOX_EMULATOR_ACCEL=on' >> "$GITHUB_ENV"
+            echo 'Android emulator acceleration: KVM hardware acceleration available.'
+          else
+            echo 'JULVOX_EMULATOR_ACCEL=off' >> "$GITHUB_ENV"
+            echo 'Android emulator acceleration: KVM unavailable; controlled software fallback will be attempted.'
+          fi
 
       - name: Create Android 15 emulator
         run: |
           echo no | avdmanager create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
-          nohup emulator -avd julvox_p510 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
+          nohup emulator -avd julvox_p510 -accel "$JULVOX_EMULATOR_ACCEL" -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
           echo $! > /tmp/julvox-emulator.pid
-          if ! timeout 90 adb wait-for-device; then
-            echo 'Android emulator did not expose an adb device within 90 seconds' >&2
+          if ! timeout 120 adb wait-for-device; then
+            echo 'Android emulator did not expose an adb device within 120 seconds' >&2
             cat /tmp/julvox-emulator.log >&2 || true
             exit 1
           fi
-          if ! timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 2; done'; then
-            echo 'Android emulator did not complete boot within 300 seconds' >&2
-            adb devices -l >&2 || true
+          if ! timeout 360 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 2; done'; then
+            echo 'Android emulator did not complete boot within 360 seconds' >&2
+            timeout 10 adb devices -l >&2 || true
             cat /tmp/julvox-emulator.log >&2 || true
             exit 1
           fi
-          adb shell input keyevent 82
+          timeout 10 adb shell input keyevent 82
 
       - name: Emulator online start smoke
         run: |
           APK=android/app/build/outputs/apk/debug/app-debug.apk
-          adb install -r "$APK"
-          adb shell am force-stop com.julvox.app
-          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-online.txt
+          timeout 90 adb install -r "$APK"
+          timeout 10 adb shell am force-stop com.julvox.app
+          timeout 30 adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-online.txt
           grep -q 'Status: ok' /tmp/start-online.txt
           sleep 4
-          adb shell pidof com.julvox.app
+          timeout 10 adb shell pidof com.julvox.app
 
       - name: Emulator offline cold-start smoke
         run: |
-          adb shell settings put global airplane_mode_on 1
-          adb shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true >/dev/null
-          adb shell am force-stop com.julvox.app
-          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-offline.txt
+          timeout 10 adb shell settings put global airplane_mode_on 1
+          timeout 10 adb shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true >/dev/null
+          timeout 10 adb shell am force-stop com.julvox.app
+          timeout 30 adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-offline.txt
           grep -q 'Status: ok' /tmp/start-offline.txt
           sleep 4
-          adb shell pidof com.julvox.app
+          timeout 10 adb shell pidof com.julvox.app
 
       - name: Emulator background resume smoke
         run: |
-          adb shell input keyevent KEYCODE_HOME
+          timeout 10 adb shell input keyevent KEYCODE_HOME
           sleep 2
-          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-resume.txt
+          timeout 30 adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-resume.txt
           grep -q 'Status: ok' /tmp/start-resume.txt
-          adb shell pidof com.julvox.app
-          if adb logcat -d -t 800 | grep -E 'FATAL EXCEPTION.*com\.julvox\.app|Process: com\.julvox\.app.*FATAL EXCEPTION'; then
+          timeout 10 adb shell pidof com.julvox.app
+          if timeout 10 adb logcat -d -t 800 | grep -E 'FATAL EXCEPTION.*com\.julvox\.app|Process: com\.julvox\.app.*FATAL EXCEPTION'; then
             echo 'Julvox fatal exception found in emulator logcat' >&2
             exit 1
           fi
@@ -138,9 +142,9 @@ jobs:
         if: always()
         run: |
           mkdir -p android/app/build/reports/p510
-          adb exec-out screencap -p > android/app/build/reports/p510/emulator.png || true
-          adb logcat -d -t 1200 > android/app/build/reports/p510/logcat.txt || true
-          cp /tmp/julvox-emulator.log android/app/build/reports/p510/emulator-host.log || true
+          timeout 10 adb exec-out screencap -p > android/app/build/reports/p510/emulator.png || true
+          timeout 10 adb logcat -d -t 1200 > android/app/build/reports/p510/logcat.txt || true
+          cp /tmp/julvox-emulator.log android/app/build/reports/p510/emulator-host.log 2>/dev/null || true
           cp /tmp/start-online.txt android/app/build/reports/p510/start-online.txt 2>/dev/null || true
           cp /tmp/start-offline.txt android/app/build/reports/p510/start-offline.txt 2>/dev/null || true
           cp /tmp/start-resume.txt android/app/build/reports/p510/start-resume.txt 2>/dev/null || true
