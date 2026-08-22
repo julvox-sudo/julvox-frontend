@@ -103,7 +103,7 @@ function scanProductionTruth(files, baseDir = root) {
   if (!sw.includes("request.credentials === 'include'")) failures.push('service worker does not refuse credentialed public GET requests');
   if (!sw.includes('isCacheablePublicResponse') || !sw.includes('Set-Cookie') || !sw.includes('no-store|private')) failures.push('service worker does not reject private/no-store public responses');
   if (!sw.includes('safePublicUrl')) failures.push('service worker notification redirects are not restricted to the public origin');
-  if (!sw.includes('dealscan-public-api-')) failures.push('service worker does not isolate the new public GET cache');
+  if (!sw.includes('julvox-public-api-')) failures.push('service worker does not isolate the Julvox public GET cache');
   if (sw.includes('syncPendingVotes') || sw.includes("event.tag === 'sync-votes'")) failures.push('service worker still queues or replays vote mutations');
   if (!hasHonestServiceWorkerErrors(sw)) failures.push('service worker 503/504 responses are missing');
   if (/offline(?:_stale)?[^\n]+deals:\s*\[\]/.test(sw)) failures.push('service worker fabricates an empty deals result');
