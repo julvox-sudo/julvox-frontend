@@ -1,0 +1,73 @@
+plugins {
+    id 'com.android.application'
+}
+
+def repositoryRoot = rootProject.projectDir.parentFile
+def generatedAssets = file("${buildDir}/generated/julvoxWeb/assets")
+def isWindows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+def npmExecutable = isWindows ? 'npm.cmd' : 'npm'
+def nodeExecutable = isWindows ? 'node.exe' : 'node'
+
+android {
+    namespace 'com.julvox.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.julvox.app'
+        minSdk 26
+        targetSdk 36
+        versionCode 170010
+        versionName '17.0.0-p5.10'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    sourceSets {
+        main {
+            assets.srcDir generatedAssets
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+    }
+}
+
+tasks.register('buildJulvoxWeb', Exec) {
+    workingDir repositoryRoot
+    commandLine npmExecutable, 'run', 'build'
+}
+
+tasks.register('prepareJulvoxAndroidWeb', Exec) {
+    dependsOn 'buildJulvoxWeb'
+    workingDir repositoryRoot
+    environment 'JULVOX_ANDROID_ASSET_OUTPUT', generatedAssets.absolutePath
+    commandLine nodeExecutable, 'scripts/android/prepare-web-assets.js'
+}
+
+tasks.named('preBuild').configure {
+    dependsOn 'prepareJulvoxAndroidWeb'
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.16.0'
+}

@@ -1,0 +1,135 @@
+name: P5.10 Android foundation
+
+on:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'scripts/android/**'
+      - 'tests/ui-00/p5-android-mobile-readiness-01.test.js'
+      - 'package.json'
+      - '.github/workflows/android-foundation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact requested SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Record exact SHA
+        run: |
+          echo "ANDROID_EXACT_SHA=$(git rev-parse HEAD)"
+          git status --short
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.13
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;35.0.0' 'emulator' 'system-images;android-35;google_apis;x86_64'
+
+      - name: Verify Android source contract
+        run: npm run android:verify
+
+      - name: Build exact-SHA debug APK
+        run: gradle -p android --no-daemon :app:assembleDebug
+
+      - name: Verify APK package and SDK contract
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK"
+          apkanalyzer manifest application-id "$APK" | grep -Fx 'com.julvox.app'
+          apkanalyzer manifest min-sdk "$APK" | grep -Fx '26'
+          apkanalyzer manifest target-sdk "$APK" | grep -Fx '36'
+          echo "APK_BYTES=$(stat -c%s "$APK")"
+          sha256sum "$APK"
+
+      - name: Scan built APK for embedded secret patterns
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          unzip -p "$APK" | strings -a > /tmp/julvox-apk-strings.txt
+          node scripts/android/verify-apk-secrets.js /tmp/julvox-apk-strings.txt
+
+      - name: Create Android 15 emulator
+        run: |
+          echo no | avdmanager create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
+          sudo chmod 666 /dev/kvm || true
+          nohup emulator -avd julvox_p510 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/julvox-emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 240 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 2; done'
+          adb shell input keyevent 82
+
+      - name: Emulator online start smoke
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r "$APK"
+          adb shell am force-stop com.julvox.app
+          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-online.txt
+          grep -q 'Status: ok' /tmp/start-online.txt
+          sleep 4
+          adb shell pidof com.julvox.app
+
+      - name: Emulator offline cold-start smoke
+        run: |
+          adb shell settings put global airplane_mode_on 1
+          adb shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true >/dev/null
+          adb shell am force-stop com.julvox.app
+          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-offline.txt
+          grep -q 'Status: ok' /tmp/start-offline.txt
+          sleep 4
+          adb shell pidof com.julvox.app
+
+      - name: Emulator background resume smoke
+        run: |
+          adb shell input keyevent KEYCODE_HOME
+          sleep 2
+          adb shell am start -W com.julvox.app/.MainActivity | tee /tmp/start-resume.txt
+          grep -q 'Status: ok' /tmp/start-resume.txt
+          adb shell pidof com.julvox.app
+          if adb logcat -d -t 800 | grep -E 'FATAL EXCEPTION.*com\.julvox\.app|Process: com\.julvox\.app.*FATAL EXCEPTION'; then
+            echo 'Julvox fatal exception found in emulator logcat' >&2
+            exit 1
+          fi
+
+      - name: Capture emulator evidence
+        if: always()
+        run: |
+          mkdir -p android/app/build/reports/p510
+          adb exec-out screencap -p > android/app/build/reports/p510/emulator.png || true
+          adb logcat -d -t 1200 > android/app/build/reports/p510/logcat.txt || true
+          cp /tmp/julvox-emulator.log android/app/build/reports/p510/emulator-host.log || true
+
+      - name: Upload exact-SHA APK and emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: julvox-p5-10-android-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/reports/p510/**
+          if-no-files-found: error
+          retention-days: 14
