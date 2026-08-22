@@ -1,4 +1,4 @@
-// DEPLOY_MARKER_DEALSCAN_SW_V17_OFFLINE_SHELL_01
+// DEPLOY_MARKER_JULVOX_SW_V17_OFFLINE_SHELL_01
 // ============================================================
 //  Julvox — Service Worker v17 PWA / offline shell revision 01
 //  Cache public GET uniquement + Push Notifications
@@ -6,8 +6,8 @@
 
 const CACHE_VERSION = 'v17';
 const CACHE_REVISION = 'offline-shell-01';
-const CACHE_NAME = `dealscan-public-api-${CACHE_VERSION}-${CACHE_REVISION}`;
-const CACHE_STATIC = `dealscan-static-${CACHE_VERSION}-${CACHE_REVISION}`;
+const CACHE_NAME = `julvox-public-api-${CACHE_VERSION}-${CACHE_REVISION}`;
+const CACHE_STATIC = `julvox-static-${CACHE_VERSION}-${CACHE_REVISION}`;
 const BACKEND_ORIGIN = '__JULVOX_BACKEND_ORIGIN_FROM_RUNTIME_CONTRACT__'; /* build-anchor:service-worker-backend-origin */
 const PUBLIC_ORIGIN = 'https://julvox.com';
 
