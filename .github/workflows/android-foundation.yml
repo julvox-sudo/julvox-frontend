@@ -74,13 +74,32 @@ jobs:
           unzip -p "$APK" | strings -a > /tmp/julvox-apk-strings.txt
           node scripts/android/verify-apk-secrets.js /tmp/julvox-apk-strings.txt
 
+      - name: Enable KVM for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -e /dev/kvm
+          test -r /dev/kvm
+          test -w /dev/kvm
+          emulator -accel-check
+
       - name: Create Android 15 emulator
         run: |
           echo no | avdmanager create avd --force --name julvox_p510 --package 'system-images;android-35;google_apis;x86_64' --device 'pixel_6'
-          sudo chmod 666 /dev/kvm || true
-          nohup emulator -avd julvox_p510 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/julvox-emulator.log 2>&1 &
-          adb wait-for-device
-          timeout 240 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 2; done'
+          nohup emulator -avd julvox_p510 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect > /tmp/julvox-emulator.log 2>&1 &
+          echo $! > /tmp/julvox-emulator.pid
+          if ! timeout 90 adb wait-for-device; then
+            echo 'Android emulator did not expose an adb device within 90 seconds' >&2
+            cat /tmp/julvox-emulator.log >&2 || true
+            exit 1
+          fi
+          if ! timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = "1" ]; do sleep 2; done'; then
+            echo 'Android emulator did not complete boot within 300 seconds' >&2
+            adb devices -l >&2 || true
+            cat /tmp/julvox-emulator.log >&2 || true
+            exit 1
+          fi
           adb shell input keyevent 82
 
       - name: Emulator online start smoke
@@ -122,6 +141,9 @@ jobs:
           adb exec-out screencap -p > android/app/build/reports/p510/emulator.png || true
           adb logcat -d -t 1200 > android/app/build/reports/p510/logcat.txt || true
           cp /tmp/julvox-emulator.log android/app/build/reports/p510/emulator-host.log || true
+          cp /tmp/start-online.txt android/app/build/reports/p510/start-online.txt 2>/dev/null || true
+          cp /tmp/start-offline.txt android/app/build/reports/p510/start-offline.txt 2>/dev/null || true
+          cp /tmp/start-resume.txt android/app/build/reports/p510/start-resume.txt 2>/dev/null || true
 
       - name: Upload exact-SHA APK and emulator evidence
         if: always()
