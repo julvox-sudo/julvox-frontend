@@ -83,7 +83,8 @@ test('P5.10 disables backups and cleartext transport for the Android session bou
 
 test('P5.10 CI builds an APK and exercises online start, offline cold start and background resume on an emulator', () => {
   assert.match(workflow, /:app:assembleDebug/u);
-  assert.match(workflow, /avdmanager create avd/u);
+  assert.match(workflow, /AVDMANAGER_BIN/u);
+  assert.match(workflow, /create avd --force --name julvox_p510/u);
   assert.match(workflow, /airplane_mode_on 1/u);
   assert.match(workflow, /am force-stop com\.julvox\.app/u);
   assert.match(workflow, /am start -W com\.julvox\.app\/\.MainActivity/u);
