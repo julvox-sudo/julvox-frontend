@@ -10,7 +10,7 @@ const root = process.cwd();
 const indexPath = path.join(root, 'dist', 'index.html');
 const MARKER = '/* ui-00-final-product-truth:applied-v3 */';
 const LEGACY_WISHLIST_TARGET = "item.current_best_price <= item.target_price ? '✅ ATTEINT !' : '(encore ' + (item.current_best_price - item.target_price).toFixed(0) + '€ à baisser)'";
-const SAFE_WISHLIST_TARGET = "Number.isFinite(Number(item.current_best_price)) ? (Number(item.current_best_price) <= Number(item.target_price) ? '✅ ATTEINT !' : '(encore ' + (Number(item.current_best_price) - Number(item.target_price)).toFixed(0) + '€ à baisser)') : 'Prix actuel non observé'";
+const SAFE_WISHLIST_TARGET = "Number.isFinite(item.current_best_price) ? (item.current_best_price <= Number(item.target_price) ? '✅ ATTEINT !' : '(encore ' + (item.current_best_price - Number(item.target_price)).toFixed(0) + '€ à baisser)') : 'Prix actuel non observé'";
 
 function fail(message) {
   throw new Error(`UI-00 final product truth failed: ${message}`);
