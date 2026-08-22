@@ -1,11 +1,17 @@
 # Julvox P5.10 — Android mobile readiness
 
-This directory is the single Android shell for Julvox. It lives in the canonical `julvox-frontend` repository and consumes the same verified static Julvox artifact as the web/PWA surface. It is not a second product implementation and contains no decision, retrieval, pricing, ranking or AI authority.
+This directory is the Android shell delivered by P5.10. It lives in the canonical `julvox-frontend` repository and consumes the same verified static Julvox artifact as the web/PWA surface. It is not a second product implementation and contains no decision, retrieval, pricing, ranking or AI authority.
+
+## Frozen architecture classification
+
+**P5.10_ANDROID_SHELL = TEMPORARY_SHELL_OR_FOUNDATION.** This directory is the frozen P5.10 deliverable and may be evaluated later as reusable groundwork. It is **not** the final canonical Julvox mobile architecture.
+
+A later, separately authorized mission may create the real Julvox mobile application in a distinct GitHub repository (name envisaged: `julvox-mobile`), starting with Android. P5.10 does not create that repository, does not migrate this shell into it, and does not start camera, barcode, photo/Vision, iOS or any later mobile lot.
 
 ## Read-only audit classification before implementation
 
 ### CANONICAL
-- `julvox-sudo/julvox-frontend` at the P5.9 boundary is the canonical UI/mobile source.
+- `julvox-sudo/julvox-frontend` at the P5.9 boundary is the canonical frontend/UI source used by this P5.10 shell.
 - `window.JULVOX_API` remains the canonical frontend API client.
 - The backend remains the authority for Product Retrieval, ProductReference, Market/World observations and DecisionEngine decisions.
 
@@ -16,8 +22,8 @@ This directory is the single Android shell for Julvox. It lives in the canonical
 - Historical web scanner boundaries that already treat scanning as identification, not decision authority.
 
 ### LEGACY / INCOMPLETE
-- Historical `product-barcode-scanner` uses browser `getUserMedia()` + `BarcodeDetector`; it is web/PWA groundwork for P5.11, not a native Android scanner.
-- Historical `product-smart-scan` is web groundwork for P5.12 and must not become an Android identification authority in P5.10.
+- Historical `product-barcode-scanner` uses browser `getUserMedia()` + `BarcodeDetector`; it is web/PWA groundwork for a later mobile mission, not a native Android scanner delivered by P5.10.
+- Historical `product-smart-scan` is web groundwork for later product identification work and must not become an Android identification authority in P5.10.
 - Source web authentication historically persists `ds_user` in `localStorage`; the Android asset adapter virtualizes that key into Android Keystore-backed encrypted storage without changing web behavior.
 - Native Android notifications and deep-link/app-link verification are not claimed by P5.10.
 
@@ -57,11 +63,11 @@ The shell reuses the already validated responsive Julvox HTML semantics. Android
 
 ## Future boundaries — intentionally NOT_STARTED
 
-- **P5.11 — Smart Scan / barcode / EAN: NOT_STARTED.** Existing `BarcodeDetector`/getUserMedia web work is only architectural evidence. No CAMERA permission or native scanner is added here.
-- **P5.12 — visual product recognition: NOT_STARTED.** No native photo capture or Vision/Gemini identification flow is added here.
-- **P5.13 — Android hardening: NOT_STARTED.** P5.10 provides the foundation and a basic emulator smoke test only; exhaustive device/permission/camera/crash matrices belong later.
+- **Barcode / EAN / camera: NOT_STARTED in P5.10.** Existing `BarcodeDetector`/getUserMedia web work is only architectural evidence. No CAMERA permission or native scanner is added here.
+- **Visual product recognition: NOT_STARTED in P5.10.** No native photo capture or Vision/Gemini identification flow is added here.
+- **Exhaustive Android hardening: NOT_STARTED in P5.10.** P5.10 provides the foundation and a basic emulator smoke test only; exhaustive device/permission/camera/crash matrices belong to a later authorized mission.
 
-When those lots start, camera/photo code may identify candidate products only. Product Retrieval resolves candidates, ProductReference establishes canonical identity, Market/World supplies observed facts, and **DecisionEngine remains backend authority** for the decision.
+When later mobile work is explicitly authorized, camera/photo code may identify candidate products only. Product Retrieval resolves candidates, ProductReference establishes canonical identity, Market/World supplies observed facts, and **DecisionEngine remains backend authority** for the decision.
 
 ## Build
 
@@ -74,4 +80,4 @@ gradle -p android --no-daemon :app:assembleDebug
 
 Gradle first runs the complete verified web build, then creates an Android-specific generated asset copy and injects the secure-session adapter. Generated web assets and APKs remain build outputs and are not source-of-truth files.
 
-No production deployment, Production migration, Smart Scan implementation or business-authority duplication is part of P5.10.
+No production deployment, Production migration, future mobile repository creation, Smart Scan implementation or business-authority duplication is part of P5.10.
