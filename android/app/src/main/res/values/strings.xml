@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Julvox</string>
+    <string name="load_error_title">Julvox ne peut pas afficher l’interface.</string>
+    <string name="load_error_body">Fermez puis rouvrez l’application. Vos décisions restent gérées par les services Julvox.</string>
+</resources>
