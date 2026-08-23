@@ -13,6 +13,7 @@ const { hardenPublicArtifact: hardenWishlistHtml } = require('./harden-wishlist-
 const { hardenPublicArtifact: hardenCommunityClaimHtml } = require('./harden-community-claim-html');
 const { hardenPublicArtifact: reconcileWishlistActivePath } = require('./reconcile-wishlist-active-path');
 const { hardenPublicArtifact: hardenDealSquadHtml } = require('./harden-deal-squad-html');
+const { hardenPublicArtifact: reconcileNewsletterPreferencesTruth } = require('./reconcile-newsletter-preferences-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -127,6 +128,7 @@ function main() {
   hardenCommunityClaimHtml();
   reconcileWishlistActivePath();
   hardenDealSquadHtml();
+  reconcileNewsletterPreferencesTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
