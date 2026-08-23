@@ -3,6 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const { hardenPublicArtifact: hardenDynamicDealHtml } = require('./harden-dynamic-deal-html');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -111,6 +112,7 @@ function assertHardened(html) {
 
 function main() {
   const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
+  hardenDynamicDealHtml();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
