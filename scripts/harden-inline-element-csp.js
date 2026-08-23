@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { hardenPublicArtifact: hardenDynamicDealHtml } = require('./harden-dynamic-deal-html');
+const { hardenPublicArtifact: hardenDynamicPromoHtml } = require('./harden-dynamic-promo-html');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -57,8 +58,6 @@ function buildInlineElementPolicy(html) {
   ];
 
   return [
-    // CSP2 fallback deliberately keeps inline attributes alive. CSP3 browsers
-    // apply the stricter *-src-elem directives below to script/style elements.
     `script-src ${scriptHosts.join(' ')} 'unsafe-inline'`,
     `script-src-elem ${[...scriptHosts, ...scripts].join(' ')}`,
     "script-src-attr 'unsafe-inline'",
@@ -75,8 +74,6 @@ function hardenHtml(html) {
     throw new Error('P6.27 CSP hardening could not find <head> in public index');
   }
 
-  // Canonicalize only the whitespace directly after <head>. This makes a
-  // second hardening pass byte-identical without touching script/style bodies.
   const canonical = withoutPrevious.replace(/(<head(?:\s[^>]*)?>)\s*/i, '$1');
   const policy = buildInlineElementPolicy(canonical);
   const meta = `<meta http-equiv="Content-Security-Policy" ${MARKER} content="${policy}">`;
@@ -113,6 +110,7 @@ function assertHardened(html) {
 function main() {
   const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
   hardenDynamicDealHtml();
+  hardenDynamicPromoHtml();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
