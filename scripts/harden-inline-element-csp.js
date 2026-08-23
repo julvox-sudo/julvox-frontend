@@ -18,6 +18,7 @@ const { hardenPublicArtifact: reconcilePushPreferencesTruth } = require('./recon
 const { hardenPublicArtifact: reconcileReferralRewardTruth } = require('./reconcile-referral-reward-truth');
 const { hardenPublicArtifact: reconcileFavoritesLocalTruth } = require('./reconcile-favorites-local-truth');
 const { hardenPublicArtifact: reconcileCookieConsentLocalTruth } = require('./reconcile-cookie-consent-local-truth');
+const { hardenPublicArtifact: reconcileAccountErasureTruth } = require('./reconcile-account-erasure-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -137,6 +138,7 @@ function main() {
   reconcileReferralRewardTruth();
   reconcileFavoritesLocalTruth();
   reconcileCookieConsentLocalTruth();
+  reconcileAccountErasureTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);

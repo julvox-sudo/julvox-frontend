@@ -93,7 +93,15 @@ function scanProductionTruth(files, baseDir = root) {
   if (!truth.includes('withMutationLock')) failures.push('mutation duplicate guard is missing');
   if (!truth.includes('Number.isFinite(data?.votes_validate) && Number.isFinite(data?.votes_reject)')) failures.push('community vote confirmation accepts incomplete counters');
   if (!truth.includes('Number.isFinite(data?.votes_ok) && Number.isFinite(data?.votes_ko)')) failures.push('promotion vote confirmation accepts incomplete counters');
-  if (!truth.includes('response?.status === 204 || data?.rgpd === true')) failures.push('account deletion 204/business confirmation is missing');
+  for (const token of [
+    'response?.status === 200',
+    "data?.status === 'anonymized'",
+    "data?.scope === 'profile_and_covered_local_identity_graph'",
+    'data?.full_erasure === false',
+  ]) {
+    if (!truth.includes(token)) failures.push(`account deletion anonymization confirmation is missing: ${token}`);
+  }
+  if (truth.includes('response?.status === 204 || data?.rgpd === true')) failures.push('legacy account deletion 204/rgpd confirmation remains');
   if (!truth.includes('subscription.unsubscribe()')) failures.push('push subscription rollback is missing');
   if (!truth.includes('CAPABILITY_SURFACES') || !truth.includes('CAPABILITY_ENTRYPOINTS')) failures.push('capability behavior mapping is missing');
   if (!hasDemoOnlyGate(truth)) failures.push('demo-only environment gate is missing');
