@@ -48,12 +48,12 @@ test('P6.46 removes unsupported guide volume, automatic event-alert and Chrome-e
   assert.match(hardened, /Aucune extension Chrome Julvox n'est actuellement requise ou annoncée/);
 });
 
-test('P6.46 identifies configured calendar values without pretending they are live observed averages', () => {
+test('P6.46 identifies configured calendar values without pretending they are dynamically observed averages', () => {
   const hardened = hardenHtml(fixture);
   assert.doesNotMatch(hardened, /basé sur l'historique des prix/);
   assert.doesNotMatch(hardened, /Ces données sont basées sur l'historique des prix Julvox/);
   assert.match(hardened, /Repères indicatifs du calendrier Julvox/);
-  assert.match(hardened, /ne sont pas calculées en temps réel à partir de l'historique des prix/);
+  assert.match(hardened, /valeurs configurées, pas d'un calcul dynamique à partir de l'historique des prix/);
 });
 
 test('P6.46 preserves calendar API and comparison runtime syntax', () => {
