@@ -7,6 +7,7 @@ const { hardenPublicArtifact: hardenDynamicDealHtml } = require('./harden-dynami
 const { hardenPublicArtifact: hardenDynamicPromoHtml } = require('./harden-dynamic-promo-html');
 const { hardenPublicArtifact: hardenDynamicCompareHtml } = require('./harden-dynamic-compare-html');
 const { hardenPublicArtifact: hardenUserIdentityDom } = require('./harden-user-identity-dom');
+const { hardenPublicArtifact: hardenAccountHtml } = require('./harden-account-html');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -115,6 +116,7 @@ function main() {
   hardenDynamicPromoHtml();
   hardenDynamicCompareHtml();
   hardenUserIdentityDom();
+  hardenAccountHtml();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
