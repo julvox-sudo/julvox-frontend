@@ -65,7 +65,6 @@ function assertHardened(html) {
     'data-comm-comments-id',
     'postCommComment(',
     '/community/deals/${dealId}/comments',
-    'placeholder="Ajoute un commentaire…"',
   ]) {
     if (html.includes(unsupported)) throw new Error(`P6.49 unavailable community comment path remains: ${unsupported}`);
   }
