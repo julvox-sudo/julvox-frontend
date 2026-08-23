@@ -42,6 +42,7 @@ async function openDealOfDay() {
     const deal = (data.deals || [])[0];
 }
 function renderDealOfDay(deal, el) {
+  const discount = deal.discount_pct ? Math.round(deal.discount_pct) : 0;
   const scoreColor = score >= 85 ? 'var(--green)' : score >= 65 ? 'var(--gold)' : '#FF5C2B';
   el.innerHTML = \`\${(deal.image_url && deal.image_url.startsWith('http'))
     ? \`<img src="\${deal.image_url}" alt="\${deal.name}" style="x">\`
