@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -77,6 +78,7 @@ function startCountdownsLive(flashDeals) {}
 
 function dealCard(d) {
   const img    = getProductImage(d);
+  const trust = ui00ResolveScore(STORE_TRUST[d.store]);
   const fallbackImg = getProductImage({category: cat, image_url: ''});
   return \`<div onclick="openDeal(\${d.id})"><button onclick="event.stopPropagation();openReport(\${d.id},'\${escHtml(d.name)}')">report</button></div>\`;
 }
@@ -120,6 +122,12 @@ test('P6.28 rewrites dynamic deal HTML boundaries and is idempotent', () => {
   assert.doesNotMatch(hardened, /JSON\.stringify\(deal\)\.replace/);
   assert.doesNotMatch(hardened, /createAlert\('\$\{escHtml\(deal\.name\)\}/);
   assert.doesNotMatch(hardened, /\+ \(a\.message \|\| ''\) \+/);
+
+  const scripts = [...hardened.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]);
+  scripts.forEach((source, index) => assert.doesNotThrow(
+    () => new vm.Script(source, { filename: `fixture-inline-${index}.js` }),
+  ));
+
   assert.equal(hardenHtml(hardened), hardened);
 });
 
