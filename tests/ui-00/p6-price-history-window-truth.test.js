@@ -12,7 +12,10 @@ const fixture = `<!doctype html><html><body>
 <div itemprop="text">Julvox analyse l'historique de prix sur 90 jours. Si le "prix original" affiché n'a jamais été pratiqué, ou si le prix a été gonflé artificiellement dans les 2 semaines précédant la promo, Julvox affiche le badge ⚠️ "Fausse promo suspectée".</div>
 <script>
 async function _loadAndRenderPriceChart(deal) {
-  const result = await window.JULVOX_API.get('/deals/' + encodeURIComponent(deal.id));
+  const dealId = deal?.id;
+  const result = await window.JULVOX_API.get('/deals/' + encodeURIComponent(dealId), {
+    isEmpty: data => !Array.isArray(data?.price_history) || data.price_history.length < 2,
+  });
   return result;
 }
 function renderPriceHistoryChart(history, containerEl) {
@@ -50,7 +53,7 @@ test('P6.53 preserves factual history retrieval and removes score-as-decision im
   const hardened = hardenHtml(fixture);
   assert.match(hardened, /function _loadAndRenderPriceChart\(/);
   assert.match(hardened, /function renderPriceHistoryChart\(/);
-  assert.match(hardened, /JULVOX_API\.get\('\/deals\/' \+ encodeURIComponent\(deal\.id\)\)/);
+  assert.match(hardened, /JULVOX_API\.get\('\/deals\/' \+ encodeURIComponent\(dealId\)/);
   assert.match(hardened, /ne constitue pas, à lui seul, une décision d’achat/);
   for (const source of executableInlineScripts(hardened)) new vm.Script(source);
 });
