@@ -22,6 +22,7 @@ const { hardenPublicArtifact: reconcileAccountErasureTruth } = require('./reconc
 const { hardenPublicArtifact: reconcileSubscriptionCancellationTruth } = require('./reconcile-subscription-cancellation-truth');
 const { hardenPublicArtifact: reconcilePremiumBenefitTruth } = require('./reconcile-premium-benefit-truth');
 const { hardenPublicArtifact: reconcileGuideCalendarTruth } = require('./reconcile-guide-calendar-truth');
+const { hardenPublicArtifact: reconcilePrivacyRetentionTruth } = require('./reconcile-privacy-retention-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -145,6 +146,7 @@ function main() {
   reconcileSubscriptionCancellationTruth();
   reconcilePremiumBenefitTruth();
   reconcileGuideCalendarTruth();
+  reconcilePrivacyRetentionTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
