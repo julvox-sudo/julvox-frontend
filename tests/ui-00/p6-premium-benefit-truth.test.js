@@ -7,19 +7,21 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 const { hardenHtml } = require('../../scripts/reconcile-premium-benefit-truth');
 
-const fixture = `<!doctype html><html><body>
-<div class="newsletter-title">📬 Deals en avant-première</div>
-<div class="newsletter-sub">Reçois les meilleures offres selon ta fréquence.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>
-<input id="newsletterEmail">
-<div>Oui ! Jusqu'à 5 alertes prix sont gratuites. Avec Julvox Premium (4,99€/mois ou 39,99€/an), vous bénéficiez d'alertes illimitées, de l'accès aux deals en avant-première et du score Julvox détaillé.</div>
-<script>
-function openPremiumPage(){
-  return \`${"${['✅ Alertes prix illimitées','✅ Deals en avant-première','✅ Score Julvox détaillé','✅ Favoris sur cet appareil','✅ Newsletter premium','✅ Sans publicité','✅ Support prioritaire'].map(f=>"}<div>\${f}</div>\`).join('')}\`;
-}
-function payWithPayPal(plan){ return '/payments/paypal/create-subscription'; }
-function payWithStripe(plan){ return '/payments/stripe/create-checkout'; }
-</script>
-</body></html>`;
+const fixture = [
+  '<!doctype html><html><body>',
+  '<div class="newsletter-title">📬 Deals en avant-première</div>',
+  '<div class="newsletter-sub">Reçois les meilleures offres selon ta fréquence.<br>Gratuit · Sans spam · Désabonnement en 1 clic.</div>',
+  '<input id="newsletterEmail">',
+  "<div>Oui ! Jusqu'à 5 alertes prix sont gratuites. Avec Julvox Premium (4,99€/mois ou 39,99€/an), vous bénéficiez d'alertes illimitées, de l'accès aux deals en avant-première et du score Julvox détaillé.</div>",
+  '<script>',
+  'function openPremiumPage(){',
+  "  return `${['✅ Alertes prix illimitées','✅ Deals en avant-première','✅ Score Julvox détaillé','✅ Favoris sur cet appareil','✅ Newsletter premium','✅ Sans publicité','✅ Support prioritaire'].map(f=>`<div>${f}</div>`).join('')}`;",
+  '}',
+  "function payWithPayPal(plan){ return '/payments/paypal/create-subscription'; }",
+  "function payWithStripe(plan){ return '/payments/stripe/create-checkout'; }",
+  '</script>',
+  '</body></html>',
+].join('\n');
 
 function executableInlineScripts(html) {
   const scripts = [];
