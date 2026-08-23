@@ -60,7 +60,7 @@ function assertHardened(html) {
 
   if (!html.includes('function renderPriceHistoryChart(')) throw new Error('P6.53 price-history chart renderer must remain');
   if (!html.includes('function _loadAndRenderPriceChart(')) throw new Error('P6.53 price-history loader must remain');
-  if (!html.includes("JULVOX_API.get('/deals/' + encodeURIComponent(deal.id))")) throw new Error('P6.53 factual deal-history retrieval must remain');
+  if (!html.includes("JULVOX_API.get('/deals/' + encodeURIComponent(dealId)")) throw new Error('P6.53 factual deal-history retrieval must remain');
 }
 
 function hardenPublicArtifact(indexPath) {
