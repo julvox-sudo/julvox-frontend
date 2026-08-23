@@ -52,16 +52,16 @@ test('P6.36 routes the visible wishlist through the canonical items loader', () 
   assert.doesNotMatch(hardened, /result\.data\.wishlist/);
 });
 
-test('P6.36 aligns form and refresh ids with production-truth actions', () => {
+test('P6.36 aligns form and refresh ids with the canonical mutation installer', () => {
   const hardened = hardenHtml(fixture);
-  const truth = fs.readFileSync(path.join(__dirname, '..', '..', 'ui-00-production-truth.js'), 'utf8');
+  const mutationInstaller = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'ui00-mutation-installer.js'), 'utf8');
   assert.match(hardened, /id="wishName"/);
   assert.match(hardened, /id="wishTargetPrice"/);
   assert.match(hardened, /id="wishlistItems"/);
-  assert.match(truth, /getElementById\('wishName'\)/);
-  assert.match(truth, /getElementById\('wishTargetPrice'\)/);
-  assert.match(truth, /globalObject\.loadWishlistItems\?\.\(\)/);
-  assert.match(truth, /globalObject\.removeFromWishlist = id/);
+  assert.match(mutationInstaller, /getElementById\('wishName'\)/);
+  assert.match(mutationInstaller, /getElementById\('wishTargetPrice'\)/);
+  assert.match(mutationInstaller, /globalObject\.loadWishlistItems\?\.\(\)/);
+  assert.match(mutationInstaller, /globalObject\.removeFromWishlist = id/);
 });
 
 test('P6.36 retires legacy wishlist JS serialization and delegates rendering', () => {
