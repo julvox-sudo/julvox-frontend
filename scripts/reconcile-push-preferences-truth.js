@@ -15,13 +15,13 @@ function renderNotifsPage() {
   if (!body) return;
   const supported = 'Notification' in window && !!navigator.serviceWorker;
   const permission = supported ? Notification.permission : 'unsupported';
-  const active = permission === 'granted';
+  const granted = permission === 'granted';
   body.innerHTML = \`
     <div style="padding:20px">
       \${!supported ? \`
         <div style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);border-radius:14px;padding:16px;font-size:12px;color:var(--txt2)">
           Les notifications push ne sont pas prises en charge par ce navigateur.
-        </div>\` : !active ? \`
+        </div>\` : !granted ? \`
         <div style="background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.3);border-radius:14px;padding:16px;margin-bottom:16px;text-align:center">
           <div style="font-size:20px;margin-bottom:8px">🔔</div>
           <div style="font-size:14px;font-weight:600;margin-bottom:6px">Activer les notifications push</div>
@@ -29,8 +29,9 @@ function renderNotifsPage() {
           <button onclick="enableNotifPermission()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">Activer</button>
         </div>\` : \`
         <div style="background:rgba(0,208,132,.06);border:1px solid rgba(0,208,132,.15);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:5px">✅ Notifications push activées</div>
-          <div style="font-size:12px;color:var(--txt2)">Ton abonnement navigateur est actif pour Julvox.</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:5px">✅ Permission navigateur accordée</div>
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:12px">La permission seule ne confirme pas que l’abonnement est actuellement enregistré côté Julvox.</div>
+          <button onclick="enableNotifPermission()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer">Enregistrer / resynchroniser l’abonnement Julvox</button>
         </div>\`}
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--txt2);line-height:1.45">
         La personnalisation détaillée des types de notifications et des heures calmes n’est pas encore synchronisée avec ton abonnement Julvox sur cette page. Aucun réglage serveur n’est annoncé comme modifié ici.
@@ -105,12 +106,16 @@ function assertHardened(html) {
     'Score Julvox ≥ 90',
     'prefs[key] = val',
     'saveNotifPrefs(',
+    'Ton abonnement navigateur est actif pour Julvox',
+    'Notifications push activées',
   ]) {
     if (prefsBlock.includes(bad)) throw new Error(`P6.39 misleading preference state remains: ${bad}`);
   }
   for (const required of [
     'enableNotifPermission()',
-    'Notifications push activées',
+    'Permission navigateur accordée',
+    'La permission seule ne confirme pas',
+    'Enregistrer / resynchroniser l’abonnement Julvox',
     'personnalisation détaillée',
     'Aucun réglage serveur n’est annoncé comme modifié ici',
   ]) {
