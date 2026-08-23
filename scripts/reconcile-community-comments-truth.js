@@ -18,7 +18,7 @@ const COMMENT_BUTTON = `<button type="button" data-comm-comments-id="\${d.id}" s
 
 const DISABLED_COMMENT_BUTTON = '<button type="button" disabled aria-disabled="true" title="Commentaires communautaires indisponibles" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:600;cursor:not-allowed;color:var(--txt3);opacity:.75">💬 Commentaires indisponibles</button>';
 
-const COMMENTS_RUNTIME_PATTERN = /function openCommComments\(dealId, dealName\) \{[\s\S]*?async function loadCommComments\(dealId\) \{[\s\S]*?\n\}\n\n\n(?=\/\/ ── Leaderboard render ──)/;
+const COMMENTS_RUNTIME_PATTERN = /function openCommComments\(dealId, dealName\) \{[\s\S]*?async function loadCommComments\(dealId\) \{[\s\S]*?\n\}\n\s*(?=\/\/ ── Leaderboard render ──)/;
 
 const DISABLED_COMMENTS_RUNTIME = `/* ${MARKER} */
 function openCommComments() {
