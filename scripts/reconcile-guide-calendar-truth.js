@@ -28,7 +28,7 @@ const REPLACEMENTS = [
   ],
   [
     "📊 Ces données sont basées sur l'historique des prix Julvox. Les remises sont des moyennes constatées et peuvent varier selon les produits.",
-    "📊 Les remises affichées sont des repères indicatifs configurés dans le calendrier Julvox ; elles ne sont pas calculées en temps réel à partir de l'historique des prix.",
+    "📊 Les remises affichées sont des repères indicatifs configurés dans le calendrier Julvox ; elles proviennent de valeurs configurées, pas d'un calcul dynamique à partir de l'historique des prix.",
     'calendar observed-average footnote',
   ],
 ];
@@ -82,7 +82,7 @@ function assertHardened(html) {
     "Il ne crée pas d'alerte automatique avant les événements",
     "Aucune extension Chrome Julvox n'est actuellement requise ou annoncée par ce service web",
     'Repères indicatifs du calendrier Julvox pour chaque catégorie',
-    "elles ne sont pas calculées en temps réel à partir de l'historique des prix",
+    "elles proviennent de valeurs configurées, pas d'un calcul dynamique à partir de l'historique des prix",
     "window.JULVOX_API.get('/calendar/'",
     'function renderCalendar',
     'function runCompareV2',
