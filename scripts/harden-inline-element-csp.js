@@ -25,6 +25,7 @@ const { hardenPublicArtifact: reconcileGuideCalendarTruth } = require('./reconci
 const { hardenPublicArtifact: reconcilePrivacyRetentionTruth } = require('./reconcile-privacy-retention-truth');
 const { hardenPublicArtifact: reconcileCommunitySubmissionTruth } = require('./reconcile-community-submission-truth');
 const { hardenPublicArtifact: reconcileCommunityCommentsTruth } = require('./reconcile-community-comments-truth');
+const { hardenPublicArtifact: reconcileDealVerificationCopyTruth } = require('./reconcile-deal-verification-copy-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -151,6 +152,7 @@ function main() {
   reconcilePrivacyRetentionTruth();
   reconcileCommunitySubmissionTruth();
   reconcileCommunityCommentsTruth();
+  reconcileDealVerificationCopyTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
