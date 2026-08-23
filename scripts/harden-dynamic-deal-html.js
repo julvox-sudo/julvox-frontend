@@ -199,8 +199,8 @@ function hardenHtml(input) {
 
   html = transformBlock(html, 'function dealCard(d) {', '// ── FLASH ─', 'deal-card renderer', block => {
     let out = block;
-    out = replaceRequired(out, '  const img    = getProductImage(d);', '  const trust  = window.JulvoxDynamicDealTrust;\n  const safeId = trust.positiveId(d.id);\n  const img    = trust.httpUrl(getProductImage(d));', 'deal-card image normalization');
-    out = replaceRequired(out, "  const fallbackImg = getProductImage({category: cat, image_url: ''});", "  const fallbackImg = trust.httpUrl(getProductImage({category: cat, image_url: ''}));", 'deal-card fallback image normalization');
+    out = replaceRequired(out, '  const img    = getProductImage(d);', '  const htmlTrust = window.JulvoxDynamicDealTrust;\n  const safeId = htmlTrust.positiveId(d.id);\n  const img    = htmlTrust.httpUrl(getProductImage(d));', 'deal-card image normalization');
+    out = replaceRequired(out, "  const fallbackImg = getProductImage({category: cat, image_url: ''});", "  const fallbackImg = htmlTrust.httpUrl(getProductImage({category: cat, image_url: ''}));", 'deal-card fallback image normalization');
     out = out.split('${d.id}').join('${safeId}');
     out = replaceRequired(out, "onclick=\"event.stopPropagation();openReport(${safeId},'${escHtml(d.name)}')\"", 'onclick="window.JulvoxDynamicDealTrust.openReportFromDeal(event,${safeId})"', 'deal-card report handler');
     return out;
