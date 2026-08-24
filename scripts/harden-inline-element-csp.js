@@ -41,6 +41,7 @@ const { hardenPublicArtifact: reconcileDealLiveVerificationTruth } = require('./
 const { hardenPublicArtifact: reconcileScoreFramingTruth } = require('./reconcile-score-framing-truth');
 const { hardenPublicArtifact: reconcileReferralOnboardingTruth } = require('./reconcile-referral-onboarding-truth');
 const { hardenPublicArtifact: reconcileReferralAccountCtaTruth } = require('./reconcile-referral-account-cta-truth');
+const { hardenPublicArtifact: reconcileAlertOnboardingTargetTruth } = require('./reconcile-alert-onboarding-target-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -183,6 +184,7 @@ function main() {
   reconcileScoreFramingTruth();
   reconcileReferralOnboardingTruth();
   reconcileReferralAccountCtaTruth();
+  reconcileAlertOnboardingTargetTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
