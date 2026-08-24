@@ -30,6 +30,7 @@ const { hardenPublicArtifact: reconcileLegacyDealAnalysisTruth } = require('./re
 const { hardenPublicArtifact: reconcilePatentClaimTruth } = require('./reconcile-patent-claim-truth');
 const { hardenPublicArtifact: reconcilePriceHistoryWindowTruth } = require('./reconcile-price-history-window-truth');
 const { hardenPublicArtifact: reconcilePredictiveOnboardingTruth } = require('./reconcile-predictive-onboarding-truth');
+const { hardenPublicArtifact: reconcileOnboardingPreferenceTruth } = require('./reconcile-onboarding-preference-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -161,6 +162,7 @@ function main() {
   reconcilePatentClaimTruth();
   reconcilePriceHistoryWindowTruth();
   reconcilePredictiveOnboardingTruth();
+  reconcileOnboardingPreferenceTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
