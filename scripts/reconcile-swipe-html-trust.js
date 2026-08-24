@@ -33,9 +33,21 @@ function sha256(source) {
 }
 
 function hardenCardBlock(cardBlock) {
-  let output = cardBlock;
   const opening = CARD_START + '\n';
-  if (!output.startsWith(opening)) throw new Error('P6.82 Swipe card opening drifted');
+  if (!cardBlock.startsWith(opening)) throw new Error('P6.82 Swipe card opening drifted');
+
+  let output = cardBlock
+    .replace(/deal\.novadeal_score/g, 'safeDeal.novadeal_score')
+    .replace(/deal\.discount_pct/g, 'safeDeal.discount_pct')
+    .replace(/deal\.image_url/g, 'safeDeal.image_url')
+    .replace(/deal\.category/g, 'safeDeal.category')
+    .replace(/deal\.is_fake/g, 'safeDeal.is_fake')
+    .replace(/deal\.current_price/g, 'safeDeal.current_price')
+    .replace(/deal\.original_price/g, 'safeDeal.original_price')
+    .replace(/\$\{safeDeal\.image_url\}/g, '${safeImage}')
+    .replace(/\$\{deal\.name\}/g, '${safeName}')
+    .replace(/\$\{deal\.store \|\| ''\}/g, '${safeStore}')
+    .replace(/getCatEmoji\(safeDeal\.category\)/g, 'safeEmoji');
 
   output = output.replace(opening, `${opening}  const trust = window.JulvoxDynamicDealTrust;
   const safeDeal = trust && typeof trust.normalizeDeal === 'function' ? trust.normalizeDeal(deal, true) : null;
@@ -51,19 +63,9 @@ function hardenCardBlock(cardBlock) {
   const safeEmoji = trust.html(getCatEmoji(safeDeal.category));
 `);
 
-  output = output
-    .replace(/deal\.novadeal_score/g, 'safeDeal.novadeal_score')
-    .replace(/deal\.discount_pct/g, 'safeDeal.discount_pct')
-    .replace(/deal\.image_url/g, 'safeDeal.image_url')
-    .replace(/deal\.category/g, 'safeDeal.category')
-    .replace(/deal\.is_fake/g, 'safeDeal.is_fake')
-    .replace(/deal\.current_price/g, 'safeDeal.current_price')
-    .replace(/deal\.original_price/g, 'safeDeal.original_price')
-    .replace(/\$\{safeDeal\.image_url\}/g, '${safeImage}')
-    .replace(/\$\{deal\.name\}/g, '${safeName}')
-    .replace(/\$\{deal\.store \|\| ''\}/g, '${safeStore}')
-    .replace(/getCatEmoji\(safeDeal\.category\)/g, 'safeEmoji');
-
+  if (output.includes('trust.html(safeEmoji)')) {
+    throw new Error('P6.82 safeEmoji declaration was rewritten recursively');
+  }
   return output;
 }
 
@@ -125,6 +127,7 @@ function assertHardened(html) {
     'alt="${deal.name}"',
     '<div class="swipe-name">${deal.name}</div>',
     "${deal.store || ''}",
+    'trust.html(safeEmoji)',
   ]) {
     if (html.includes(forbidden)) throw new Error(`P6.82 unsafe Swipe sink remains: ${forbidden}`);
   }
