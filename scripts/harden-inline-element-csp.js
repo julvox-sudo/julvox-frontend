@@ -49,6 +49,7 @@ const { hardenPublicArtifact: reconcileBudgetCardReferenceGapTruth } = require('
 const { hardenPublicArtifact: reconcileHomeInfluenceStateTruth } = require('./reconcile-home-influence-state-truth');
 const { hardenPublicArtifact: reconcileDealModalReferenceGapTruth } = require('./reconcile-deal-modal-reference-gap-truth');
 const { hardenPublicArtifact: reconcileMainGridReferenceGapTruth } = require('./reconcile-main-grid-reference-gap-truth');
+const { hardenPublicArtifact: reconcileDealOfDayShareHandlerTruth } = require('./reconcile-deal-of-day-share-handler-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -199,6 +200,7 @@ function main() {
   reconcileHomeInfluenceStateTruth();
   reconcileDealModalReferenceGapTruth();
   reconcileMainGridReferenceGapTruth();
+  reconcileDealOfDayShareHandlerTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
