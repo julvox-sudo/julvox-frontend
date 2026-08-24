@@ -9,6 +9,7 @@ const LEGACY_ASSIGNMENT = '  swipeDeals = result.data.deals;';
 const CARD_START = 'function buildSwipeCard(deal, isTop) {';
 const CARD_END = '// P6_81_SWIPE_RUNTIME_ACTIONS';
 const EXPECTED_CARD_SHA256 = '873cc6e5ef20ced512bc409da3f17b0960447d8c5a34b978d304a48960e77722';
+const DEAL_TRUST_AUTHORITY = 'window.JulvoxDynamicDealTrust = Object.freeze({';
 
 const SAFE_ASSIGNMENT = `  const swipeTrust = window.JulvoxDynamicDealTrust;
   if (!swipeTrust || typeof swipeTrust.normalizeDeal !== 'function') {
@@ -75,6 +76,9 @@ function hardenHtml(html) {
     return html;
   }
 
+  if (countOf(html, DEAL_TRUST_AUTHORITY) !== 1) {
+    throw new Error(`P6.82 expected one P6.28 deal trust authority, got ${countOf(html, DEAL_TRUST_AUTHORITY)}`);
+  }
   if (countOf(html, LEGACY_ASSIGNMENT) !== 1) {
     throw new Error(`P6.82 expected one raw Swipe feed assignment, got ${countOf(html, LEGACY_ASSIGNMENT)}`);
   }
@@ -102,6 +106,7 @@ function hardenHtml(html) {
 
 function assertHardened(html) {
   if (countOf(html, MARKER) !== 1) throw new Error('P6.82 marker count must be 1');
+  if (countOf(html, DEAL_TRUST_AUTHORITY) !== 1) throw new Error('P6.82 deal trust authority count must be 1');
   if (html.includes(LEGACY_ASSIGNMENT)) throw new Error('P6.82 raw Swipe feed assignment remains');
 
   for (const required of [
@@ -115,7 +120,6 @@ function assertHardened(html) {
     '${safeName}',
     '${safeStore}',
     '/deals/feed/swipe?limit=20',
-    'P6_28_DYNAMIC_DEAL_HTML_TRUST',
     'P6_79_SWIPE_REFERENCE_GAP_TRUTH',
     'P6_81_SWIPE_RUNTIME_ACTIONS',
   ]) {
@@ -144,6 +148,7 @@ function hardenPublicArtifact(indexPath) {
 if (require.main === module) hardenPublicArtifact();
 module.exports = {
   MARKER,
+  DEAL_TRUST_AUTHORITY,
   EXPECTED_CARD_SHA256,
   assertHardened,
   hardenCardBlock,
