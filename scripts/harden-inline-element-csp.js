@@ -58,6 +58,7 @@ const { hardenPublicArtifact: reconcileSwipeReferenceGapTruth } = require('./rec
 const { hardenPublicArtifact: reconcileBudgetSelectionCopyTruth } = require('./reconcile-budget-selection-copy-truth');
 const { hardenPublicArtifact: reconcileSwipeRuntimeActions } = require('./reconcile-swipe-runtime-actions');
 const { hardenPublicArtifact: reconcileSwipeHtmlTrust } = require('./reconcile-swipe-html-trust');
+const { hardenPublicArtifact: reconcileBudgetDetailOpenRuntime } = require('./reconcile-budget-detail-open-runtime');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -217,6 +218,7 @@ function main() {
   reconcileBudgetSelectionCopyTruth();
   reconcileSwipeRuntimeActions();
   reconcileSwipeHtmlTrust();
+  reconcileBudgetDetailOpenRuntime();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
