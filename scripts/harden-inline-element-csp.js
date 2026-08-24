@@ -36,6 +36,7 @@ const { hardenPublicArtifact: reconcileMerchantTrustCardTruth } = require('./rec
 const { hardenPublicArtifact: reconcileCompareMerchantTrustTruth } = require('./reconcile-compare-merchant-trust-truth');
 const { hardenPublicArtifact: reconcileLegacyPriceComparisonTruth } = require('./reconcile-legacy-price-comparison-truth');
 const { hardenPublicArtifact: reconcilePromoPointsTruth } = require('./reconcile-promo-points-truth');
+const { hardenPublicArtifact: reconcilePromoVoteRatioTruth } = require('./reconcile-promo-vote-ratio-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -173,6 +174,7 @@ function main() {
   reconcileCompareMerchantTrustTruth();
   reconcileLegacyPriceComparisonTruth();
   reconcilePromoPointsTruth();
+  reconcilePromoVoteRatioTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
