@@ -55,6 +55,7 @@ const { hardenPublicArtifact: reconcileFlashReferenceGapTruth } = require('./rec
 const { hardenPublicArtifact: reconcileTrendsReferenceGapTruth } = require('./reconcile-trends-reference-gap-truth');
 const { hardenPublicArtifact: reconcileCommunityReferenceGapTruth } = require('./reconcile-community-reference-gap-truth');
 const { hardenPublicArtifact: reconcileSwipeReferenceGapTruth } = require('./reconcile-swipe-reference-gap-truth');
+const { hardenPublicArtifact: reconcileBudgetSelectionCopyTruth } = require('./reconcile-budget-selection-copy-truth');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -211,6 +212,7 @@ function main() {
   reconcileTrendsReferenceGapTruth();
   reconcileCommunityReferenceGapTruth();
   reconcileSwipeReferenceGapTruth();
+  reconcileBudgetSelectionCopyTruth();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
