@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
 const {
+  DEAL_TRUST_AUTHORITY,
   EXPECTED_CARD_SHA256,
   hardenCardBlock,
 } = require('../../scripts/reconcile-swipe-html-trust');
@@ -64,15 +65,15 @@ test('P6.82 removes raw Swipe text and URL sinks and avoids recursive safeEmoji 
   assert.doesNotThrow(() => new Function(hardened));
 });
 
-test('P6.82 reuses P6.28 trust authority instead of defining a second one', () => {
+test('P6.82 reuses the concrete P6.28 deal trust authority instead of defining a second one', () => {
   const finalizer = fs.readFileSync(
     path.join(__dirname, '..', '..', 'scripts', 'reconcile-swipe-html-trust.js'),
     'utf8',
   );
-  assert.equal(finalizer.includes('window.JulvoxDynamicDealTrust'), true);
+  assert.equal(DEAL_TRUST_AUTHORITY, 'window.JulvoxDynamicDealTrust = Object.freeze({');
+  assert.equal(finalizer.includes(DEAL_TRUST_AUTHORITY), true);
   assert.equal(finalizer.includes('window.JulvoxSwipeTrust ='), false);
   assert.equal(finalizer.includes("swipeTrust.normalizeDeal(deal, true)"), true);
-  assert.equal(finalizer.includes("P6_28_DYNAMIC_DEAL_HTML_TRUST"), true);
 });
 
 test('P6.82 is wired after P6.81 and before CSP hashing', () => {
