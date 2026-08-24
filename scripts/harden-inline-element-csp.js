@@ -59,6 +59,7 @@ const { hardenPublicArtifact: reconcileBudgetSelectionCopyTruth } = require('./r
 const { hardenPublicArtifact: reconcileSwipeRuntimeActions } = require('./reconcile-swipe-runtime-actions');
 const { hardenPublicArtifact: reconcileSwipeHtmlTrust } = require('./reconcile-swipe-html-trust');
 const { hardenPublicArtifact: reconcileBudgetDetailOpenRuntime } = require('./reconcile-budget-detail-open-runtime');
+const { hardenPublicArtifact: reconcileWishlistDetailOpenRuntime } = require('./reconcile-wishlist-detail-open-runtime');
 
 const MARKER = 'data-julvox-csp="inline-elements-v1"';
 const META_PATTERN = /<meta\s+http-equiv=["']Content-Security-Policy["']\s+data-julvox-csp=["']inline-elements-v1["'][^>]*>/i;
@@ -219,6 +220,7 @@ function main() {
   reconcileSwipeRuntimeActions();
   reconcileSwipeHtmlTrust();
   reconcileBudgetDetailOpenRuntime();
+  reconcileWishlistDetailOpenRuntime();
   const source = fs.readFileSync(indexPath, 'utf8');
   const hardened = hardenHtml(source);
   assertHardened(hardened);
