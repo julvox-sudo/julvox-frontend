@@ -88,8 +88,12 @@ function hardenHtml(html) {
     throw new Error(`P6.82 Swipe card block hash drifted: ${observedHash}`);
   }
 
+  const hardenedCardBlock = hardenCardBlock(cardBlock);
   let output = html.replace(LEGACY_ASSIGNMENT, SAFE_ASSIGNMENT);
-  output = output.slice(0, start) + hardenCardBlock(cardBlock) + output.slice(end + (output.length - html.length));
+  if (countOf(output, cardBlock) !== 1) {
+    throw new Error(`P6.82 expected one exact Swipe card block after feed hardening, got ${countOf(output, cardBlock)}`);
+  }
+  output = output.replace(cardBlock, hardenedCardBlock);
   assertHardened(output);
   return output;
 }
