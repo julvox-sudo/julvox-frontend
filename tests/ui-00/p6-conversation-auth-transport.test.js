@@ -91,10 +91,13 @@ test('P6.85 hardened canonical runtime is syntactically valid JavaScript', () =>
   assert.doesNotThrow(() => new vm.Script(canonicalRuntime(hardenHtml(fixture))));
 });
 
-test('P6.85 is wired after P6.84 and before CSP hashing', () => {
+test('P6.85 runs from the final P6.84 hook before CSP hashing', () => {
+  const p684 = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'reconcile-wishlist-detail-open-runtime.js'), 'utf8');
+  assert.equal(p684.includes("require('./reconcile-conversation-auth-transport')"), true);
+  assert.equal(p684.includes('reconcileConversationAuthTransport(target);'), true);
+
   const csp = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'harden-inline-element-csp.js'), 'utf8');
   const p684Call = csp.indexOf('reconcileWishlistDetailOpenRuntime();');
-  const p685Call = csp.indexOf('reconcileConversationAuthTransport();');
   const readCall = csp.indexOf("fs.readFileSync(indexPath, 'utf8')");
-  assert.ok(p684Call >= 0 && p685Call > p684Call && readCall > p685Call);
+  assert.ok(p684Call >= 0 && readCall > p684Call);
 });
