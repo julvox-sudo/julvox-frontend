@@ -105,10 +105,15 @@ test('P6.86 safe Smart Scan runtime fragments remain syntactically valid JavaScr
 });
 
 test('P6.86 is chained after P6.85 and before CSP hashing', () => {
-  const p685 = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'reconcile-conversation-auth-transport.js'), 'utf8');
-  assert.equal(p685.includes("require('./reconcile-smart-scan-auth-transport')"), true);
-  assert.equal(p685.includes('reconcileSmartScanAuthTransport(target);'), true);
-
   const p684 = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'reconcile-wishlist-detail-open-runtime.js'), 'utf8');
-  assert.equal(p684.includes('reconcileConversationAuthTransport(target);'), true);
+  assert.equal(p684.includes("require('./reconcile-conversation-auth-transport')"), true);
+  assert.equal(p684.includes("require('./reconcile-smart-scan-auth-transport')"), true);
+  const p685Call = p684.indexOf('reconcileConversationAuthTransport(target);');
+  const p686Call = p684.indexOf('reconcileSmartScanAuthTransport(target);');
+  assert.ok(p685Call >= 0 && p686Call > p685Call);
+
+  const csp = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'harden-inline-element-csp.js'), 'utf8');
+  const p684Call = csp.indexOf('reconcileWishlistDetailOpenRuntime();');
+  const readCall = csp.indexOf("fs.readFileSync(indexPath, 'utf8')");
+  assert.ok(p684Call >= 0 && readCall > p684Call);
 });
