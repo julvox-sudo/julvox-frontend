@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { hardenPublicArtifact: reconcileConversationAuthTransport } = require('./reconcile-conversation-auth-transport');
 const { hardenPublicArtifact: reconcileSmartScanAuthTransport } = require('./reconcile-smart-scan-auth-transport');
+const { hardenPublicArtifact: reconcileSignupPremiumTruth } = require('./reconcile-signup-premium-truth');
 
 const MARKER = 'P6_84_WISHLIST_DETAIL_OPEN_RUNTIME';
 
@@ -92,6 +93,7 @@ function hardenPublicArtifact(indexPath) {
   fs.writeFileSync(target, hardened, 'utf8');
   reconcileConversationAuthTransport(target);
   reconcileSmartScanAuthTransport(target);
+  reconcileSignupPremiumTruth(target);
   console.log('P6_84_WISHLIST_DETAIL_OPEN_RUNTIME_PASS');
 }
 
