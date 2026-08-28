@@ -5,6 +5,7 @@ const path = require('node:path');
 const { hardenPublicArtifact: reconcileConversationAuthTransport } = require('./reconcile-conversation-auth-transport');
 const { hardenPublicArtifact: reconcileSmartScanAuthTransport } = require('./reconcile-smart-scan-auth-transport');
 const { hardenPublicArtifact: reconcileSignupPremiumTruth } = require('./reconcile-signup-premium-truth');
+const { hardenPublicArtifact: reconcileAlertBackendContractTruth } = require('./reconcile-alert-backend-contract-truth');
 
 const MARKER = 'P6_84_WISHLIST_DETAIL_OPEN_RUNTIME';
 
@@ -94,6 +95,7 @@ function hardenPublicArtifact(indexPath) {
   reconcileConversationAuthTransport(target);
   reconcileSmartScanAuthTransport(target);
   reconcileSignupPremiumTruth(target);
+  reconcileAlertBackendContractTruth(target);
   console.log('P6_84_WISHLIST_DETAIL_OPEN_RUNTIME_PASS');
 }
 
